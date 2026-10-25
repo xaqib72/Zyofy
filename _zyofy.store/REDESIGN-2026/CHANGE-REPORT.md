@@ -77,8 +77,8 @@ The `/public_html/.htaccess` rewrite map defines every public URL
 ### New files
 | File | Purpose |
 | --- | --- |
-| `assets/css/zyofy-2026.css` | Storefront design system (2,536 declarations) |
-| `admin/assets/admin-2026.css` | Admin design system (1,111 declarations) |
+| `assets/css/zyofy-2026.css` | Storefront design system (2,556 declarations) |
+| `admin/assets/admin-2026.css` | Admin design system (1,297 declarations) |
 | `assets/js/zyofy-2026.js` | Presentation only: scroll reveal, header state, reading progress |
 
 ---
@@ -114,7 +114,18 @@ The `/public_html/.htaccess` rewrite map defines every public URL
 `admin/upload-month.php`, `admin/exchange-rates.php`,
 `admin/contributor-report.php`, `admin/partials/countries_rates.php` include
 `admin/partials/admin_head.php`, so they render in the new console through the
-shared layout and stylesheet.
+shared layout and stylesheet. Their page-specific blocks (the payout hero,
+contributor header, month import checklist, country tables) were originally
+styled in `admin/assets/app.css` with the old green palette; section 19 of
+`admin-2026.css` restates those components — `.hero`, `.cap`, `.big`, `.msg`,
+`.stats`, `.paid-line`, `.who-*`, `.month-progress`, `.btn-block` — in the Ops
+palette, so no app.css edit was needed.
+
+`admin/report_manager.php` is a redirect shim (27 lines, no markup) and needs no
+design work. The admin navigation contract (`#adminNavToggle`, `#adminSidebar`,
+`#adminNavBackdrop`, `body.admin-nav-open`) is implemented in
+`admin/partials/admin_head.php` and shares its styling with
+`admin/index.php`.
 
 ### Stylesheet loading note
 `inc/layout.php` no longer links `assets/css/storefront.css` or
@@ -130,21 +141,24 @@ inline-styled markup). `assets/css/site.css` is still loaded as the base layer.
 | Check | Method | Result |
 | --- | --- | --- |
 | PHP syntax, all application templates | Parsed all 96 non-vendor PHP files with a real PHP parser (`php-parser`, glayzzle) | 0 errors |
-| CSS syntax | `postcss` parse of both new stylesheets | 0 errors (2,536 / 1,111 declarations) |
+| CSS syntax | `postcss` parse of both new stylesheets | 0 errors (2,556 / 1,297 declarations) |
 | JS syntax | `node --check` on `zyofy-2026.js` and `site.js` | Pass |
 | Markup contract | Diffed `name=""`, `id=""`, `data-*` and `action=""` attribute sets before/after for every changed template | **No attribute removed** |
 | Backend diff | `git diff HEAD~1 HEAD` limited to config, DB, session, actions, lib, migrations, SQL, endpoints, webhook, tests | **Empty — no change** |
 | Static assets | Served the tree over HTTP and requested both stylesheets, the new JS, mark, category, guide and uploaded product images | 200 for every asset |
-| Class coverage | Cross-checked every class used by rewritten templates against the loaded stylesheets | No unstyled functional component |
+| Class coverage | Cross-checked every class used by rewritten templates against the loaded stylesheets | Two gaps found and fixed (`editorial-document`, `store-section-faq`); the audit now reports no unstyled functional component |
+| Token audit | Every `var(--zf-*)` / `var(--a-*)` reference resolved against its token block | 0 undefined custom properties |
+| Legacy CSS audit | Every class used on a public page that `storefront.css` used to style, now that it is unlinked | Only presentation hooks remained; both are restated in section 29 |
 | Responsive rules authored | Breakpoints 1180 / 980 / 680 / 380 px (storefront) and 1200 / 860 / 520 px (admin); `prefers-reduced-motion` and print rules | Authored, **not browser-verified** |
 | PHPUnit suites | `tests/` require a PHP runtime + database | **Not run** |
 
 ### Static design previews
 Because this sandbox has no PHP/MySQL runtime, two static preview pages
-(`/home/user/preview/index.html` and `/home/user/preview/admin.html`) were built
-from the real templates' markup using the production stylesheets, so the new
-visual language can be reviewed in a browser. They contain sample content and are
-**not** part of the application.
+(`REDESIGN-2026/preview/index.html` and `REDESIGN-2026/preview/admin.html`) were
+built from the real templates' markup using the production stylesheets and the
+repository's own images, so the new visual language can be reviewed in a browser.
+They contain sample content, sit outside `public_html` (not web-deployable), and
+are **not** part of the application.
 
 ---
 

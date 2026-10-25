@@ -134,6 +134,10 @@ function dd_render_storefront_header($active = '', $user = null)
         'about' => ['Our approach', '/about/'],
         'contact' => ['Contact', '/contact/'],
     ];
+    $accountName = (string) ($user['name'] ?? $user['email'] ?? 'Contributor');
+    $accountInitial = function_exists('mb_substr')
+        ? mb_strtoupper(mb_substr($accountName, 0, 1, 'UTF-8'), 'UTF-8')
+        : strtoupper(substr($accountName, 0, 1));
     ?>
 <?php dd_render_affiliate_header_disclosure(); ?>
 <header class="storefront-header zf-header" data-site-header>
@@ -155,7 +159,7 @@ function dd_render_storefront_header($active = '', $user = null)
       </form>
       <div class="zf-account">
         <?php if ($user): ?>
-          <span class="zf-account-user"><i aria-hidden="true"><?= dd_e(strtoupper(substr((string) ($user['name'] ?? $user['email'] ?? 'Z'), 0, 1))) ?></i><span><?= dd_e($user['name'] ?? $user['email'] ?? 'Contributor') ?></span></span>
+          <span class="zf-account-user"><i aria-hidden="true"><?= dd_e($accountInitial) ?></i><span><?= dd_e($accountName) ?></span></span>
           <a class="storefront-signout-button zf-btn zf-btn-ghost zf-btn-sm" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
         <?php else: ?>
           <a class="storefront-signin zf-account-link" href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>

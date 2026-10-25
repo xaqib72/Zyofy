@@ -29,6 +29,8 @@
   --a-blue-soft: #eef2ff;
   --a-radius: 14px;
   --a-radius-sm: 10px;
+  --a-radius-lg: 20px;
+  --a-faint: #aab3c4;
   --a-display: "Bricolage Grotesque", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --a-text: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --a-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -342,7 +344,7 @@ body.zyofy-admin {
 
 .zyofy-admin .admin-welcome,
 .zyofy-admin .admin-subpage-welcome {
-  max-width: 1560px;
+  max-width: none;
   min-height: 0;
   display: flex;
   align-items: flex-end;
@@ -1319,3 +1321,203 @@ body.zyofy-admin-setup {
 .zyofy-admin-setup label { margin-top: 2px; }
 .zyofy-admin-setup input { margin-bottom: 4px; }
 .zyofy-admin-setup a { color: var(--a-ink); }
+
+/* ------------------------------------- 19. Legacy admin components
+   app.css still carries the original green identity for a handful of blocks
+   (payout hero, contributor header, month checklist). They are restated here in
+   the Ops palette so sub-pages match the dashboard without editing app.css. */
+.zyofy-admin .hero {
+  position: relative;
+  margin-top: 0;
+  padding: 30px 32px;
+  border: 1px solid var(--a-ink);
+  border-radius: var(--a-radius-lg);
+  background:
+    radial-gradient(620px 260px at 92% -10%, rgba(201, 244, 91, .22), transparent 62%),
+    linear-gradient(150deg, #101a2b, var(--a-ink) 55%, #0b1523);
+  color: #fff;
+  box-shadow: 0 24px 48px -34px rgba(10, 16, 28, .8);
+  overflow: hidden;
+}
+.zyofy-admin .hero .cap {
+  font-family: var(--a-mono);
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #93a1b8;
+}
+.zyofy-admin .hero .big {
+  margin-top: 14px;
+  font-family: var(--a-display);
+  font-size: clamp(2.4rem, 4.4vw, 3.3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.zyofy-admin .hero .big span {
+  margin-left: 10px;
+  font-family: var(--a-mono);
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--a-lime);
+}
+.zyofy-admin .hero .msg { margin-top: 12px; max-width: 68ch; color: #b6c1d3; font-size: .92rem; line-height: 1.62; }
+.zyofy-admin .hero .paid-line { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.zyofy-admin .hero .stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.zyofy-admin .hero .stats .l {
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8b97ab;
+}
+.zyofy-admin .hero .stats .v {
+  margin-top: 6px;
+  font-family: var(--a-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.zyofy-admin .hero .pill-red { background: rgba(179, 38, 30, .22); border-color: rgba(255, 120, 110, .45); color: #ffc9c4; }
+.zyofy-admin .hero .pill-green { background: rgba(201, 244, 91, .16); border-color: rgba(201, 244, 91, .4); color: var(--a-lime); }
+.zyofy-admin .hero .pill-amber { background: rgba(255, 193, 94, .16); border-color: rgba(255, 193, 94, .4); color: #ffd79a; }
+
+/* Contributor report header */
+.zyofy-admin .who-head { display: flex; align-items: center; gap: 16px; }
+.zyofy-admin .who-head h1 { margin: 0; }
+.zyofy-admin .who-head .lede { margin-top: 4px; }
+.zyofy-admin .who-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--a-ink);
+  color: var(--a-lime);
+  font-family: var(--a-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.zyofy-admin .who-card { padding: 24px 26px; }
+.zyofy-admin .who-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px; }
+.zyofy-admin .who-facts .l {
+  display: block;
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.zyofy-admin .who-facts .v {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--a-display);
+  font-size: 1.14rem;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: var(--a-ink);
+  font-variant-numeric: tabular-nums;
+}
+.zyofy-admin .who-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--a-line);
+}
+.zyofy-admin .who-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: var(--a-canvas);
+  color: var(--a-ink);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.zyofy-admin .who-tag-country {
+  padding-right: 7px;
+  border-right: 1px solid var(--a-line);
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.zyofy-admin .who-tag-pct {
+  padding-left: 7px;
+  border-left: 1px solid var(--a-line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-green);
+}
+.zyofy-admin .who-tag-shared { background: var(--a-amber-soft); border-color: #f0dcb4; color: var(--a-amber); }
+.zyofy-admin .who-tag-shared .who-tag-country { border-right-color: #eed6a8; color: #8a6630; }
+.zyofy-admin .who-tag-shared .who-tag-pct { border-left-color: #eed6a8; color: var(--a-amber); }
+.zyofy-admin .who-tag-shared i { font-size: .72rem; color: var(--a-amber); }
+
+/* Report import checklist */
+.zyofy-admin .btn-block { width: 100%; justify-content: center; padding: 14px 18px; font-size: .95rem; border-radius: 14px; }
+.zyofy-admin .month-progress { margin-top: 20px; border: 1px solid var(--a-line); border-radius: 16px; overflow: hidden; background: #fff; }
+.zyofy-admin .month-progress .mp-head {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--a-line);
+  background: var(--a-canvas);
+  font-size: .84rem;
+  color: var(--a-muted);
+}
+.zyofy-admin .month-progress .mp-head b { color: var(--a-ink); font-weight: 600; }
+.zyofy-admin .month-progress ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.zyofy-admin .month-progress li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .86rem;
+  color: var(--a-muted);
+}
+.zyofy-admin .month-progress li b { color: var(--a-ink); font-weight: 600; }
+.zyofy-admin .month-progress li span { font-size: .78rem; }
+.zyofy-admin .month-progress li.in i { color: var(--a-green); }
+.zyofy-admin .month-progress li.partial-row { background: var(--a-amber-soft); }
+.zyofy-admin .month-progress li.partial-row i { color: var(--a-amber); }
+.zyofy-admin .month-progress .partial { color: var(--a-amber); font-weight: 600; }
+.zyofy-admin .month-progress li.out { background: #fbfcfd; }
+.zyofy-admin .month-progress li.out i,
+.zyofy-admin .month-progress li.out b { color: var(--a-faint); }
+
+@media (max-width: 720px) {
+  .zyofy-admin .hero { padding: 24px 20px; border-radius: 18px; }
+  .zyofy-admin .hero .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .zyofy-admin .hero .big { font-size: 2.3rem; }
+  .zyofy-admin .who-head { align-items: flex-start; }
+  .zyofy-admin .who-tags { gap: 6px; }
+}

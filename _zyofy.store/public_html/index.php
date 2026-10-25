@@ -164,8 +164,8 @@ dd_render_storefront_header('home', $user);
           <?php foreach ($restGuides as $restSlug => $guide): ?>
             <a class="zf-guide-row" href="<?= dd_e(dd_url('/guides/' . rawurlencode($restSlug) . '/')) ?>">
               <span class="zf-guide-row-image"><img src="<?= dd_e(dd_media_url($guide['image'])) ?>" alt="" loading="lazy" decoding="async"></span>
-              <span>
-                <span><?= dd_e($guide['category']) ?></span>
+              <span class="zf-guide-row-copy">
+                <span class="zf-guide-row-kicker"><?= dd_e($guide['category']) ?></span>
                 <h3><?= dd_e($guide['title']) ?></h3>
               </span>
               <i aria-hidden="true">→</i>

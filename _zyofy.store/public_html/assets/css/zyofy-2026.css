@@ -1296,7 +1296,7 @@ body.contributor-page :where(button, a, input, select, textarea):focus-visible {
   background: var(--zf-paper);
 }
 .zf-guide-row-image img { width: 100%; height: 100%; object-fit: cover; }
-.zf-guide-row span {
+.zf-guide-row-kicker {
   display: block;
   font-family: var(--zf-mono);
   font-size: .58rem;
@@ -1305,6 +1305,7 @@ body.contributor-page :where(button, a, input, select, textarea):focus-visible {
   color: var(--zf-slate-2);
   margin-bottom: 5px;
 }
+.zf-guide-row-copy { display: block; min-width: 0; }
 .zf-guide-row h3 {
   margin: 0;
   font-family: var(--zf-text);
@@ -3008,3 +3009,34 @@ body.storefront-page .zf-menu-toggle.is-open span,
 body.auth-page .zf-menu-toggle.is-open span { background: #fff; }
 body.storefront-page .zf-btn,
 body.auth-page .zf-btn { text-decoration: none; }
+
+/* ------------------------------------------------- 29. Template hooks
+   Classes that exist in the templates but carried their look in the retired
+   storefront.css / site.css layers. They are restated here so every page reads
+   from one design system. */
+.store-section-faq {
+  background: var(--zf-paper);
+  border-top: 1px solid var(--zf-line);
+}
+.contact-page .section-white { background: var(--zf-paper); }
+.contact-page .contact-card .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--zf-mono);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.editorial-document { min-width: 0; max-width: 780px; }
+.editorial-document > h2:first-child { margin-top: 0; }
+.editorial-document > :last-child { margin-bottom: 0; }
+.editorial-page-intro.legal-intro,
+.editorial-page-intro.about-intro {
+  background:
+    radial-gradient(900px 340px at 88% -20%, rgba(201, 244, 91, .28), transparent 62%),
+    var(--zf-white);
+  border-bottom: 1px solid var(--zf-line);
+}
+.homepage-product-edit { scroll-margin-top: calc(var(--zf-header-h) + 18px); }

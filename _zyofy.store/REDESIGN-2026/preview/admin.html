@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zyofy Ops — design preview (admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="../../public_html/admin/assets/admin-2026.css">
+<style>
+  .preview-note{position:fixed;z-index:3000;left:50%;bottom:14px;transform:translateX(-50%);
+    display:flex;gap:10px;align-items:center;padding:9px 16px;border-radius:999px;
+    background:#c9f45b;color:#0a101c;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+</style>
+</head>
+<body class="zyofy-admin">
+<header class="header">
+  <div class="header-inner">
+    <button class="mobile-nav-toggle" type="button" aria-label="Open admin navigation"><i class="fas fa-bars"></i></button>
+    <span class="admin-topbar-title">Operations dashboard</span>
+    <div class="header-actions">
+      <span class="admin-badge"><i class="fas fa-shield-halved"></i> Admin</span>
+      <a class="logout" href="#"><i class="fas fa-right-from-bracket"></i> Logout</a>
+    </div>
+  </div>
+</header>
+
+<aside class="admin-workspace-nav admin-side-rail" id="adminSidebar" aria-label="Admin workspace navigation">
+  <a class="rail-brand" href="#"><span class="brand-mark"><img src="../../public_html/assets/images/zyofy-mark.svg" alt=""></span><span><b>Zyofy Admin</b><small>CONTROL CENTER</small></span></a>
+  <span class="nav-group-label">PEOPLE</span>
+  <a class="tab-button active" href="#"><i class="fas fa-users"></i> Users &amp; tags</a>
+  <a class="tab-button" href="#"><i class="fas fa-box-open"></i> Products</a>
+  <a class="tab-button" href="#"><i class="fas fa-tag"></i> Tracking tags</a>
+  <span class="nav-group-label nav-group-spaced">PERFORMANCE</span>
+  <a class="tab-button" href="#"><i class="fas fa-chart-column"></i> Reports &amp; earnings</a>
+  <a class="tab-button" href="#"><i class="fas fa-arrow-up-from-bracket"></i> Import reports</a>
+  <a class="tab-button" href="#"><i class="fas fa-file-invoice-dollar"></i> Payouts</a>
+  <span class="nav-group-label nav-group-spaced">CONFIGURATION</span>
+  <a class="tab-button" href="#"><i class="fas fa-plug"></i> API connections</a>
+  <a class="tab-button" href="#"><i class="fas fa-earth-americas"></i> Markets &amp; rates</a>
+  <span class="nav-group-label nav-group-spaced">SITE</span>
+  <a class="tab-button" href="#"><i class="fas fa-box-open"></i> View catalog</a>
+  <a class="tab-button" href="#"><i class="fas fa-arrow-up-right-from-square"></i> Public homepage</a>
+  <div class="nav-rail-foot"><span class="status-dot"></span><span>Workspace protected<small>Administrator</small></span><a href="#" aria-label="Logout"><i class="fas fa-right-from-bracket"></i></a></div>
+</aside>
+<button class="admin-nav-backdrop" type="button" aria-label="Close admin navigation"></button>
+
+<main class="page">
+  <div class="admin-welcome">
+    <div>
+      <span class="admin-overline">ZYOFY <i>/</i> OPERATIONS</span>
+      <h1>Good day, Admin.</h1>
+      <p>Everything your team needs to manage contributors and reporting.</p>
+    </div>
+    <div class="admin-welcome-badge"><span class="status-dot"></span> All systems operational</div>
+  </div>
+
+  <div class="metrics" style="margin-bottom:18px">
+    <div class="metric lead"><div class="l">Lifetime payable</div><div class="v">$12,480.55</div><div class="n">Converted at frozen month-close rates</div></div>
+    <div class="metric"><div class="l">Contributors</div><div class="v">18</div><div class="n">6 with active tracking tags</div></div>
+    <div class="metric"><div class="l">Tracking tags</div><div class="v">27</div><div class="n">Across 5 marketplaces</div></div>
+    <div class="metric"><div class="l">Reports imported</div><div class="v">42</div><div class="n">Latest: September 2026</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h2><i class="fas fa-users"></i> Registered users</h2>
+        <p class="subtext">Everybody with an account, and the tracking IDs assigned to them.</p>
+      </div>
+      <div class="action-row">
+        <input class="settings-input" type="search" placeholder="Search name, email or tag">
+        <button class="button button-primary" type="button"><i class="fas fa-user-plus"></i> Add user</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr><th>Contributor</th><th>Tracking tags</th><th>Commission</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="user-ident"><span class="user-avatar">AM</span><div><div class="user-name">Ayesha Malik</div><div class="user-email">ayesha@example.com</div></div></div></td>
+            <td><div class="tag-grid"><span class="tag"><span class="tag-country">US</span><span class="tag-code">zyofy-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span><span class="tag tag-shared"><i class="fas fa-people-group"></i><span class="tag-country">UK</span><span class="tag-code">zyofyuk-21</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
+            <td><button class="commission-btn" type="button">70% <i class="fas fa-pen"></i></button></td>
+            <td><div class="action-row"><button class="icon-button edit-button" type="button"><i class="fas fa-pen"></i></button><button class="icon-button danger" type="button"><i class="fas fa-user-minus"></i></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="user-ident"><span class="user-avatar">HR</span><div><div class="user-name">Hamza Raza</div><div class="user-email">hamza@example.com</div></div></div></td>
+            <td><div class="tag-grid"><span class="tag"><span class="tag-country">DE</span><span class="tag-code">zyofyde-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
+            <td><span class="commission-read">65%</span></td>
+            <td><div class="action-row"><button class="icon-button edit-button" type="button"><i class="fas fa-pen"></i></button><button class="icon-button danger" type="button"><i class="fas fa-user-minus"></i></button></div></td>
+          </tr>
+          <tr>
+            <td><div class="user-ident"><span class="user-avatar">SK</span><div><div class="user-name">Sana Khan</div><div class="user-email">sana@example.com</div></div></div></td>
+            <td><div class="tag-grid"><span class="badge badge-locked">No tags assigned</span></div></td>
+            <td><button class="commission-btn" type="button">70% <i class="fas fa-pen"></i></button></td>
+            <td><div class="action-row"><button class="icon-button edit-button" type="button"><i class="fas fa-pen"></i></button><button class="icon-button danger" type="button"><i class="fas fa-user-minus"></i></button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div><h2><i class="fas fa-file-invoice-dollar"></i> Recent report imports</h2><p class="subtext">Each upload replaces the snapshot for its region and month.</p></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Region</th><th>Currency</th><th class="r">Rows</th><th>Coverage</th><th>Uploaded</th></tr></thead>
+        <tbody>
+          <tr><td class="name">September 2026</td><td>United States</td><td><span class="pill">USD</span></td><td class="num">1,284</td><td><span class="badge badge-exact">Exact</span></td><td class="dim">2 Oct 2026, 11:04</td></tr>
+          <tr><td class="name">September 2026</td><td>United Kingdom</td><td><span class="pill">GBP</span></td><td class="num">732</td><td><span class="badge badge-exact">Exact</span></td><td class="dim">2 Oct 2026, 11:06</td></tr>
+          <tr><td class="name">August 2026</td><td>Germany</td><td><span class="pill">EUR</span></td><td class="num">615</td><td><span class="badge badge-legacy">Legacy</span></td><td class="dim">3 Sep 2026, 09:22</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <a class="pagination-link" href="#"><i class="fas fa-chevron-left"></i></a>
+      <a class="pagination-link active" href="#">1</a>
+      <a class="pagination-link" href="#">2</a>
+      <a class="pagination-link" href="#">3</a>
+      <a class="pagination-link" href="#"><i class="fas fa-chevron-right"></i></a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div><h2><i class="fas fa-tag"></i> Create a tracking tag</h2><p class="subtext">Assign an Amazon tracking ID to a contributor email.</p></div></div>
+    <form class="admin-form-grid">
+      <div class="field"><label for="a1">User email</label><input id="a1" type="email" placeholder="contributor@example.com"></div>
+      <div class="field"><label for="a2">Tracking ID</label><input id="a2" type="text" placeholder="zyofy-20"></div>
+      <div class="field"><label for="a3">Marketplace</label><select id="a3"><option>United States — www.amazon.com</option><option>United Kingdom — www.amazon.co.uk</option></select></div>
+      <div class="field"><label for="a4">Commission rate</label><input id="a4" type="number" value="70"></div>
+      <button class="button button-primary" type="button"><i class="fas fa-plus"></i> Assign tag</button>
+    </form>
+    <div class="note note-blue"><i class="fas fa-circle-info"></i><div>Commission is stored per assignment, so a contributor can hold different rates in different marketplaces.</div></div>
+  </div>
+</main>
+
+<div class="preview-note">Design preview · static sample content</div>
+</body>
+</html>
