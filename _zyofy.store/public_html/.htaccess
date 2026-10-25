@@ -1,0 +1,61 @@
+Options -Indexes
+DirectoryIndex index.php
+ErrorDocument 404 /404.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Let real files/directories (admin, assets, vendor, etc.) pass through untouched.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^products/?$ products.php [L,QSA]
+RewriteRule ^guides/?$ guides.php [L,QSA]
+RewriteRule ^guides/([A-Za-z0-9-]+)/?$ guide.php?slug=$1 [L,QSA]
+RewriteRule ^guids/?$ guides.php [R=301,L]
+RewriteRule ^about/?$ about.php [L,QSA]
+RewriteRule ^contact/?$ contact.php [L,QSA]
+RewriteRule ^login/?$ login-page.php [L,QSA]
+RewriteRule ^register/?$ register-page.php [L,QSA]
+RewriteRule ^forgot-password/?$ forgot-password-page.php [L,QSA]
+RewriteRule ^affiliate-disclaimer/?$ affiliate-disclaimer.php [L,QSA]
+RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
+RewriteRule ^terms-conditions/?$ terms-conditions.php [L,QSA]
+RewriteRule ^link-generator/?$ link-generator.php [L,QSA]
+RewriteRule ^my-earnings/?$ my-earnings.php [L,QSA]
+RewriteRule ^whatsapp-link/?$ whatsapp-link.php [L,QSA]
+RewriteRule ^product/([A-Za-z0-9]{10})/([A-Za-z0-9_-]{20,64})/?$ product.php?asin=$1&share=$2 [L,QSA]
+RewriteRule ^product/([A-Za-z0-9]{10})/?$ product.php?asin=$1 [L,QSA]
+</IfModule>
+
+<FilesMatch "^(config\.php|composer\.(json|lock)|PROJECT-SUMMARY\.md|SESSION-LOG\.md|README\.md)$">
+  Require all denied
+</FilesMatch>
+
+# Never serve logs, SQL dumps, backups or notes
+<FilesMatch "\.(log|sql|bak|md|txt\.bak|zip|tar|gz)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header unset X-Powered-By
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Performance: cache static assets aggressively
+  <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|webp|avif)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html|php)$">
+    Header set Cache-Control "no-cache, must-revalidate, max-age=0"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE application/rss+xml application/atom+xml image/svg+xml
+</IfModule>

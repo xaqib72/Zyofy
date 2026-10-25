@@ -1,0 +1,3 @@
+Zyofy deployment
+
+For a new installation, create a new empty Hostinger database and import ../zyofy_fresh_schema.sql. Set the new database credentials in ../config.php before deploying. Do not import any legacy data. See ../ZYOFY-HOSTINGER-SETUP.txt.

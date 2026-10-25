@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /dealdigger-admin/
+Disallow: /staging/
+Disallow: /login/
+Disallow: /register/
+Disallow: /forgot-password/
+Disallow: /my-earnings/
+
+Sitemap: https://testing.zyofy.store/sitemap.xml
