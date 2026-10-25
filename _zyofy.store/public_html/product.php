@@ -109,22 +109,35 @@ dd_render_head((string) ($product['title'] ?? 'Product details'), [
 ]);
 dd_render_storefront_header('products', $user);
 ?>
-<main class="product-detail-main">
+<main class="product-detail-main zf-detail">
   <div class="shell">
-    <?php if ($affiliateLink !== ''): ?>
-      <div class="product-detail-action product-detail-action-top">
-        <div class="product-detail-cta-top"><a class="product-detail-buy" href="<?= dd_e($affiliateLink) ?>" target="_blank" rel="sponsored nofollow noopener">View on Amazon <span aria-hidden="true">↗</span></a><small class="product-detail-paid-link">Paid link</small></div>
-        <p class="product-detail-disclosure product-detail-disclosure-highlight"><strong>Affiliate disclosure</strong><span>As an Amazon Associate I earn from qualifying purchases.</span></p>
-      </div>
-    <?php endif; ?>
-    <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><a href="<?= dd_e(dd_url('/products/')) ?>">Products</a><span>›</span><span><?= dd_e($asin) ?></span></nav>
+    <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><a href="<?= dd_e(dd_url('/products/')) ?>">Products</a><span>›</span><span><?= dd_e($asin !== '' ? $asin : ($product['title'] ?? 'Product')) ?></span></nav>
+
     <section class="product-detail-panel">
-      <div class="product-detail-gallery"><div class="product-detail-visual"><?php if ($image !== ''): ?><img src="<?= dd_e($image) ?>" alt="<?= dd_e($product['title'] ?? 'Product image') ?>" decoding="async"><?php else: ?><span class="product-detail-image-unavailable">Product image unavailable</span><?php endif; ?><span class="product-detail-market"><?= dd_e(dd_marketplace_label($pdo, $marketplace)) ?></span></div>
+      <div class="product-detail-gallery">
+        <div class="product-detail-visual">
+          <?php if ($image !== ''): ?><img src="<?= dd_e($image) ?>" alt="<?= dd_e($product['title'] ?? 'Product image') ?>" decoding="async"><?php else: ?><span class="product-detail-image-unavailable">Product image unavailable</span><?php endif; ?>
+          <span class="product-detail-market"><?= dd_e(dd_marketplace_label($pdo, $marketplace)) ?></span>
+        </div>
       </div>
+
       <div class="product-detail-copy">
-        <span class="editorial-overline"><i></i> PRODUCT INFORMATION</span>
+        <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Product information</span>
         <h1><?= dd_e($product['title'] ?? 'Product details') ?></h1>
         <p class="product-detail-asin"><?= $isManualProduct ? 'Marketplace' : 'ASIN ' . dd_e($asin) ?> <span aria-hidden="true">·</span> <?= dd_e($isManualProduct ? preg_replace('/^www\./', '', $marketplace) : dd_marketplace_label($pdo, $marketplace)) ?></p>
+
+        <?php if ($affiliateLink !== ''): ?>
+          <div class="product-detail-action">
+            <div class="product-detail-cta-top">
+              <a class="product-detail-buy" href="<?= dd_e($affiliateLink) ?>" target="_blank" rel="sponsored nofollow noopener">View on Amazon <span aria-hidden="true">↗</span></a>
+              <small class="product-detail-paid-link">Paid link</small>
+            </div>
+            <p class="product-detail-disclosure"><strong>Affiliate disclosure</strong><span>As an Amazon Associate I earn from qualifying purchases. Price and availability are confirmed on the retailer page.</span></p>
+          </div>
+        <?php else: ?>
+          <p class="product-search-notice">This product does not have a valid retailer link yet.</p>
+        <?php endif; ?>
+
         <?php if ($description !== ''): ?>
           <section class="product-detail-facts" aria-labelledby="productDetailsHeading">
             <h2 id="productDetailsHeading">Product details</h2>
@@ -135,9 +148,9 @@ dd_render_storefront_header('products', $user);
             </ul>
           </section>
         <?php endif; ?>
+
         <p class="product-detail-content-notice"><strong><?= $isManualProduct ? 'Product information' : 'Amazon content notice' ?></strong><span><?= $isManualProduct ? 'Product details are provided by Zyofy. Check the Amazon listing for current product information.' : 'Certain content that appears on this site comes from Amazon. This content is provided as is and may change or be removed at any time.' ?></span></p>
       </div>
-      <?php if ($affiliateLink === ''): ?><p class="product-search-notice">This product does not have a valid retailer link yet.</p><?php endif; ?>
     </section>
   </div>
 </main>

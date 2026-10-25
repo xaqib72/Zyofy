@@ -12,9 +12,12 @@ dd_render_storefront_header('', $user);
 ?>
 <main>
   <section class="editorial-page-intro legal-intro">
-    <div class="shell editorial-page-intro-inner">
-      <div><span class="editorial-overline"><i></i> THE TERMS OF USING ZYOFY</span><h1>Terms &amp;<br><em>conditions.</em></h1><p>The ground rules for using this publication and its services.</p></div>
-      <div class="editorial-intro-stamp"><span>FAIR<br>USE</span><b>✳</b><small>READ BEFORE<br>YOU CONTINUE</small></div>
+    <div class="shell">
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>Terms &amp; conditions</span></nav>
+      <div class="editorial-page-intro-inner">
+        <div><span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The terms of using Zyofy</span><h1>Terms &amp;<br><em>conditions.</em></h1><p>The ground rules for using this publication and its services.</p></div>
+        <div class="editorial-intro-stamp"><span>FAIR<br>USE</span><b>✳</b><small>READ BEFORE<br>YOU CONTINUE</small></div>
+      </div>
     </div>
   </section>
 

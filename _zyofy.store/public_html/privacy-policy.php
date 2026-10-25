@@ -12,9 +12,12 @@ dd_render_storefront_header('', $user);
 ?>
 <main>
   <section class="editorial-page-intro legal-intro">
-    <div class="shell editorial-page-intro-inner">
-      <div><span class="editorial-overline"><i></i> YOUR DATA, YOUR BUSINESS</span><h1>Privacy<br><em>policy.</em></h1><p>What we collect, why we need it, and how we handle it.</p></div>
-      <div class="editorial-intro-stamp"><span>YOUR<br>PRIVACY</span><b>✳</b><small>DATA WITH<br>CARE</small></div>
+    <div class="shell">
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>Privacy policy</span></nav>
+      <div class="editorial-page-intro-inner">
+        <div><span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Your data, your business</span><h1>Privacy<br><em>policy.</em></h1><p>What we collect, why we need it, and how we handle it.</p></div>
+        <div class="editorial-intro-stamp"><span>YOUR<br>PRIVACY</span><b>✳</b><small>DATA WITH<br>CARE</small></div>
+      </div>
     </div>
   </section>
 

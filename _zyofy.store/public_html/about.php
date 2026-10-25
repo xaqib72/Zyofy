@@ -12,12 +12,15 @@ dd_render_storefront_header('about', $user);
 ?>
 <main>
   <section class="editorial-page-intro about-intro">
-    <div class="shell editorial-page-intro-inner">
-      <div><span class="editorial-overline"><i></i> THE ZYOFY POINT OF VIEW</span>
-        <h1>Good decisions start<br>with <em>better questions.</em></h1>
-        <p>Zyofy is an independently operated buying-guide publication. We make practical comparisons easier, without pretending every item was personally tested.</p>
+    <div class="shell">
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>About</span></nav>
+      <div class="editorial-page-intro-inner">
+        <div><span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The Zyofy point of view</span>
+          <h1>Good decisions start<br>with <em>better questions.</em></h1>
+          <p>Zyofy is an independently operated buying-guide publication. We make practical comparisons easier, without pretending every item was personally tested.</p>
+        </div>
+        <div class="editorial-intro-stamp"><span>ZYOFY</span><b>✳</b><small>INDEPENDENT<br>BUYING GUIDES</small></div>
       </div>
-      <div class="editorial-intro-stamp"><span>ZYOFY</span><b>✳</b><small>INDEPENDENT<br>BUYING GUIDES</small></div>
     </div>
   </section>
 

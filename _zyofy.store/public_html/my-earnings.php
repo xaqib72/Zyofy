@@ -134,6 +134,8 @@ $shareText = ddOut($dummyCommissionText) . '%';
 <link rel="icon" type="image/svg+xml" href="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>">
 <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/storefront.css?v=' . (is_file(__DIR__ . '/assets/css/storefront.css') ? filemtime(__DIR__ . '/assets/css/storefront.css') : '20261007'))) ?>">
 <link rel="stylesheet" href="<?= dd_e(dd_url('/admin/assets/app.css?v=' . $appCssVersion)) ?>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/zyofy-2026.css?v=' . (is_file(__DIR__ . '/assets/css/zyofy-2026.css') ? filemtime(__DIR__ . '/assets/css/zyofy-2026.css') : '1'))) ?>">
 <style>
   .fintech-header {
     position: sticky;
@@ -341,6 +343,7 @@ $shareText = ddOut($dummyCommissionText) . '%';
     .fintech-user-badge { display: none; }
   }
 </style>
+<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/zyofy-2026.css?v=' . (is_file(__DIR__ . '/assets/css/zyofy-2026.css') ? filemtime(__DIR__ . '/assets/css/zyofy-2026.css') : '2'))) ?>">
 </head>
 <body class="storefront-page contributor-earnings-page contributor-page" style="background:var(--bg)">
 

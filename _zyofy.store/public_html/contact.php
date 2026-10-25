@@ -37,7 +37,8 @@ dd_render_storefront_header('contact', $user);
 <main>
   <section class="page-hero">
     <div class="shell content-head">
-      <span class="eyebrow">Contact Us</span>
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>Contact</span></nav>
+      <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Contact us</span>
       <h1>Questions, corrections or feedback?</h1>
       <p>Contact Zyofy about our guides, account access or site feedback. Zyofy does not sell products, so for an order, payment, shipping, return or refund, please contact the seller you purchased from.</p>
     </div>
@@ -47,7 +48,7 @@ dd_render_storefront_header('contact', $user);
     <div class="shell contact-grid">
       <!-- Left Contact Info Card -->
       <aside class="contact-card">
-        <span class="eyebrow">Zyofy Support</span>
+        <span class="eyebrow">Zyofy support</span>
         <h3>We're here to help.</h3>
         <p style="color:var(--muted);margin-bottom:20px;line-height:1.6">
           For general questions, content corrections, account access or site support, use the form or email us directly.

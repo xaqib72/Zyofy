@@ -11,7 +11,7 @@ dd_render_header();
 ?>
 <main class="auth-shell">
   <section class="auth-art">
-    <span class="hero-kicker">Welcome Back</span>
+    <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Welcome Back</span>
     <h1>Account<br>sign in.</h1>
     <p>Sign in to your existing Zyofy account. New registrations are currently closed.</p>
     <div class="auth-benefits">
@@ -22,7 +22,7 @@ dd_render_header();
 
   <section class="auth-panel">
     <div class="auth-card">
-      <span class="eyebrow">Account Access</span>
+      <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Account Access</span>
       <h2>Login to Zyofy</h2>
       <p class="sub">Enter the email address and password connected to your account.</p>
 

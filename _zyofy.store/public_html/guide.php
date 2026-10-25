@@ -31,10 +31,10 @@ dd_render_storefront_header('guides', $user);
       <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><a href="<?= dd_e(dd_url('/guides/')) ?>">Guides</a><span>›</span><span><?= dd_e($guide['category']) ?></span></nav>
       <div class="guide-article-hero-grid">
         <div>
-          <span class="storefront-kicker"><?= dd_e($guide['category']) ?></span>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> <?= dd_e($guide['category']) ?></span>
           <h1><?= dd_e($guide['title']) ?></h1>
           <p><?= dd_e($guide['excerpt']) ?></p>
-          <div class="guide-meta"><?= dd_e($guide['read_time']) ?> · Updated <?= dd_e($guide['updated']) ?></div>
+          <div class="guide-meta"><?= dd_e($guide['read_time']) ?> read · Updated <?= dd_e($guide['updated']) ?></div>
         </div>
         <div class="guide-article-image" style="--image-position:<?= dd_e($guide['position'] ?? 'center') ?>"><img src="<?= dd_e($ogImage) ?>" alt="<?= dd_e($guide['title']) ?>" width="1600" height="900" decoding="async"></div>
       </div>
@@ -44,7 +44,7 @@ dd_render_storefront_header('guides', $user);
   <section class="store-section guide-article-section">
     <div class="shell guide-article-layout">
       <article class="guide-article-body">
-        <div class="guide-note"><strong>Editorial note:</strong> this is original buying guidance, not a claim of hands-on testing. Use it as a checklist, then verify current specifications, price, availability and warranty details on the retailer's product page.</div>
+        <div class="guide-note"><strong>Editorial note</strong> This is original buying guidance, not a claim of hands-on testing. Use it as a checklist, then verify current specifications, price, availability and warranty details on the retailer's product page.</div>
         <?php foreach ($guide['sections'] as $section): ?>
           <section>
             <h2><?= dd_e($section[0]) ?></h2>

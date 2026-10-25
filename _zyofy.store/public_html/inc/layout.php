@@ -14,7 +14,7 @@ function dd_render_head($title, array $options = [])
     $ogImage = trim((string) ($options['og_image'] ?? ''));
     $ogImageAlt = $options['og_image_alt'] ?? $title;
     $siteCssVersion = is_file(__DIR__ . '/../assets/css/site.css') ? (string) filemtime(__DIR__ . '/../assets/css/site.css') : '20260905';
-    $storeCssVersion = is_file(__DIR__ . '/../assets/css/storefront.css') ? (string) filemtime(__DIR__ . '/../assets/css/storefront.css') : '20260905';
+    $signalCssVersion = is_file(__DIR__ . '/../assets/css/zyofy-2026.css') ? (string) filemtime(__DIR__ . '/../assets/css/zyofy-2026.css') : '20261025';
     ?>
 <!doctype html>
 <html lang="en">
@@ -44,13 +44,14 @@ function dd_render_head($title, array $options = [])
   <meta name="twitter:description" content="<?= dd_e($ogDescription) ?>">
 
   <link rel="icon" type="image/svg+xml" href="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>">
-  <meta name="theme-color" content="#18233a">
+  <meta name="theme-color" content="#0a101c">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <?php /* site.css keeps the shared base utilities; the two earlier visual
+           refreshes are superseded by the 2026 "Signal" design layer below. */ ?>
   <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/site.css?v=' . $siteCssVersion)) ?>">
-  <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/storefront.css?v=' . $storeCssVersion)) ?>">
-  <?php $premiumCssVersion = is_file(__DIR__ . '/../assets/css/premium-refresh.css') ? (string) filemtime(__DIR__ . '/../assets/css/premium-refresh.css') : '1'; ?>
-  <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/premium-refresh.css?v=' . $premiumCssVersion)) ?>">
+  <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/zyofy-2026.css?v=' . $signalCssVersion)) ?>">
 </head>
 <body class="<?= dd_e($bodyClass) ?>">
 <?php
@@ -59,10 +60,12 @@ function dd_render_head($title, array $options = [])
 function dd_render_affiliate_header_disclosure()
 {
     ?>
-<div class="affiliate-header-disclosure" role="note" aria-label="Amazon affiliate disclosure">
-  <span class="affiliate-header-disclosure-mark" aria-hidden="true">i</span>
-  <span class="affiliate-header-disclosure-text"><strong>Affiliate disclosure</strong><span>As an Amazon Associate I earn from qualifying purchases.</span></span>
-  <a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Learn more <b aria-hidden="true">↗</b></a>
+<div class="affiliate-header-disclosure zf-disclosure" role="note" aria-label="Amazon affiliate disclosure">
+  <div class="shell zf-disclosure-inner">
+    <span class="zf-disclosure-badge">Affiliate</span>
+    <p><strong>As an Amazon Associate I earn from qualifying purchases.</strong> Commission never changes the price you pay.</p>
+    <a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">How this works <span aria-hidden="true">↗</span></a>
+  </div>
 </div>
 <?php
 }
@@ -77,32 +80,40 @@ function dd_render_header($active = '', $user = null)
         'contact' => ['Contact', '/contact/'],
     ];
     ?>
-<header class="site-header" data-site-header>
-  <?php dd_render_affiliate_header_disclosure(); ?>
-  <div class="shell header-inner">
-    <a class="brand" href="<?= dd_e(dd_url('/')) ?>" aria-label="Zyofy home">
-      <span class="brand-mark" aria-hidden="true"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span><span class="brand-name">Zyofy</span>
+<?php dd_render_affiliate_header_disclosure(); ?>
+<header class="site-header zf-header" data-site-header>
+  <div class="shell zf-header-inner">
+    <a class="brand zf-brand" href="<?= dd_e(dd_url('/')) ?>" aria-label="Zyofy home">
+      <span class="brand-mark zf-brand-mark" aria-hidden="true"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span>
+      <span class="brand-name zf-brand-type"><b>Zyofy</b><small>THE GOOD CHOICE EDIT</small></span>
     </a>
-    <nav class="desktop-nav" aria-label="Primary navigation">
+    <nav class="desktop-nav zf-nav" aria-label="Primary navigation">
       <?php foreach ($links as $key => [$label, $path]): ?>
-        <a class="nav-link<?= $active === $key ? ' is-active' : '' ?>" href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
+        <a class="nav-link zf-nav-link<?= $active === $key ? ' is-active' : '' ?>" href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
       <?php endforeach; ?>
     </nav>
-    <div class="header-actions">
+    <div class="header-actions zf-header-tools">
       <?php if ($user): ?>
-        <a class="btn btn-ghost btn-sm" href="<?= dd_e(dd_url('/logout.php')) ?>">Logout</a>
+        <a class="btn btn-ghost btn-sm zf-btn-ghost zf-btn-sm" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
+      <?php else: ?>
+        <a class="zf-account-link" href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
       <?php endif; ?>
-      <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
+      <button class="menu-toggle zf-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
     </div>
   </div>
-  <div class="mobile-menu" data-mobile-menu>
-    <div class="shell mobile-menu-inner">
+  <div class="mobile-menu zf-mobile-menu" data-mobile-menu>
+    <div class="shell mobile-menu-inner zf-mobile-inner">
       <?php foreach ($links as $key => [$label, $path]): ?>
         <a href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
       <?php endforeach; ?>
-      <?php if ($user): ?>
-        <a href="<?= dd_e(dd_url('/logout.php')) ?>">Logout</a>
-      <?php endif; ?>
+      <div class="zf-mobile-foot">
+        <?php if ($user): ?>
+          <a href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
+        <?php else: ?>
+          <a href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
+          <a class="zf-mobile-primary" href="<?= dd_e(dd_url('/register/')) ?>">Create account</a>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 </header>
@@ -112,10 +123,10 @@ function dd_render_header($active = '', $user = null)
 function dd_render_storefront_header($active = '', $user = null)
 {
     $links = $user ? [
-        'home' => ['Home', '/'],
+        'home' => ['Discover', '/'],
         'products' => ['Products', '/products/'],
-        'generator' => ['Generate Link', '/link-generator/'],
-        'earnings' => ['My Earnings', '/my-earnings/'],
+        'generator' => ['Generate link', '/link-generator/'],
+        'earnings' => ['My earnings', '/my-earnings/'],
     ] : [
         'home' => ['Discover', '/'],
         'products' => ['Products', '/products/'],
@@ -124,35 +135,47 @@ function dd_render_storefront_header($active = '', $user = null)
         'contact' => ['Contact', '/contact/'],
     ];
     ?>
-<header class="storefront-header" data-site-header>
-  <?php dd_render_affiliate_header_disclosure(); ?>
-  <div class="shell storefront-header-main">
-    <a class="storefront-brand" href="<?= dd_e(dd_url('/')) ?>" aria-label="Zyofy home">
-      <span class="storefront-brand-mark" aria-hidden="true"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span>
-      <span class="storefront-wordmark">Zyofy<small>THE GOOD CHOICE EDIT</small></span>
+<?php dd_render_affiliate_header_disclosure(); ?>
+<header class="storefront-header zf-header" data-site-header>
+  <div class="shell storefront-header-main zf-header-inner">
+    <a class="storefront-brand zf-brand" href="<?= dd_e(dd_url('/')) ?>" aria-label="Zyofy home">
+      <span class="storefront-brand-mark zf-brand-mark" aria-hidden="true"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span>
+      <span class="storefront-wordmark zf-brand-type"><b>Zyofy</b><small>THE GOOD CHOICE EDIT</small></span>
     </a>
-    <div class="storefront-header-note"><span class="header-spark">✳</span><span>Thoughtful picks. Clear advice.<small>Independent guides for everyday decisions.</small></span></div>
-    <div class="storefront-account">
-      <?php if ($user): ?>
-        <span class="storefront-user-name"><?= dd_e($user['name'] ?? $user['email'] ?? 'Contributor') ?></span>
-        <a class="storefront-signout-button" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
-      <?php else: ?>
-        <a class="storefront-signin" href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
-        <a class="storefront-account-link storefront-join-link" href="<?= dd_e(dd_url('/register/')) ?>">Create account <span aria-hidden="true">↗</span></a>
-      <?php endif; ?>
-      <button class="menu-toggle storefront-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
+    <nav class="storefront-nav zf-nav" aria-label="Primary navigation">
+      <?php foreach ($links as $key => [$label, $path]): ?>
+        <a class="zf-nav-link<?= $active === $key ? ' is-active' : '' ?>" href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <div class="storefront-account zf-header-tools">
+      <form class="zf-quick-search" method="get" action="<?= dd_e(dd_url('/products/')) ?>" role="search">
+        <label class="zf-sr-only" for="zfHeaderSearch">Search products</label>
+        <input id="zfHeaderSearch" type="search" name="q" placeholder="Search finds" minlength="2" maxlength="100">
+        <button type="submit" aria-label="Search products"><span aria-hidden="true">→</span></button>
+      </form>
+      <div class="zf-account">
+        <?php if ($user): ?>
+          <span class="zf-account-user"><i aria-hidden="true"><?= dd_e(strtoupper(substr((string) ($user['name'] ?? $user['email'] ?? 'Z'), 0, 1))) ?></i><span><?= dd_e($user['name'] ?? $user['email'] ?? 'Contributor') ?></span></span>
+          <a class="storefront-signout-button zf-btn zf-btn-ghost zf-btn-sm" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
+        <?php else: ?>
+          <a class="storefront-signin zf-account-link" href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
+          <a class="storefront-account-link storefront-join-link zf-btn zf-btn-primary zf-btn-sm" href="<?= dd_e(dd_url('/register/')) ?>">Create account <span aria-hidden="true">↗</span></a>
+        <?php endif; ?>
+      </div>
+      <button class="menu-toggle storefront-menu-toggle zf-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
     </div>
   </div>
-  <div class="storefront-nav-rail"><nav class="shell storefront-nav" aria-label="Primary navigation">
-    <?php foreach ($links as $key => [$label, $path]): ?>
-      <a class="<?= $active === $key ? 'is-active' : '' ?>" href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
-    <?php endforeach; ?>
-    <span class="nav-rail-note">CURATED FOR REAL LIFE <b>✳</b></span>
-  </nav></div>
-  <div class="mobile-menu storefront-mobile-menu" data-mobile-menu><div class="shell mobile-menu-inner">
+  <div class="mobile-menu storefront-mobile-menu zf-mobile-menu" data-mobile-menu><div class="shell mobile-menu-inner zf-mobile-inner">
     <?php foreach ($links as $key => [$label, $path]): ?><a href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a><?php endforeach; ?>
-    <?php if ($user): ?><a class="mobile-signout" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a><?php else: ?><a href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a><a href="<?= dd_e(dd_url('/register/')) ?>">Create account</a><?php endif; ?>
     <a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Affiliate disclosure</a>
+    <div class="zf-mobile-foot">
+      <?php if ($user): ?>
+        <a href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
+      <?php else: ?>
+        <a href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
+        <a class="zf-mobile-primary" href="<?= dd_e(dd_url('/register/')) ?>">Create account</a>
+      <?php endif; ?>
+    </div>
   </div></div>
 </header>
 <?php
@@ -161,21 +184,57 @@ function dd_render_storefront_header($active = '', $user = null)
 function dd_render_footer()
 {
     ?>
-<footer class="zyofy-footer">
-  <div class="shell zyofy-footer-disclosure"><span class="zyofy-footer-disclosure-mark" aria-hidden="true">i</span><div><strong>Amazon affiliate disclosure</strong><p>As an Amazon Associate I earn from qualifying purchases. Some links may earn Zyofy a commission at no extra cost to you.</p><p>CERTAIN CONTENT THAT APPEARS ON THIS SITE COMES FROM AMAZON. THIS CONTENT IS PROVIDED &quot;AS IS&quot; AND IS SUBJECT TO CHANGE OR REMOVAL AT ANY TIME.</p></div></div>
-  <div class="shell zyofy-footer-main">
-    <div class="zyofy-footer-brand">
-      <a class="storefront-brand" href="<?= dd_e(dd_url('/')) ?>"><span class="storefront-brand-mark"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span><span class="storefront-wordmark">Zyofy<small>THE GOOD CHOICE EDIT</small></span></a>
-      <p>Clear-headed buying advice for the things that make everyday life work.</p>
-      <a class="footer-about-link" href="<?= dd_e(dd_url('/about/')) ?>">How we put guides together <span>↗</span></a>
+<footer class="zyofy-footer zf-footer">
+  <div class="shell">
+    <div class="zf-footer-top">
+      <div class="zyofy-footer-brand zf-footer-brand">
+        <a class="storefront-brand zf-brand" href="<?= dd_e(dd_url('/')) ?>">
+          <span class="storefront-brand-mark zf-brand-mark"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt=""></span>
+          <span class="storefront-wordmark zf-brand-type"><b>Zyofy</b><small>THE GOOD CHOICE EDIT</small></span>
+        </a>
+        <p>Clear-headed buying advice for the things that make everyday life work. Independent guides, honest limits, no paid placements.</p>
+        <a class="footer-about-link zf-section-link" style="color:#fff;border-color:rgba(201,244,91,.6)" href="<?= dd_e(dd_url('/about/')) ?>">How we put guides together <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="zyofy-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">Explore</span>
+        <a href="<?= dd_e(dd_url('/products/')) ?>">Product catalog</a>
+        <a href="<?= dd_e(dd_url('/guides/')) ?>">All buying guides</a>
+        <a href="<?= dd_e(dd_url('/#guides')) ?>">Latest edits</a>
+        <a href="<?= dd_e(dd_url('/contact/')) ?>">Ask a question</a>
+      </div>
+      <div class="zyofy-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">Zyofy</span>
+        <a href="<?= dd_e(dd_url('/about/')) ?>">Our approach</a>
+        <a href="<?= dd_e(dd_url('/contact/')) ?>">Contact</a>
+        <a href="<?= dd_e(dd_url('/login/')) ?>">Contributor sign in</a>
+        <a href="<?= dd_e(dd_url('/register/')) ?>">Create an account</a>
+      </div>
+      <div class="zyofy-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">The details</span>
+        <a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Affiliate disclosure</a>
+        <a href="<?= dd_e(dd_url('/privacy-policy/')) ?>">Privacy policy</a>
+        <a href="<?= dd_e(dd_url('/terms-conditions/')) ?>">Terms &amp; conditions</a>
+      </div>
     </div>
-    <div class="zyofy-footer-links"><span class="footer-label">EXPLORE</span><a href="<?= dd_e(dd_url('/guides/')) ?>">All buying guides</a><a href="<?= dd_e(dd_url('/#guides')) ?>">Latest edits</a><a href="<?= dd_e(dd_url('/contact/')) ?>">Ask a question</a></div>
-    <div class="zyofy-footer-links"><span class="footer-label">ZYOFY</span><a href="<?= dd_e(dd_url('/about/')) ?>">Our approach</a><a href="<?= dd_e(dd_url('/contact/')) ?>">Contact</a><a href="<?= dd_e(dd_url('/login/')) ?>">Contributor sign in</a><a href="<?= dd_e(dd_url('/register/')) ?>">Create an account</a></div>
-    <div class="zyofy-footer-links"><span class="footer-label">THE DETAILS</span><a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Affiliate disclosure</a><a href="<?= dd_e(dd_url('/privacy-policy/')) ?>">Privacy policy</a><a href="<?= dd_e(dd_url('/terms-conditions/')) ?>">Terms &amp; conditions</a></div>
+    <div class="zyofy-footer-disclosure zf-footer-disclosure">
+      <span class="zyofy-footer-disclosure-mark zf-footer-disclosure-mark" aria-hidden="true">i</span>
+      <div>
+        <strong>Amazon affiliate disclosure</strong>
+        <p>As an Amazon Associate I earn from qualifying purchases. Some links may earn Zyofy a commission at no extra cost to you.</p>
+        <p>CERTAIN CONTENT THAT APPEARS ON THIS SITE COMES FROM AMAZON. THIS CONTENT IS PROVIDED &quot;AS IS&quot; AND IS SUBJECT TO CHANGE OR REMOVAL AT ANY TIME.</p>
+      </div>
+    </div>
   </div>
-  <div class="zyofy-footer-bottom"><div class="shell"><span>© <?= date('Y') ?> Zyofy Store</span><span>Considered choices, made simpler. <b>✳</b></span></div></div>
+  <div class="zyofy-footer-bottom zf-footer-bottom">
+    <div class="shell" style="display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between">
+      <span>© <?= date('Y') ?> Zyofy Store</span>
+      <span>Considered choices, made simpler.</span>
+      <span><a href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Disclosure</a> · <a href="<?= dd_e(dd_url('/privacy-policy/')) ?>">Privacy</a> · <a href="<?= dd_e(dd_url('/terms-conditions/')) ?>">Terms</a></span>
+    </div>
+  </div>
 </footer>
 <script src="<?= dd_e(dd_url('/assets/js/site.js?v=' . (is_file(__DIR__ . '/../assets/js/site.js') ? filemtime(__DIR__ . '/../assets/js/site.js') : '1'))) ?>" defer></script>
+<script src="<?= dd_e(dd_url('/assets/js/zyofy-2026.js?v=' . (is_file(__DIR__ . '/../assets/js/zyofy-2026.js') ? filemtime(__DIR__ . '/../assets/js/zyofy-2026.js') : '1'))) ?>" defer></script>
 </body>
 </html>
 <?php
@@ -190,18 +249,18 @@ function dd_product_card(array $product)
     $publicUrl = $isManual ? dd_manual_product_url($product['manual_slug']) : dd_product_public_url($asin, $product['marketplace'] ?? null);
     $marketplaceLabel = preg_replace('/^www\./', '', (string) ($product['marketplace'] ?? 'Amazon'));
     ?>
-<article class="product-card retail-product-card">
-  <a class="product-card-image" href="<?= dd_e($publicUrl) ?>" aria-label="View <?= dd_e($product['title'] ?? 'product') ?>">
+<article class="product-card retail-product-card zf-card">
+  <a class="product-card-image zf-card-media" href="<?= dd_e($publicUrl) ?>" aria-label="View <?= dd_e($product['title'] ?? 'product') ?>">
     <?php if ($image): ?>
       <img src="<?= dd_e($image) ?>" alt="<?= dd_e($product['title'] ?? 'Amazon product') ?>" loading="lazy" decoding="async" width="320" height="320">
     <?php else: ?>
       <span class="image-placeholder"><img src="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>" alt="Zyofy"></span>
     <?php endif; ?>
   </a>
-  <div class="product-card-body">
-    <span class="marketplace-pill"><?= dd_e($marketplaceLabel ?: 'Amazon') ?></span>
+  <div class="product-card-body zf-card-body">
+    <span class="marketplace-pill zf-card-tag"><?= dd_e($marketplaceLabel ?: 'Amazon') ?></span>
     <h3><a href="<?= dd_e($publicUrl) ?>" title="<?= dd_e($product['title'] ?? 'Amazon product') ?>"><?= dd_e($product['title'] ?? 'Untitled product') ?></a></h3>
-    <a class="retail-product-btn" href="<?= dd_e($publicUrl) ?>">View product <span aria-hidden="true">↗</span></a>
+    <a class="retail-product-btn zf-card-link" href="<?= dd_e($publicUrl) ?>"><span>View product</span><span aria-hidden="true">↗</span></a>
   </div>
 </article>
 <?php

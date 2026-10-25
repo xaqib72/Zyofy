@@ -494,6 +494,7 @@ function payoutQuery($overrides = array())
   .person.idle td { color: var(--faint); }
   .idle-header td { background: #f2f8f3; }
 </style>
+<link rel="stylesheet" href="assets/admin-2026.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/admin-2026.css')) ?>">
 
 <script>
 /* ---- recording payments ---- */

@@ -12,9 +12,12 @@ dd_render_storefront_header('', $user);
 ?>
 <main>
   <section class="editorial-page-intro legal-intro">
-    <div class="shell editorial-page-intro-inner">
-      <div><span class="editorial-overline"><i></i> TRANSPARENCY, IN PLAIN LANGUAGE</span><h1>Affiliate<br><em>disclosure.</em></h1><p>How Zyofy is funded and what you should know about our editorial content.</p></div>
-      <div class="editorial-intro-stamp"><span>OPEN<br>BOOK</span><b>✳</b><small>OUR CURRENT<br>RELATIONSHIPS</small></div>
+    <div class="shell">
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>Affiliate disclosure</span></nav>
+      <div class="editorial-page-intro-inner">
+        <div><span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Transparency, in plain language</span><h1>Affiliate<br><em>disclosure.</em></h1><p>How Zyofy is funded and what you should know about our editorial content.</p></div>
+        <div class="editorial-intro-stamp"><span>OPEN<br>BOOK</span><b>✳</b><small>OUR CURRENT<br>RELATIONSHIPS</small></div>
+      </div>
     </div>
   </section>
 

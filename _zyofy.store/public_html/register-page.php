@@ -11,14 +11,14 @@ dd_render_header();
 ?>
 <main class="auth-shell register-shell">
   <section class="auth-art">
-    <span class="hero-kicker">Your Zyofy workspace</span>
+    <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Your Zyofy workspace</span>
     <h1>Start with<br>a better link.</h1>
     <p>Create your contributor account to access the product catalog, link tools and earnings workspace.</p>
     <div class="auth-benefits"><span>Personal tracking tags</span><span>Product link tools</span><span>Clear monthly earnings</span></div>
   </section>
   <section class="auth-panel">
     <div class="auth-card">
-      <span class="eyebrow">Create account</span><h2>Join Zyofy</h2>
+      <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Create account</span><h2>Join Zyofy</h2>
       <p class="sub">Set up your account details. An administrator can assign tracking tags after you join.</p>
       <div id="authNotice" role="status" aria-live="polite"></div>
       <form class="form-grid" id="registerForm">

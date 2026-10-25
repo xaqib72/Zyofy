@@ -100,21 +100,37 @@ $description = $query !== '' ? 'Search product listings on Amazon by keyword.' :
 dd_render_head('Products', ['description' => $description, 'body_class' => 'storefront-page storefront-products']);
 dd_render_storefront_header('products', $user);
 ?>
-<main>
+<main class="zf-catalog">
   <section class="product-catalog-intro">
-    <div class="shell product-catalog-intro-inner">
-      <div><span class="editorial-overline"><i></i> THE PRODUCT EDIT</span><h1>Find your<br><em>next good thing.</em></h1><p>Search the Amazon catalog, compare the details and check the retailer page for the latest price and availability.</p></div>
-      <div class="catalog-count-stamp"><b><?= number_format($catalogTotal) ?></b><span><?= $isLiveSearch ? 'LIVE RESULTS' : 'IN THE CATALOG' ?></span><i>✳</i></div>
+    <div class="shell">
+      <nav class="store-breadcrumb" aria-label="Breadcrumb"><a href="<?= dd_e(dd_url('/')) ?>">Home</a><span>›</span><span>Products</span></nav>
+      <div class="product-catalog-intro-inner">
+        <div>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The product edit</span>
+          <h1>Find your<br><em>next good thing.</em></h1>
+          <p>Search the Amazon catalog, compare the details and check the retailer page for the latest price and availability.</p>
+        </div>
+        <div class="catalog-count-stamp"><b><?= number_format($catalogTotal) ?></b><span><?= $isLiveSearch ? 'Live results' : 'In the catalog' ?></span><i>✳</i></div>
+      </div>
     </div>
   </section>
+
   <section class="product-catalog-body">
     <div class="shell">
-      <form class="product-search-panel" method="get" action="<?= dd_e(dd_url('/products/')) ?>">
+      <form class="product-search-panel" method="get" action="<?= dd_e(dd_url('/products/')) ?>" role="search">
         <label class="product-search-field"><span>What are you looking for?</span><input type="search" name="q" value="<?= dd_e($query) ?>" placeholder="Try headphones, coffee maker, travel bag…" minlength="2" maxlength="100"></label>
         <label class="product-market-field"><span>Marketplace</span><select name="marketplace"><?php foreach ($marketplaces as $row): ?><option value="<?= dd_e($row['marketplace']) ?>"<?= $marketplace === $row['marketplace'] ? ' selected' : '' ?>><?= dd_e($row['country_label']) ?></option><?php endforeach; ?></select></label>
         <label class="product-market-field"><span>Category</span><select name="category"><option value="">All categories</option><?php foreach ($categories as $slug => $categoryItem): ?><option value="<?= dd_e($slug) ?>"<?= $category === $slug ? ' selected' : '' ?>><?= dd_e($categoryItem['label']) ?></option><?php endforeach; ?></select></label>
         <button type="submit"><span>Search products</span><b aria-hidden="true">↗</b></button>
       </form>
+
+      <div class="zf-filter-rail" aria-label="Browse collections">
+        <a class="zf-filter-chip<?= $category === '' ? ' is-active' : '' ?>" href="<?= dd_e(dd_url('/products/' . ($query !== '' ? '?q=' . rawurlencode($query) : ''))) ?>">All products</a>
+        <?php foreach ($categories as $slug => $categoryItem): ?>
+          <a class="zf-filter-chip<?= $category === $slug ? ' is-active' : '' ?>" href="<?= dd_e(dd_storefront_category_url($slug)) ?>"><?= dd_e($categoryItem['label']) ?></a>
+        <?php endforeach; ?>
+      </div>
+
       <?php if ($error !== ''): ?><div class="product-search-notice" role="status"><?= dd_e($error) ?></div><?php endif; ?>
       <div class="product-catalog-meta"><span><?= $query !== '' ? 'Results for “' . dd_e($query) . '”' : 'Recently added products' ?></span><?php if ($isLiveSearch): ?><small>Live Amazon catalog results</small><?php endif; ?></div>
       <?php if ($displayProducts): ?>

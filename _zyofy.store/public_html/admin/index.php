@@ -465,6 +465,10 @@ $assignableCountries = !empty($countrySettings) ? $countrySettings : array();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zyofy Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6fbf7; color: #172019; line-height: 1.5; }
@@ -636,6 +640,7 @@ $assignableCountries = !empty($countrySettings) ? $countrySettings : array();
   </style>
     <link rel="stylesheet" href="assets/app.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/app.css')) ?>">
     <link rel="stylesheet" href="assets/premium-refresh.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/premium-refresh.css')) ?>">
+    <link rel="stylesheet" href="assets/admin-2026.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/admin-2026.css')) ?>">
     <link rel="icon" type="image/svg+xml" href="../assets/images/zyofy-mark.svg">
 </head>
 <body class="zyofy-admin">

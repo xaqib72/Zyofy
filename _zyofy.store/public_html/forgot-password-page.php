@@ -7,7 +7,7 @@ dd_render_header();
 ?>
 <main class="auth-shell">
   <section class="auth-art">
-    <span class="hero-kicker">Account Recovery</span>
+    <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Account Recovery</span>
     <h1>Reset access.<br>Keep moving.</h1>
     <p>Enter the email address registered on your Zyofy account. If it exists in our system, we’ll dispatch a secure one-hour password reset link.</p>
     <div class="auth-benefits">
@@ -19,7 +19,7 @@ dd_render_header();
 
   <section class="auth-panel">
     <div class="auth-card">
-      <span class="eyebrow">Password Help</span>
+      <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Password Help</span>
       <h2>Reset your password</h2>
       <p class="sub">For account privacy, identical confirmation is returned whether the address exists or not.</p>
 
