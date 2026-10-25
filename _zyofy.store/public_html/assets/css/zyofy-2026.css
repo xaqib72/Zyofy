@@ -60,6 +60,7 @@
   --zf-slate-2: #7c8798;
   --zf-line: #e2e6ee;
   --zf-line-soft: #edf0f5;
+  --zf-line-strong: #cdd4e0;
   --zf-lime: #c9f45b;
   --zf-lime-deep: #a7d93b;
   --zf-lime-wash: #f2fcdb;
@@ -699,6 +700,7 @@ body.contributor-page :where(button, a, input, select, textarea):focus-visible {
 .zf-hero h1 em {
   font-style: normal;
   position: relative;
+  isolation: isolate;
   white-space: nowrap;
 }
 .zf-hero h1 em::after {
