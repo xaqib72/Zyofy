@@ -1,14 +1,14 @@
 <?php
 /**
- * Zyofy application configuration.
+ * Pickwell application configuration.
  *
  * PRODUCTION deployment configuration.
  * Replace only the production database user/password placeholders before launch.
  */
 return [
     'app' => [
-        'name' => 'Zyofy',
-        'url' => 'https://zyofy.store',
+        'name' => 'Pickwell',
+        'url' => 'https://pickwell.t86.site',
         'environment' => 'production',
         'debug' => false,
         'noindex' => false,

@@ -1,0 +1,15 @@
+PICKWELL — Hostinger setup (short version)
+==========================================
+
+Full instructions: see HOSTINGER-DEPLOYMENT.md in the deployment package.
+
+1. Upload the CONTENTS of public_html/ into Hostinger's public_html directory
+   for pickwell.t86.site (not the folder itself).
+2. Create a MySQL database in hPanel and note name, user and password.
+3. Edit config.php: set app.url = https://pickwell.t86.site and the db values.
+4. Force HTTPS in hPanel (Security -> SSL) and confirm the free certificate.
+5. Open https://pickwell.t86.site/ and check the homepage, a product page and
+   https://pickwell.t86.site/admin/ (create the first admin account if needed).
+
+Do not upload any SQL dump over a live database. Keep config.php out of version
+control. Rotate the previous database password before launch.

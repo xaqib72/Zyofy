@@ -279,7 +279,7 @@ require __DIR__ . '/partials/admin_head.php';
       <div><div class="l">Clicks</div><div class="v"><?= number_format((int) $contributor['clicks']) ?></div></div>
       <div><div class="l">Items ordered</div><div class="v"><?= number_format((int) $contributor['items_ordered']) ?></div></div>
       <div><div class="l">Items returned</div><div class="v"><?= number_format((int) $contributor['items_returned']) ?></div></div>
-      <div><div class="l">Share</div><div class="v"><?= $shareText ?><?= count($sharePills) > 1 ? '<div style="font-size:.7rem;font-weight:600;color:#a9c6b0;letter-spacing:0;text-transform:none">combined</div>' : '' ?></div></div>
+      <div><div class="l">Share</div><div class="v"><?= $shareText ?><?= count($sharePills) > 1 ? '<div style="font-size:.7rem;font-weight:600;color:#a9c8b9;letter-spacing:0;text-transform:none">combined</div>' : '' ?></div></div>
     </div>
   </div>
 

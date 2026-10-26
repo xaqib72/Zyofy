@@ -263,8 +263,8 @@ function dd_report_archive_dir()
 {
     // Anchored on the application folder rather than by counting levels from this
     // file — the first version counted from admin/lib and landed a directory short.
-    $appRoot = dirname(__DIR__, 2);   // admin/lib -> admin -> dealdigger-admin
-    $home    = dirname($appRoot, 4);  // -> public_html -> dealdigger.site -> domains -> home
+    $appRoot = dirname(__DIR__, 2);   // admin/lib -> admin -> pickwell-admin
+    $home    = dirname($appRoot, 4);  // -> public_html -> pickwell.site -> domains -> home
 
     return $home . DIRECTORY_SEPARATOR . 'report-archive';
 }

@@ -83,7 +83,7 @@ if (!function_exists('dd_whatsapp_config')) {
                     $fileLoaded = true;
                 }
             } catch (Throwable $error) {
-                error_log('[Zyofy WhatsApp] Secret config could not be loaded.');
+                error_log('[Pickwell WhatsApp] Secret config could not be loaded.');
                 dd_whatsapp_diag('config_load', 'failure', 'secret_file_require_error', ['error_class' => get_class($error)]);
             }
         } else {
@@ -94,11 +94,11 @@ if (!function_exists('dd_whatsapp_config')) {
         $config = [
             'phone_number_id' => (string) (getenv('ZYOFY_WA_PHONE_NUMBER_ID') ?: ($fromFile['phone_number_id'] ?? '')),
             'waba_id' => (string) (getenv('ZYOFY_WA_WABA_ID') ?: ($fromFile['waba_id'] ?? '')),
-            'graph_api_version' => (string) (getenv('ZYOFY_WA_GRAPH_API_VERSION') ?: ($fromFile['graph_api_version'] ?? '')),
-            'access_token' => (string) (getenv('ZYOFY_WA_ACCESS_TOKEN') ?: ($fromFile['access_token'] ?? '')),
-            'app_secret' => (string) (getenv('ZYOFY_WA_APP_SECRET') ?: ($fromFile['app_secret'] ?? '')),
-            'verify_token' => (string) (getenv('ZYOFY_WA_VERIFY_TOKEN') ?: ($fromFile['verify_token'] ?? '')),
-            'business_number' => (string) (getenv('ZYOFY_WA_BUSINESS_NUMBER') ?: ($fromFile['business_number'] ?? '')),
+            'graph_api_version' => (string) (getenv('PICKWELL_WA_GRAPH_API_VERSION') ?: ($fromFile['graph_api_version'] ?? '')),
+            'access_token' => (string) (getenv('PICKWELL_WA_ACCESS_TOKEN') ?: ($fromFile['access_token'] ?? '')),
+            'app_secret' => (string) (getenv('PICKWELL_WA_APP_SECRET') ?: ($fromFile['app_secret'] ?? '')),
+            'verify_token' => (string) (getenv('PICKWELL_WA_VERIFY_TOKEN') ?: ($fromFile['verify_token'] ?? '')),
+            'business_number' => (string) (getenv('PICKWELL_WA_BUSINESS_NUMBER') ?: ($fromFile['business_number'] ?? '')),
         ];
         return $config;
     }
@@ -149,7 +149,7 @@ if (!function_exists('dd_whatsapp_code_hash')) {
 if (!function_exists('dd_whatsapp_start_link')) {
     function dd_whatsapp_start_link(PDO $pdo, $userId, $phoneInput)
     {
-        if (!dd_whatsapp_configured(true)) throw new RuntimeException('The Zyofy WhatsApp bot is not configured yet. Please contact the administrator.');
+        if (!dd_whatsapp_configured(true)) throw new RuntimeException('The Pickwell WhatsApp bot is not configured yet. Please contact the administrator.');
         $userId = (int) $userId;
         $phone = dd_whatsapp_normalize_phone($phoneInput);
         if ($userId < 1 || $phone === null) throw new InvalidArgumentException('Enter a valid international number, for example +923001234567.');
@@ -157,7 +157,7 @@ if (!function_exists('dd_whatsapp_start_link')) {
         $existingPhone = $pdo->prepare('SELECT user_id FROM whatsapp_user_phones WHERE phone_e164 = ? LIMIT 1');
         $existingPhone->execute([$phone]);
         $owner = $existingPhone->fetchColumn();
-        if ($owner !== false && (int) $owner !== $userId) throw new InvalidArgumentException('This WhatsApp number is already linked to another Zyofy account. Contact support if you believe this is an error.');
+        if ($owner !== false && (int) $owner !== $userId) throw new InvalidArgumentException('This WhatsApp number is already linked to another Pickwell account. Contact support if you believe this is an error.');
         if ($owner !== false) throw new InvalidArgumentException('This WhatsApp number is already verified on your account.');
 
         $pdo->exec('DELETE FROM whatsapp_link_codes WHERE created_at < UTC_TIMESTAMP() - INTERVAL 1 DAY LIMIT 500');
@@ -289,7 +289,7 @@ if (!function_exists('dd_whatsapp_send_text')) {
             $safeMetaCode = preg_match('/^[0-9]{1,12}$/', $metaCode) ? $metaCode : 'unavailable';
             $category = $response === false ? 'transport_error' : (($status < 200 || $status >= 300) ? 'http_error' : 'unexpected_response');
             dd_whatsapp_diag('outbound_send', 'failure', $category, ['http_status' => $status, 'meta_error_code' => $safeMetaCode]);
-            error_log('[Zyofy WhatsApp] Graph API send failed; HTTP ' . $status . '; Meta code ' . $safeMetaCode . ($curlError !== '' ? '; transport error' : ''));
+            error_log('[Pickwell WhatsApp] Graph API send failed; HTTP ' . $status . '; Meta code ' . $safeMetaCode . ($curlError !== '' ? '; transport error' : ''));
             throw new RuntimeException('WhatsApp message delivery failed.');
         }
         dd_whatsapp_diag('outbound_send', 'success', 'graph_api_accepted', ['http_status' => $status]);
@@ -333,7 +333,7 @@ if (!function_exists('dd_whatsapp_send_image')) {
             $safeMetaCode = preg_match('/^[0-9]{1,12}$/', $metaCode) ? $metaCode : 'unavailable';
             $category = $response === false ? 'transport_error' : (($status < 200 || $status >= 300) ? 'http_error' : 'unexpected_response');
             dd_whatsapp_diag('outbound_image', 'failure', $category, ['http_status' => $status, 'meta_error_code' => $safeMetaCode]);
-            error_log('[Zyofy WhatsApp] Graph API image send failed; HTTP ' . $status . '; Meta code ' . $safeMetaCode . ($curlError !== '' ? '; transport error' : ''));
+            error_log('[Pickwell WhatsApp] Graph API image send failed; HTTP ' . $status . '; Meta code ' . $safeMetaCode . ($curlError !== '' ? '; transport error' : ''));
             throw new RuntimeException('WhatsApp image delivery failed.');
         }
         dd_whatsapp_diag('outbound_image', 'success', 'graph_api_accepted', ['http_status' => $status]);
@@ -445,7 +445,7 @@ if (!function_exists('dd_whatsapp_generate_for_user')) {
                 throw new InvalidArgumentException('This ASIN does not identify a marketplace. Send an Amazon product URL or include a marketplace such as UK or USA.');
             } else {
                 dd_whatsapp_diag('marketplace_check', 'failure', 'no_active_assigned_marketplace');
-                throw new RuntimeException('Your Zyofy account has no active marketplace tracking ID yet. Please ask the administrator to assign one.');
+                throw new RuntimeException('Your Pickwell account has no active marketplace tracking ID yet. Please ask the administrator to assign one.');
             }
         }
         dd_whatsapp_diag('marketplace_check', 'success', 'marketplace_resolved');
@@ -487,8 +487,8 @@ if (!function_exists('dd_whatsapp_product_caption')) {
         require_once __DIR__ . '/product-inputs.php';
         $context = (string) ($input['notes_context'] ?? ($input['context'] ?? ''));
         $notes = dd_extract_product_notes($context);
-        $notes = array_values(array_filter($notes, static function ($line) { return trim((string) $line) !== '✨ Zyofy'; }));
-        $lines = array_merge([(string) $post['post_url']], $notes, ['✨ Zyofy']);
+        $notes = array_values(array_filter($notes, static function ($line) { return trim((string) $line) !== '✨ Pickwell'; }));
+        $lines = array_merge([(string) $post['post_url']], $notes, ['✨ Pickwell']);
         $caption = implode("\n", $lines);
         return $caption;
     }
@@ -540,12 +540,12 @@ if (!function_exists('dd_whatsapp_product_error_reply')) {
     function dd_whatsapp_product_error_reply(Throwable $error, array $user)
     {
         if ($error instanceof InvalidArgumentException) return $error->getMessage();
-        error_log('[Zyofy WhatsApp] Product-link request failed; account ' . (int) ($user['id'] ?? 0) . '; ' . get_class($error));
-        if ($error instanceof RuntimeException && preg_match('/^(Your account|Your Zyofy|Your Amazon|This ASIN)/', $error->getMessage())) return $error->getMessage();
+        error_log('[Pickwell WhatsApp] Product-link request failed; account ' . (int) ($user['id'] ?? 0) . '; ' . get_class($error));
+        if ($error instanceof RuntimeException && preg_match('/^(Your account|Your Pickwell|Your Amazon|This ASIN)/', $error->getMessage())) return $error->getMessage();
         if ($error instanceof RuntimeException && stripos($error->getMessage(), 'Amazon') !== false) {
             return 'Amazon could not confirm this product for that marketplace. Check the product country and the Amazon API connection, then send the full country-specific Amazon URL or ASIN with its marketplace.';
         }
-        return 'I could not create that product post right now. Check the Amazon URL or ASIN and marketplace, then try again or contact Zyofy support.';
+        return 'I could not create that product post right now. Check the Amazon URL or ASIN and marketplace, then try again or contact Pickwell support.';
     }
 }
 
@@ -597,7 +597,7 @@ if (!function_exists('dd_whatsapp_product_discovery')) {
             $marketplace = (string) $markets[0];
         }
         if (!dd_product_discovery_has_active_tag($pdo, (string) $user['email'], $marketplace)) {
-            return 'Your Zyofy account has no active tracking ID for that Amazon marketplace yet. Ask the administrator to assign one, or search a marketplace you already have assigned.';
+            return 'Your Pickwell account has no active tracking ID for that Amazon marketplace yet. Ask the administrator to assign one, or search a marketplace you already have assigned.';
         }
         try {
             $result = dd_product_discovery_search($pdo, $criteria, $marketplace, $apiSearch, $apiItemLookup);
@@ -622,17 +622,17 @@ if (!function_exists('dd_whatsapp_process_text')) {
         $sender = dd_whatsapp_normalize_phone($sender);
         if ($sender === null) {
             dd_whatsapp_diag('account_linking', 'rejected', 'sender_number_invalid');
-            return 'I could not verify this WhatsApp number. Please contact Zyofy support.';
+            return 'I could not verify this WhatsApp number. Please contact Pickwell support.';
         }
         $text = trim((string) $message);
         if (preg_match('/^LINK\s+([0-9]{8})$/i', $text, $match)) {
             dd_whatsapp_diag('account_linking', 'started', 'verification_command_received');
             $result = dd_whatsapp_verify_link_code($pdo, $sender, $match[1]);
             dd_whatsapp_diag('account_linking', $result['status'] === 'verified' ? 'success' : 'rejected', 'verification_result_' . $result['status']);
-            if ($result['status'] === 'verified') return 'Your WhatsApp number is now verified with your Zyofy account. Send an Amazon product URL or ASIN to create your product post.';
-            if ($result['status'] === 'already_linked') return 'This number could not be linked because it is already verified on a different Zyofy account. Contact Zyofy support if you believe this is an error.';
-            if ($result['status'] === 'account_missing') return 'We could not complete account linking. Sign in to Zyofy and start the WhatsApp verification again.';
-            return 'That verification code is invalid or expired. Sign in to Zyofy, request a new code, and send LINK followed by the new code.';
+            if ($result['status'] === 'verified') return 'Your WhatsApp number is now verified with your Pickwell account. Send an Amazon product URL or ASIN to create your product post.';
+            if ($result['status'] === 'already_linked') return 'This number could not be linked because it is already verified on a different Pickwell account. Contact Pickwell support if you believe this is an error.';
+            if ($result['status'] === 'account_missing') return 'We could not complete account linking. Sign in to Pickwell and start the WhatsApp verification again.';
+            return 'That verification code is invalid or expired. Sign in to Pickwell, request a new code, and send LINK followed by the new code.';
         }
 
         $account = $pdo->prepare('SELECT u.id, u.name, u.email FROM whatsapp_user_phones p JOIN users u ON u.id = p.user_id WHERE p.phone_e164 = ? LIMIT 1');
@@ -647,7 +647,7 @@ if (!function_exists('dd_whatsapp_process_text')) {
         if (!$user) {
             dd_whatsapp_diag('account_linking', 'not_linked', 'no_verified_phone_mapping');
             $linkUrl = dd_url('/whatsapp-link/');
-            return 'To use Zyofy WhatsApp link generation, sign in to your Zyofy account and verify this number first: ' . $linkUrl . ' . Then send the LINK code shown on that page here.';
+            return 'To use Pickwell WhatsApp link generation, sign in to your Pickwell account and verify this number first: ' . $linkUrl . ' . Then send the LINK code shown on that page here.';
         }
         dd_whatsapp_diag('account_linking', 'success', 'verified_user_found');
         if (strtolower($text) === 'help') return 'Send an Amazon URL or ASIN, or search with a product keyword, Sold by, or Store clue. Add a marketplace such as USA or UK if needed.';

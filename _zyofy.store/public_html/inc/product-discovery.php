@@ -99,7 +99,7 @@ function dd_product_discovery_has_product_identifier($message)
     $marketHosts = '(?:amazon\.(?:com|co\.uk|ca|de|fr|it|es|co\.jp|in|com\.au|com\.mx|com\.br|nl|se|pl|com\.be|com\.tr|ae|sa|eg|sg))';
     if (preg_match('~(?:https?://)?(?:www\.)?(?:' . $shortHosts . '|' . $marketHosts . ')(?:[/:?#\s]|$)~i', $text)) return true;
     // A product URL from any site can carry a real ASIN in its path (including
-    // Zyofy/Viral Nest share links). Route it to ASIN lookup only when the message
+    // Pickwell/Viral Nest share links). Route it to ASIN lookup only when the message
     // also supplies a recognizable marketplace clue; Amazon API lookup still
     // verifies the item in that marketplace before a tracked link is created.
     if (preg_match_all('~https?://[^\s<>"\']+~iu', $text, $externalUrls)) {

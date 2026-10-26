@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pickwell — storefront preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" href="../public_html/assets/brand/favicon.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../public_html/assets/css/pickwell.css">
+<style>
+  .preview-note{position:fixed;z-index:2000;left:50%;bottom:14px;transform:translateX(-50%);
+    display:flex;gap:10px;align-items:center;padding:9px 16px;border-radius:999px;
+    background:#0a101c;color:#fff;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;
+    text-transform:uppercase;box-shadow:0 16px 40px -20px rgba(0,0,0,.7)}
+  .preview-note b{color:#dca94f;font-weight:700}
+</style>
+</head>
+<body class="storefront-page storefront-home">
+<div class="affiliate-header-disclosure zf-disclosure" role="note">
+  <div class="shell zf-disclosure-inner">
+    <span class="zf-disclosure-badge">Affiliate</span>
+    <p><strong>As an Amazon Associate I earn from qualifying purchases.</strong> Commission never changes the price you pay.</p>
+    <a href="#">How this works <span aria-hidden="true">↗</span></a>
+  </div>
+</div>
+<header class="storefront-header zf-header" data-site-header>
+  <div class="shell storefront-header-main zf-header-inner">
+    <a class="storefront-brand zf-brand" href="#">
+      <span class="storefront-brand-mark zf-brand-mark"><img src="../public_html/assets/brand/pickwell-mark.svg" alt=""></span>
+      <span class="storefront-wordmark zf-brand-type"><b>Pickwell</b><small>SMART SHOPPING, CURATED</small></span>
+    </a>
+    <nav class="storefront-nav zf-nav" aria-label="Primary navigation">
+      <a class="zf-nav-link is-active" href="#">Discover</a>
+      <a class="zf-nav-link" href="#">Products</a>
+      <a class="zf-nav-link" href="#">Buying guides</a>
+      <a class="zf-nav-link" href="#">Our approach</a>
+      <a class="zf-nav-link" href="#">Contact</a>
+    </nav>
+    <div class="storefront-account zf-header-tools">
+      <form class="zf-quick-search" role="search"><label class="zf-sr-only" for="s">Search</label><input id="s" type="search" placeholder="Search finds"><button type="button" aria-label="Search">→</button></form>
+      <div class="zf-account">
+        <a class="storefront-signin zf-account-link" href="#">Sign in</a>
+        <a class="storefront-account-link storefront-join-link zf-btn zf-btn-primary zf-btn-sm" href="#">Create account <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="menu-toggle storefront-menu-toggle zf-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu storefront-mobile-menu zf-mobile-menu" data-mobile-menu><div class="shell mobile-menu-inner zf-mobile-inner">
+    <a href="#">Discover</a><a href="#">Products</a><a href="#">Buying guides</a><a href="#">Our approach</a><a href="#">Contact</a><a href="#">Affiliate disclosure</a>
+    <div class="zf-mobile-foot"><a href="#">Sign in</a><a class="zf-mobile-primary" href="#">Create account</a></div>
+  </div></div>
+</header>
+
+<main class="zf-home">
+  <section class="zf-hero">
+    <div class="shell zf-hero-grid">
+      <div class="zf-hero-copy">
+        <p class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The Pickwell edit — Vol. 01</p>
+        <h1>Discover products<br><em>worth choosing.</em></h1>
+        <p class="zf-hero-lede">An independent edit of useful everyday products, paired with plain-English buying guides. Start with a search, or browse the collections we keep coming back to.</p>
+        <form class="zf-hero-search" role="search">
+          <label for="heroSearch">Search the product edit</label>
+          <div class="zf-search-row">
+            <input id="heroSearch" type="search" placeholder="Headphones, espresso, travel bag…">
+            <button type="button"><span>Search</span><span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
+        <ul class="zf-hero-facts">
+          <li><b>15</b> original guides</li>
+          <li><b>5</b> curated collections</li>
+          <li><b>0</b> paid placements</li>
+        </ul>
+      </div>
+      <div class="zf-hero-visual">
+        <figure class="zf-hero-figure">
+          <img src="../public_html/assets/images/hero-shopping.jpg" alt="">
+          <figcaption class="zf-hero-stamp">
+            <span><span>Editorial journal · Est. 2026</span><strong>Useful things,<br>chosen with care.</strong></span>
+            <b aria-hidden="true">✳</b>
+          </figcaption>
+        </figure>
+        <a class="zf-hero-float" href="#">
+          <small>Latest guide</small>
+          <strong>How to choose wireless headphones that actually fit</strong>
+          <span>7 min read <b aria-hidden="true">→</b></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="zf-ribbon" aria-label="Shopping information">
+    <div class="shell zf-ribbon-inner">
+      <span><i aria-hidden="true">✓</i> Original editorial content</span>
+      <span><i aria-hidden="true">✓</i> No hands-on testing claims unless stated</span>
+      <span><i aria-hidden="true">✓</i> No paid placements</span>
+      <span class="zf-ribbon-note">Check the retailer before you buy</span>
+    </div>
+  </section>
+
+  <section class="zf-section">
+    <div class="shell">
+      <div class="zf-section-head">
+        <div>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The product edit</span>
+          <h2>Worth a closer <em>look.</em></h2>
+          <p>Explore current finds from the catalog and check the retailer page for the latest price, availability and warranty details.</p>
+        </div>
+        <a class="zf-section-link" href="#">Browse all products <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="product-amazon-note">Some product links are affiliate links and may earn Pickwell a commission at no extra cost to you. As an Amazon Associate I earn from qualifying purchases.</p>
+      <div class="retail-product-grid">
+        <article class="product-card retail-product-card zf-card">
+          <a class="product-card-image zf-card-media" href="#"><img src="../public_html/assets/uploads/manual-products/54dbe757629749daf01c13ca6ebec2a6.jpg" alt=""></a>
+          <div class="product-card-body zf-card-body"><span class="marketplace-pill zf-card-tag">Amazon.com</span><h3><a href="#">Anker 737 power bank, 24,000mAh with 140W output</a></h3><a class="retail-product-btn zf-card-link" href="#"><span>View product</span><span aria-hidden="true">↗</span></a></div>
+        </article>
+        <article class="product-card retail-product-card zf-card">
+          <a class="product-card-image zf-card-media" href="#"><img src="../public_html/assets/images/guide-wireless-headphones.jpg" alt="" loading="lazy"></a>
+          <div class="product-card-body zf-card-body"><span class="marketplace-pill zf-card-tag">Amazon.co.uk</span><h3><a href="#">Stainless steel pour-over kettle with gooseneck spout</a></h3><a class="retail-product-btn zf-card-link" href="#"><span>View product</span><span aria-hidden="true">↗</span></a></div>
+        </article>
+        <article class="product-card retail-product-card zf-card">
+          <a class="product-card-image zf-card-media" href="#"><img src="../public_html/assets/images/guide-electric-kettle.jpg" alt="" loading="lazy"></a>
+          <div class="product-card-body zf-card-body"><span class="marketplace-pill zf-card-tag">Amazon.de</span><h3><a href="#">Vacuum sealer with roll storage and dry/moist modes</a></h3><a class="retail-product-btn zf-card-link" href="#"><span>View product</span><span aria-hidden="true">↗</span></a></div>
+        </article>
+        <article class="product-card retail-product-card zf-card">
+          <a class="product-card-image zf-card-media" href="#"><img src="../public_html/assets/images/guide-power-bank.jpg" alt="" loading="lazy"></a>
+          <div class="product-card-body zf-card-body"><span class="marketplace-pill zf-card-tag">Amazon.com</span><h3><a href="#">Expanding garden hose, 50 ft, with 10-pattern nozzle</a></h3><a class="retail-product-btn zf-card-link" href="#"><span>View product</span><span aria-hidden="true">↗</span></a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="zf-section Pickwell-category-index">
+    <div class="shell">
+      <div class="zf-section-head">
+        <div>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Start with what you need</span>
+          <h2>Good advice for <em>every corner.</em></h2>
+          <p>Five collections, organised around the rooms and routines people actually shop for.</p>
+        </div>
+        <span class="zf-page-badge"><b>05</b><span>Collections</span></span>
+      </div>
+      <div class="zf-category-grid">
+        <a class="zf-category" href="#"><img src="../public_html/assets/images/category-home.jpg" alt=""><b>01 / HOME &amp; KITCHEN</b><strong>Home &amp; Kitchen</strong><small>128 products</small><i aria-hidden="true">↗</i></a>
+        <a class="zf-category" href="#"><img src="../public_html/assets/images/category-tech.jpg" alt=""><b>02 / TECH &amp; AUDIO</b><strong>Tech &amp; Audio</strong><small>96 products</small><i aria-hidden="true">↗</i></a>
+        <a class="zf-category" href="#"><img src="../public_html/assets/images/category-fitness.jpg" alt=""><b>03 / HEALTH &amp; FITNESS</b><strong>Health &amp; Fitness</strong><small>54 products</small><i aria-hidden="true">↗</i></a>
+        <a class="zf-category" href="#"><img src="../public_html/assets/images/category-outdoors.jpg" alt=""><b>04 / OUTDOORS &amp; TRAVEL</b><strong>Outdoors &amp; Travel</strong><small>41 products</small><i aria-hidden="true">↗</i></a>
+        <a class="zf-category" href="#"><img src="../public_html/assets/images/category-essentials.jpg" alt=""><b>05 / EVERYDAY ESSENTIALS</b><strong>Everyday Essentials</strong><small>73 products</small><i aria-hidden="true">↗</i></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="zf-section Pickwell-guide-feature" id="guides">
+    <div class="shell">
+      <div class="zf-section-head">
+        <div>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> A more thoughtful shortlist</span>
+          <h2>Advice that <em>gets to the point.</em></h2>
+          <p>Original, practical articles covering the questions shoppers should check before choosing a product.</p>
+        </div>
+        <a class="zf-section-link" href="#">All guides <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="zf-guide-grid">
+        <a class="zf-guide-feature" href="#">
+          <img src="../public_html/assets/images/guide-wireless-headphones.jpg" alt="">
+          <div class="zf-guide-feature-body">
+            <span>Tech &amp; Audio · Editor's pick</span>
+            <h3>How to choose wireless headphones that actually fit</h3>
+            <p>Comfort, codecs, battery claims and the return policy details worth reading before you commit.</p>
+            <small>7 min read · Updated September 2026</small>
+          </div>
+        </a>
+        <div class="zf-guide-list">
+          <a class="zf-guide-row" href="#"><span class="zf-guide-row-image"><img src="../public_html/assets/images/guide-power-bank.jpg" alt=""></span><span><span>Tech &amp; Audio</span><h3>What actually matters in a power bank</h3></span><i aria-hidden="true">→</i></a>
+          <a class="zf-guide-row" href="#"><span class="zf-guide-row-image"><img src="../public_html/assets/images/guide-electric-kettle.jpg" alt=""></span><span><span>Home &amp; Kitchen</span><h3>Electric kettles: capacity, speed and noise</h3></span><i aria-hidden="true">→</i></a>
+          <a class="zf-guide-row" href="#"><span class="zf-guide-row-image"><img src="../public_html/assets/images/guide-small-home-gym.jpg" alt=""></span><span><span>Health &amp; Fitness</span><h3>Building a small home gym that fits</h3></span><i aria-hidden="true">→</i></a>
+          <a class="zf-guide-row" href="#"><span class="zf-guide-row-image"><img src="../public_html/assets/images/guide-travel-backpack.jpg" alt=""></span><span><span>Outdoors &amp; Travel</span><h3>Backpack buying checklist for short trips</h3></span><i aria-hidden="true">→</i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="zf-section store-section-faq">
+    <div class="shell zf-faq">
+      <div>
+        <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Worth knowing</span>
+        <h2 style="margin:14px 0 0;font-size:clamp(1.8rem,3.2vw,2.6rem);letter-spacing:-.038em">A few things<br>worth <em style="font-style:normal;color:var(--zf-slate-2)">knowing.</em></h2>
+        <p style="margin:16px 0 0;color:var(--zf-slate);max-width:40ch">Clear answers so you know what you are looking at before you click through to a retailer.</p>
+      </div>
+      <div class="store-faq-list">
+        <details open><summary>What does Pickwell publish?</summary><p>Original buying guides that explain practical comparison points such as size, materials, compatibility, maintenance and everyday usability.</p></details>
+        <details><summary>Were these products personally tested?</summary><p>Pickwell does not claim hands-on testing unless that actually happened and is stated clearly on the page.</p></details>
+        <details><summary>Does Pickwell use affiliate links?</summary><p>Some Amazon product links may be affiliate links. Any qualifying commission does not change the price you pay; see our affiliate disclosure for details.</p></details>
+        <details><summary>Does Pickwell sell or ship products?</summary><p>No. Pickwell is an editorial website and does not sell, ship or fulfill any products.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="zf-section storefront-about-cta">
+    <div class="shell">
+      <div class="zf-cta">
+        <div>
+          <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Transparency first</span>
+          <h2>Know what this site is<br><span>before you take its word.</span></h2>
+          <p>See how the guides are written, how product data is sourced and what Pickwell does — and does not — claim.</p>
+        </div>
+        <div class="zf-cta-actions">
+          <a class="store-btn store-btn-primary" href="#">About Pickwell <span aria-hidden="true">→</span></a>
+          <a class="store-btn store-btn-secondary light" href="#">Read the disclosure</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="Pickwell-footer zf-footer">
+  <div class="shell">
+    <div class="zf-footer-top">
+      <div class="Pickwell-footer-brand zf-footer-brand">
+        <a class="storefront-brand zf-brand" href="#">
+          <span class="storefront-brand-mark zf-brand-mark"><img src="../public_html/assets/brand/pickwell-mark.svg" alt=""></span>
+          <span class="storefront-wordmark zf-brand-type"><b>Pickwell</b><small>SMART SHOPPING, CURATED</small></span>
+        </a>
+        <p>Clear-headed buying advice for the things that make everyday life work. Independent guides, honest limits, no paid placements.</p>
+        <a class="footer-about-link zf-section-link" style="color:#fff;border-color:rgba(201,244,91,.6)" href="#">How we put guides together <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="Pickwell-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">Explore</span>
+        <a href="#">Product catalog</a><a href="#">All buying guides</a><a href="#">Latest edits</a><a href="#">Ask a question</a>
+      </div>
+      <div class="Pickwell-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">Pickwell</span>
+        <a href="#">Our approach</a><a href="#">Contact</a><a href="#">Contributor sign in</a><a href="#">Create an account</a>
+      </div>
+      <div class="Pickwell-footer-links zf-footer-col">
+        <span class="footer-label zf-footer-label">The details</span>
+        <a href="#">Affiliate disclosure</a><a href="#">Privacy policy</a><a href="#">Terms &amp; conditions</a>
+      </div>
+    </div>
+    <div class="Pickwell-footer-disclosure zf-footer-disclosure">
+      <span class="Pickwell-footer-disclosure-mark zf-footer-disclosure-mark" aria-hidden="true">i</span>
+      <div>
+        <strong>Amazon affiliate disclosure</strong>
+        <p>As an Amazon Associate I earn from qualifying purchases. Some links may earn Pickwell a commission at no extra cost to you.</p>
+        <p>CERTAIN CONTENT THAT APPEARS ON THIS SITE COMES FROM AMAZON. THIS CONTENT IS PROVIDED "AS IS" AND IS SUBJECT TO CHANGE OR REMOVAL AT ANY TIME.</p>
+      </div>
+    </div>
+  </div>
+  <div class="Pickwell-footer-bottom zf-footer-bottom">
+    <div class="shell" style="display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between">
+      <span>© 2026 Pickwell Store</span><span>Considered choices, made simpler.</span>
+      <span><a href="#">Disclosure</a> · <a href="#">Privacy</a> · <a href="#">Terms</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="preview-note"><b>Design preview</b> static sample content · not live data</div>
+<script>
+document.querySelector('[data-menu-toggle]')?.addEventListener('click', function () {
+  const menu = document.querySelector('[data-mobile-menu]');
+  const open = menu.classList.toggle('is-open');
+  this.classList.toggle('is-open', open);
+  this.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+</script>
+</body>
+</html>

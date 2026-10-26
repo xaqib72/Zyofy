@@ -1,7 +1,7 @@
 <?php
 // admin/actions/diagnostic.php
 // Server-health check for when an upload misbehaves. Open it in a browser while
-// logged in as an admin: https://yoursite.com/dealdigger-admin/admin/actions/diagnostic.php
+// logged in as an admin: https://yoursite.com/pickwell-admin/admin/actions/diagnostic.php
 //
 // It prints the PHP version, whether the database connects, which extensions are
 // present and what the upload limits are. None of that should be readable by the

@@ -155,7 +155,7 @@ try {
     }
 } catch (Throwable $error) {
     dd_whatsapp_diag('database_queue', 'failure', 'message_recording_exception', ['error_class' => get_class($error)]);
-    error_log('[Zyofy WhatsApp] Could not record webhook message IDs; database or migration unavailable.');
+    error_log('[Pickwell WhatsApp] Could not record webhook message IDs; database or migration unavailable.');
     dd_whatsapp_webhook_reply(500, 'Webhook could not be recorded.', 'database_queue_failed');
 }
 
@@ -219,7 +219,7 @@ foreach ($queue as $messageIndex => $message) {
                         continue;
                     }
                     $postUrl = (string) $productReply['post_url'];
-                    $caption = (string) ($productReply['caption'] ?? ($postUrl . "\n✨ Zyofy"));
+                    $caption = (string) ($productReply['caption'] ?? ($postUrl . "\n✨ Pickwell"));
                     $imageUrl = trim((string) ($productReply['image_url'] ?? ''));
                     if ($imageUrl !== '') {
                         try {
@@ -238,7 +238,7 @@ foreach ($queue as $messageIndex => $message) {
                     dd_whatsapp_send_text($message['sender'], $caption);
                 } catch (Throwable $productError) {
                     dd_whatsapp_diag('product_reply', 'failure', 'individual_product_delivery_failed', ['message_index' => $productIndex, 'error_class' => get_class($productError)]);
-                    error_log('[Zyofy WhatsApp] Individual product reply failed; ' . get_class($productError));
+                    error_log('[Pickwell WhatsApp] Individual product reply failed; ' . get_class($productError));
                 }
             }
         } else {
@@ -255,6 +255,6 @@ foreach ($queue as $messageIndex => $message) {
         } catch (Throwable $completionError) {
             dd_whatsapp_diag('database_queue', 'failure', 'failed_state_update_exception', ['message_index' => $messageIndex, 'error_class' => get_class($completionError)]);
         }
-        error_log('[Zyofy WhatsApp] Message processing or reply failed; message ref ' . substr(hash('sha256', $message['id']), 0, 12) . '; ' . get_class($error));
+        error_log('[Pickwell WhatsApp] Message processing or reply failed; message ref ' . substr(hash('sha256', $message['id']), 0, 12) . '; ' . get_class($error));
     }
 }

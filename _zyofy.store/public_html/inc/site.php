@@ -127,7 +127,7 @@ if (!function_exists('dd_resolve_amazon_short_url')) {
             $json = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $testLogger = PHP_SAPI === 'cli' ? ($GLOBALS['dd_amazon_short_link_test_logger'] ?? null) : null;
             if (is_callable($testLogger)) $testLogger($record);
-            elseif (is_string($json)) error_log('[Zyofy Amazon Link] ' . $json);
+            elseif (is_string($json)) error_log('[Pickwell Amazon Link] ' . $json);
         };
         if (!is_array($parts)) {
             $logAttempt('failure', 'invalid_url');
@@ -260,7 +260,7 @@ if (!function_exists('dd_resolve_amazon_short_url')) {
                         CURLOPT_SSL_VERIFYPEER => true,
                         CURLOPT_SSL_VERIFYHOST => 2,
                         CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
-                        CURLOPT_USERAGENT => 'ZyofyProductLinkResolver/1.0',
+                        CURLOPT_USERAGENT => 'PickwellProductLinkResolver/1.0',
                         CURLOPT_HTTPHEADER => ['Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'],
                         CURLOPT_WRITEFUNCTION => static function ($handle, $data) { return strlen($data); },
                         CURLOPT_HEADERFUNCTION => static function ($handle, $line) use (&$location) {

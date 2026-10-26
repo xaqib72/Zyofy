@@ -144,7 +144,7 @@ foreach ($inputs as $input) {
     }
     $tag = $tagStatement->fetch(PDO::FETCH_ASSOC);
     if (!$tag) {
-        $errors[] = 'No active tracking ID is assigned for one product marketplace. Ask the Zyofy administrator to assign one.';
+        $errors[] = 'No active tracking ID is assigned for one product marketplace. Ask the Pickwell administrator to assign one.';
         continue;
     }
     if (strcasecmp(trim((string) $tag['marketplace']), $marketplace) !== 0) {
@@ -157,7 +157,7 @@ foreach ($inputs as $input) {
     } catch (Throwable $error) {
         error_log('generate.php product/share generation failed; ' . get_class($error));
         if ($error instanceof InvalidArgumentException) $errors[] = $error->getMessage();
-        elseif ($error instanceof RuntimeException && stripos($error->getMessage(), 'not configured') !== false) $errors[] = 'The Amazon API is not configured for one product marketplace. Contact the Zyofy administrator.';
+        elseif ($error instanceof RuntimeException && stripos($error->getMessage(), 'not configured') !== false) $errors[] = 'The Amazon API is not configured for one product marketplace. Contact the Pickwell administrator.';
         elseif ($error instanceof RuntimeException && stripos($error->getMessage(), 'Amazon') !== false) $errors[] = 'Amazon could not verify one product for the selected marketplace. Check its country and try again.';
         else $errors[] = 'Could not create one product post right now. Check the product details and try again.';
     }

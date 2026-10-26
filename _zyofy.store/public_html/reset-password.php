@@ -49,12 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf = dd_csrf_token();
-dd_render_head('Reset Password · Zyofy', ['body_class' => 'auth-page']);
+dd_render_head('Reset Password · Pickwell', ['body_class' => 'auth-page']);
 dd_render_header();
 ?>
 <main class="auth-shell">
   <section class="auth-art">
-    <span class="hero-kicker">Security Update</span>
+    <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Security Update</span>
     <h1>Choose a new<br>password.</h1>
     <p>Password reset links are single-use and expire one hour after generation for your protection.</p>
     <div class="auth-benefits">
@@ -66,7 +66,7 @@ dd_render_header();
 
   <section class="auth-panel">
     <div class="auth-card">
-      <span class="eyebrow">Account Security</span>
+      <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Account Security</span>
       <h2><?= $success ? 'Password updated' : 'Reset your password' ?></h2>
 
       <?php if ($success): ?>
