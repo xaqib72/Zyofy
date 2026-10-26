@@ -134,7 +134,7 @@ reports & earnings, API connections, product builder, settings) ·
 Headers, footers, buttons, cards, tables, forms, modals, empty states, notice
 blocks, pagination, load-more, mobile drawers, focus states, selection colour,
 and the loading/progress treatments. The design systems are
-`assets/css/pickwell.css` (2,729 declarations) and
+`assets/css/pickwell.css` (2,731 declarations) and
 `admin/assets/pickwell-admin.css` (1,446 declarations); each file now ends with
 a brand layer (storefront §30, admin §20) that re-skins rather than rewrites, so
 the legacy markup keeps its structure.
@@ -246,6 +246,13 @@ verified by reading the cascade, not by screenshotting** — see limitations.
 | Token integrity | Every `var(--zf-*)` / `var(--a-*)` resolved against its token block | 0 unresolved |
 | Icon coverage | Confirmed each declared icon exists at the declared size | 9/9 |
 | Archive integrity | `unzip -t` on the final ZIP | no errors |
+
+### Preview
+A static preview of the redesigned storefront and admin console is included in the
+repository at `_zyofy.store/PICKWELL-PREVIEW/index.html` and `.../admin.html`.
+They load the real production stylesheets and the real brand assets, so they show
+what the design layer actually renders — but they are hand-built pages, not the
+PHP templates executed.
 
 ### Not tested (honest list)
 * **No PHP runtime** in the build environment: no page was executed, no query
