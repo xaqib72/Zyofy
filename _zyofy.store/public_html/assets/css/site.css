@@ -119,9 +119,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
+  /* `hidden` turns <body> into a scroll container in several browsers, which
+     silently kills `position: sticky` on the site header. `clip` trims the same
+     overflow without doing that, and the hidden line stays as a fallback. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 main {
@@ -145,8 +150,10 @@ button, input, select, textarea {
 }
 
 .shell {
-  width: min(var(--shell), calc(100% - 44px));
+  width: 100%;
+  max-width: var(--zf-shell, var(--shell));
   margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 32px);
 }
 
 /* Eyebrows & Kickers */
@@ -175,18 +182,8 @@ button, input, select, textarea {
 /* ==========================================================================
    SITE HEADER & NAVIGATION
    ========================================================================== */
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(10, 15, 13, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--night-line);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  transition: background var(--transition), border-color var(--transition);
-}
-
+/* The site bar itself is defined in pickwell.css (§5 and §31). These are the
+   primitives it shares with other surfaces (buttons, cards, the mobile menu). */
 .header-inner {
   height: 74px;
   display: flex;
@@ -1428,25 +1425,10 @@ button, input, select, textarea {
   }
 }
 
-/* Polished shared header for pages that use the legacy site-header renderer. */
-.site-header{background:rgba(255,255,255,.97);border-bottom:1px solid #e8e3dc;box-shadow:0 8px 28px rgba(31,39,56,.055);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.site-header>.affiliate-header-disclosure{width:100%;min-height:40px;margin:0;padding:7px max(22px,calc((100% - var(--shell))/2));border:0;border-bottom:1px solid #f0e8e0;border-radius:0;background:linear-gradient(90deg,#fff8f3,#fffdfa 58%,#fff)}
-.site-header .header-inner{min-height:76px}
-.site-header .brand{gap:11px;color:#1c2941}
-.site-header .brand-mark{width:42px;height:42px;border:1px solid rgba(28,41,65,.08);border-radius:13px;background:#1c2941;box-shadow:0 5px 16px rgba(28,41,65,.14)}
-.site-header .brand-name{color:#1c2941;font-size:1.32rem;letter-spacing:-.045em}
-.site-header .desktop-nav{gap:4px;padding:4px;border:1px solid #efece5;border-radius:999px;background:#fbfaf8}
-.site-header .nav-link{padding:10px 15px;color:#566174;font-size:.84rem}
-.site-header .nav-link:hover{background:#f4eee8;color:#a94f49}
-.site-header .nav-link.is-active{border:1px solid #f1ddd3;background:#fff4ed;color:#a94f49}
-.site-header .btn-ghost{border-color:#dcd8ce;color:#47536a}
-.site-header .btn-ghost:hover{border-color:#d77c70;background:#fff7f3;color:#a64d46}
-.site-header .menu-toggle{border:1px solid #35425a;background:#1c2941}
-.site-header .menu-toggle span{background:#fff}
-.site-header .mobile-menu{top:100%;border:1px solid #e5e0d8;border-top:0;border-radius:0 0 14px 14px;background:rgba(28,41,65,.985);box-shadow:0 18px 36px rgba(28,41,65,.2)}
-.site-header .mobile-menu a{color:#fff}
-.site-header .mobile-menu a:hover{background:rgba(255,255,255,.08);color:#ffd0c4}
-@media(max-width:768px){.site-header .header-inner{min-height:68px}.site-header>.affiliate-header-disclosure{min-height:48px;padding:7px 14px}.site-header .brand-mark{width:40px;height:40px}.site-header .brand-name{font-size:1.24rem}.site-header .affiliate-header-disclosure-text{display:grid;gap:1px}.site-header .affiliate-header-disclosure-text strong{font-size:.54rem}.site-header .affiliate-header-disclosure-text>span{font-size:.66rem}.site-header .affiliate-header-disclosure>a{font-size:.62rem}}
+/* The legacy `.site-header` skin that used to live here was removed: every
+   public template now renders the single Pickwell header (.zf-header), and the
+   old rules only re-painted it navy with coral hovers on the auth screens.
+   Layout for that bar lives in assets/css/pickwell.css (sections 5 and 31). */
 
 /* ==========================================================================
    LINK GENERATOR WORKFLOW
@@ -2130,7 +2112,7 @@ button, input, select, textarea {
 /* Mobile phones and narrow tablets */
 @media (max-width: 768px) {
   .shell {
-    width: min(calc(100% - 28px), var(--shell));
+    width: 100%;
   }
   .header-inner {
     height: 64px;
@@ -2372,32 +2354,32 @@ button, input, select, textarea {
 }
 
 /* Pickwell global brand tokens */
-:root{--ink:#18233a;--ink-2:#26334d;--ink-3:#3b4963;--muted:#697385;--muted-2:#8993a3;--bg:#fcfbf9;--bg-subtle:#f6f4ee;--surface:#fff;--surface-2:#f6f3ee;--surface-3:#ece8e1;--line:#e4e0d6;--line-light:#f0ede8;--line-strong:#d8d1c7;--green:#b07a2b;--green-bright:#ea7867;--green-light:#ffb58e;--green-dark:#bd4c4c;--green-deep:#a94345;--green-soft:#fff0e9;--green-soft-ink:#a94345;--green-glow:rgba(209,90,86,.22);--shadow-btn-primary:0 9px 22px rgba(209,90,86,.24)}
-.brand-mark{background:#18233a!important;border-radius:13px!important;padding:1px}.brand-mark img{width:100%;height:100%;display:block;border-radius:inherit}
+:root{--ink:#0d3b32;--ink-2:#14453a;--ink-3:#2b4a41;--muted:#5d6a64;--muted-2:#7d8983;--bg:#f8f7f3;--bg-subtle:#f1efe8;--surface:#fff;--surface-2:#f6f8fb;--surface-3:#eceff5;--line:#e4e0d6;--line-light:#efece4;--line-strong:#d5d0c4;--green:#0b5342;--green-bright:#1f7a5c;--green-light:#e6c98f;--green-dark:#0b6349;--green-deep:#8a6520;--green-soft:#fbf3e2;--green-soft-ink:#8a6520;--green-glow:rgba(220,169,79,.22);--shadow-btn-primary:0 9px 22px rgba(13,59,50,.22)}
+.brand-mark{background:transparent!important;border-radius:11px!important;padding:0}.brand-mark img{width:100%;height:100%;display:block;border-radius:inherit}
 
 .image-placeholder{display:grid!important;place-items:center;background:#f6f4ee!important}.image-placeholder img{width:42px;height:42px;object-fit:contain}
 
 /* Contributor finance workspace and shared mobile guardrails. */
-body.contributor-page{min-width:320px;overflow-x:hidden;background:#f5f3ef!important;color:#123f36}
+body.contributor-page{min-width:320px;overflow-x:hidden;overflow-x:clip;background:var(--zf-paper,#f8f7f3)!important;color:var(--zf-ink,#0d3b32)}
 body.contributor-page .fintech-header{position:sticky;background:#19263d;border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 5px 24px rgba(24,35,58,.12)}
 body.contributor-page .fintech-header-inner{max-width:1440px}
-body.contributor-page .brand-mark{background:#1c2941!important}
+body.contributor-page .brand-mark{background:transparent!important}
 body.contributor-page .contributor-nav{border:0;border-radius:0;background:transparent;padding:0}
 body.contributor-page .contributor-nav a{border-radius:6px;font-size:.8rem}
-body.contributor-page .contributor-nav a.on{background:rgba(219,119,99,.2);border:1px solid rgba(240,165,139,.28)}
-body.contributor-page .page{width:100%;min-width:0;max-width:1440px!important;margin:40px auto!important;padding:0 clamp(16px,4vw,48px) 72px!important;box-sizing:border-box}
-body.contributor-page .page-title h1{font:500 clamp(2rem,4vw,3rem)/1 Georgia,serif;letter-spacing:-.045em;color:#123f36}
+body.contributor-page .contributor-nav a.on{background:rgba(220,169,79,.18);border:1px solid rgba(220,169,79,.32);color:var(--zf-accent,#dca94f)}
+body.contributor-page .page{width:100%;min-width:0;max-width:1300px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 72px;box-sizing:border-box}
+body.contributor-page .page-title h1{font:700 clamp(2rem,4vw,3rem)/1.05 var(--zf-display,"Plus Jakarta Sans",Inter,sans-serif);letter-spacing:-.035em;color:var(--zf-ink,#0d3b32)}
 body.contributor-page .row{display:flex;flex-wrap:wrap;gap:14px;min-width:0}
 body.contributor-page .row>.spacer{flex:1 1 auto}
-body.contributor-page .hero-payout{position:relative;overflow:hidden;border:1px solid #34435b;border-radius:10px;background:linear-gradient(135deg,#0d3b32 0%,#283c58 63%,#3c4657 100%);box-shadow:0 17px 45px rgba(24,35,58,.15)}
-body.contributor-page .hero-payout:after{content:'✳';position:absolute;right:35px;top:18px;color:rgba(245,188,151,.17);font-size:8rem;line-height:1;pointer-events:none}
-body.contributor-page .hero-payout .cap{color:#f2b797}
+body.contributor-page .hero-payout{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:linear-gradient(135deg,#0d3b32 0%,#11493e 62%,#0a3a31 100%);box-shadow:0 24px 56px -32px rgba(13,59,50,.45)}
+body.contributor-page .hero-payout:after{content:'✳';position:absolute;right:35px;top:18px;color:rgba(220,169,79,.16);font-size:8rem;line-height:1;pointer-events:none}
+body.contributor-page .hero-payout .cap{color:var(--zf-accent,#dca94f)}
 body.contributor-page .hero-payout-stats{position:relative;z-index:1;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top-color:rgba(255,255,255,.16)}
 body.contributor-page .stat-tile{min-width:0;overflow-wrap:anywhere}
 body.contributor-page .stat-tile{padding:2px 18px;border-right:1px solid rgba(255,255,255,.15)}
 body.contributor-page .stat-tile:first-child{padding-left:0}
 body.contributor-page .stat-tile:last-child{border-right:0}
-body.contributor-page .page .card{border:1px solid #e5e1da;border-radius:9px;box-shadow:0 5px 20px rgba(24,35,58,.035)}
+body.contributor-page .page .card{border:1px solid var(--zf-line,#e4e0d6);border-radius:16px;box-shadow:0 18px 40px -32px rgba(13,59,50,.3)}
 body.contributor-page .table-wrap,body.contributor-page .tw{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 body.contributor-page table{min-width:720px}
 body.contributor-page .notice,body.contributor-page .pill{max-width:100%;overflow-wrap:anywhere}

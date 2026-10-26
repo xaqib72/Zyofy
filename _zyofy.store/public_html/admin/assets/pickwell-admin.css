@@ -1772,3 +1772,96 @@ body.pickwell-admin-setup {
   letter-spacing: .2em;
   color: var(--a-brass-ink);
 }
+
+/* ===================================================== 21. LAYOUT RECONCILIATION
+
+   admin/assets/app.css (the pre-Pickwell sheet) still carries its own rail
+   metrics for the same elements: a 248px content offset at desktop, a
+   `calc(100% - 218px)` header width between 701px and 1050px, and a
+   `margin-left: 248px` page. This theme moved the rail to 264px, so between
+   1050px and 700px the top bar was 18px wider than the space it had and pushed
+   a horizontal scrollbar onto every admin screen at tablet width.
+
+   One set of numbers now owns the geometry: rail 264 -> 236 -> 0, header width
+   `auto` so it always fills the gap its own margin-left leaves, and every
+   breakpoint restates the trio (header / rail / page) together.
+   ------------------------------------------------------------------------- */
+
+.pickwell-admin > .header {
+  width: auto;
+  margin-left: 264px;
+  height: 64px;
+}
+.pickwell-admin .admin-side-rail,
+.pickwell-admin .admin-workspace-nav {
+  width: 264px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overscroll-behavior: contain;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+.pickwell-admin .page,
+.pickwell-admin .wrap {
+  margin-left: 264px;
+  max-width: none;
+  overflow-x: clip;
+}
+
+@media (max-width: 1200px) {
+  .pickwell-admin > .header { width: auto; margin-left: 236px; }
+  .pickwell-admin .admin-side-rail,
+  .pickwell-admin .admin-workspace-nav { width: 236px; }
+  .pickwell-admin .page,
+  .pickwell-admin .wrap { margin-left: 236px; }
+}
+
+@media (max-width: 1050px) {
+  .pickwell-admin > .header { width: auto; margin-left: 236px; }
+  .pickwell-admin .admin-side-rail,
+  .pickwell-admin .admin-workspace-nav { width: 236px; }
+  .pickwell-admin .page,
+  .pickwell-admin .wrap { margin-left: 236px; }
+}
+
+@media (max-width: 860px) {
+  .pickwell-admin > .header {
+    position: sticky;
+    width: auto;
+    margin: 0;
+    height: 58px;
+  }
+  .pickwell-admin .admin-side-rail,
+  .pickwell-admin .admin-workspace-nav {
+    position: fixed;
+    inset: 58px auto 0 0;
+    width: min(86vw, 300px);
+    height: auto;
+    max-height: none;
+    top: 58px;
+  }
+  .pickwell-admin .page,
+  .pickwell-admin .wrap {
+    margin: 0;
+    min-height: calc(100svh - 58px);
+    padding: 20px 14px calc(40px + env(safe-area-inset-bottom));
+  }
+  /* Tables scroll inside their wrapper, never the document. */
+  .pickwell-admin .table-wrap,
+  .pickwell-admin .tw { max-width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .pickwell-admin .page,
+  .pickwell-admin .wrap { padding-inline: 12px; }
+  .pickwell-admin .card { overflow-x: clip; }
+}
+
+/* Admin tables: horizontal scroll belongs to the wrapper, not the page. */
+.pickwell-admin .table-wrap,
+.pickwell-admin .tw {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
