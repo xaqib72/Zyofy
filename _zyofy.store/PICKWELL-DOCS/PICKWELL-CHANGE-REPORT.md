@@ -1,11 +1,11 @@
 # Pickwell — Change Report
 
 **Project:** Pickwell — affiliate product discovery platform
-**Source:** `github.com/xaqib72/Zyofy` (baseline commit `23fc400`)
-**Working branch:** `arena/0be754c4-zyofy`
+**Source:** `github.com/xaqib72/Zyofy` (rebrand merged as `bc0c786`)
+**Working branch:** `arena/6129e035-zyofy`
 **Canonical domain:** `https://pickwell.t86.site`
 **Target host:** Hostinger (shared, PHP + MySQL, Apache/LiteSpeed)
-**Date:** 26 October 2026
+**Date:** 26 October 2026 — round 2 adds the layout repair in §10
 
 ---
 
@@ -283,3 +283,157 @@ PHP templates executed.
    than deleted.
 4. The repository's production SQL dump and the previous real `config.php` stay
    in the repository (outside the shipped archive). See security note 2.
+
+---
+
+## 10. Layout repair pass (round 2)
+
+After the first delivery the header and, in the client's words, "many places"
+had elements sitting on top of each other or shifted up and down — on phones,
+tablets and desktop. This pass traced that to specific competing rules rather
+than restyling by eye. Each item below names the rule that caused it.
+
+### 10.1 Two headers, two designs
+
+`inc/layout.php` rendered **two different bars**: `dd_render_storefront_header()`
+for the storefront and `dd_render_header()` for login, register, forgot-password
+and reset-password. The second emitted `.site-header` markup, which
+`assets/css/site.css` painted navy (`#1c2941` chips, `#a94f49` hovers, a 74px
+inner height, a navy drawer) while every other page got the ivory Pickwell bar
+from `pickwell.css`. Two headers, two metric systems, two palettes.
+
+*Now:* `dd_render_header()` delegates to the storefront renderer, so there is one
+header in the markup, one set of measurements (`--zf-header-h`) and one palette.
+The legacy `.site-header` skin — both the original block and the later "polished
+shared header" block — was removed from `site.css`, together with the
+`background:#18233a!important` brand chip.
+
+### 10.2 The page shell disagreed with itself
+
+`site.css` defined `.shell` as `width:min(var(--shell), calc(100% - 44px))` and
+re-declared it at 768px; `pickwell.css` defined it as `max-width` + padding. The
+result depended on which sheet won per page.
+
+*Now:* one definition in `pickwell.css` §31.1 —
+`width:100%; max-width:var(--zf-shell); margin-inline:auto;
+padding-inline:clamp(16px, 4vw, 32px)` — and `site.css` mirrors it.
+
+### 10.3 Sticky header could stop sticking
+
+`body { overflow-x: hidden }` turns `<body>` into a scroll container in Chrome
+and Safari, which can silently disable `position: sticky` on the header and
+produce content jumping under/over the bar. Body now uses `overflow-x: clip`
+(with `hidden` kept as a fallback for older engines).
+
+### 10.4 The mobile drawer ran off the screen
+
+`site.css` positioned `.mobile-menu` absolutely with its own padding, and
+`pickwell.css` added a second inner padding, with **no height cap**. A long menu
+(five links + disclosure + account actions) ran past the bottom of an iPhone and
+the last items were unreachable.
+
+*Now:* single padding, `max-height: calc(100dvh - var(--zf-header-h))`,
+`overflow-y:auto`, `overscroll-behavior:contain`, and bottom padding that
+respects `env(safe-area-inset-bottom)`.
+
+### 10.5 The affiliate disclosure was hidden site-wide
+
+A "legacy markup" guard — `.affiliate-header-disclosure { display: none }` — and
+`body.auth-page .zf-disclosure { display: none }` were hiding the required
+Amazon disclosure bar on **every** page. Both now display. This is a compliance
+fix as much as a layout one: the disclosure is visible above the fold again, and
+the footer disclosure is untouched.
+
+### 10.6 Tablet band overflowed instead of collapsing
+
+Between roughly 980px and 1140px the brand, five nav links, the search field and
+the account cluster no longer fit inside the 1280px shell, so the bar overflowed
+sideways rather than collapsing.
+
+*Now:* the nav and header search collapse at **1140px** (previously 980px) and
+the menu toggle takes over, so iPad widths get a clean single-line bar.
+
+### 10.7 Anchors landed under the sticky bar
+
+`/#guides`, `/#edit` and similar links parked the heading behind the sticky
+header. `html { scroll-padding-top }` plus per-section `scroll-margin-top` now
+offset by the real header height.
+
+### 10.8 100vh on mobile Safari
+
+`calc(100vh - header)` includes Safari's collapsing chrome, which pushed the auth
+panel past the fold. Now `100svh` with a `100vh` fallback.
+
+### 10.9 Prose had no vertical rhythm
+
+`site.css` zeroes `margin` and `padding` on every element. Components set their
+own spacing, but plain content (policy pages, guide bodies, standalone notes)
+collapsed into touching lines. §31.7 adds **zero-specificity** `:where()` spacing
+between siblings only — never before a first child — so any component rule still
+wins.
+
+### 10.10 `/my-earnings/` was on a third palette
+
+`body.contributor-page` was forced to `background:#f5f3ef!important;
+color:#123f36`, navy `#1c2941` chips, a Georgia serif page title, coral
+`rgba(219,119,99)` nav accents, an emerald hero gradient and a
+`max-width:1440px!important` page — **wider than the 1280px header it sits
+under**, which is exactly the kind of misalignment that reads as "elements are
+off". All of it now uses Pickwell tokens, the page is 1300px like the header
+shell, and the inline `<style>` block's hero gradient was re-pointed to
+evergreen/brass. No markup, PHP or data was touched in that file.
+
+### 10.11 Admin: header and rail disagreed, tablet got a scrollbar
+
+`admin/assets/app.css` still carried the pre-Pickwell layout maths — a 248px page
+offset and `width: calc(100% - 218px)` on the top bar between 701 and 1050px —
+while `pickwell-admin.css` had moved the rail to 264px (236px below 1200px).
+Between 861px and 1050px the bar was therefore ~18px wider than the space its own
+`margin-left` left for it: a horizontal scrollbar on every admin screen at tablet
+width, with the right edge of the bar cut off.
+
+*Now:* one scale owns the geometry — rail 264 → 236 → 0, header `width:auto` so
+it always fills the gap its margin leaves, page margin matching at every
+breakpoint, rail at `100dvh`, tables scrolling inside their wrapper instead of
+the document, `overflow-x: clip` on the page container.
+
+### 10.12 Files changed in this pass
+
+| File | Change |
+| --- | --- |
+| `inc/layout.php` | `dd_render_header()` now delegates to the storefront renderer; the duplicate header markup is gone (54 lines removed) |
+| `assets/css/site.css` | legacy `.site-header` skin removed, single `.shell`, `overflow-x: clip`, Pickwell tokens for the contributor surface, navy `!important` chip removed |
+| `assets/css/pickwell.css` | new §31 "Layout authority" (227 lines): shell, header normalisation, disclosure, drawer, anchor offsets, `svh`, rhythm, overflow guards, tablet collapse |
+| `admin/assets/pickwell-admin.css` | new §21 "Layout reconciliation" (93 lines): header/rail/page scale at 1200/1050/860/520px, `dvh` rail, table scrolling |
+| `my-earnings.php` | colour values only, inside the inline `<style>` block (hero gradient, cap, big-number suffix) |
+
+No PHP logic, query, form, field name, element ID, data attribute, CSRF token,
+route or asset path was changed in this pass. `data-site-header`,
+`data-menu-toggle`, `data-mobile-menu` and the admin hooks
+(`#adminNavToggle`, `#adminSidebar`, `#adminNavBackdrop`) are all intact.
+
+### 10.13 What was verified this round
+
+| Check | Method | Result |
+| --- | --- | --- |
+| PHP syntax | `php-parser` over all 206 application PHP files | 0 errors (9 failures are all `vendor/` files using PHP 8 syntax the parser predates) |
+| CSS validity | `postcss` parse of every stylesheet in `public_html/` | 0 errors |
+| JavaScript | `node --check` on `pickwell.js` and `site.js` | pass |
+| Layout invariants | 23 assertions over the four sheets + `layout.php` (one `<header>`, single `.shell`, disclosure visible, drawer capped, tablet collapse, admin 1050px trio, preserved hooks) | 23/23 pass |
+| Cascade order | Confirmed every §31 / §21 override is the last matching rule in load order (`site.css` → `pickwell.css`; `app.css` → `premium-refresh.css` → `pickwell-admin.css`) | pass |
+| Colour sweep | Grep for the previous theme hexes (`#1c2941`, `#18233a`, `#a94f49`, `#a94345`, `#b07a2b`, `#ea7867`, `#bd4c4c`, `#123f36`) in the three active sheets | 0 remaining |
+| Secret scan | Grep for the production DB credential and account id across the packaged tree | 0 matches |
+
+### 10.14 Still not visually verified
+
+There is still **no browser in the build environment** (Chromium cannot start —
+`libnspr4`, `libnss3`, `libnssutil3` are missing and the package mirrors are
+unreachable; WeasyPrint has no Pango). Every claim above is a **cascade and
+geometry analysis**, not a screenshot. Please check these five views first when
+you open the site:
+
+1. iPhone 390px — header, open drawer (all items reachable), footer.
+2. iPad 834px and 1024px — bar collapses cleanly, no sideways scroll.
+3. Laptop 1440px — nav, search and account on one line.
+4. `/my-earnings/` — page aligned with the header, evergreen hero.
+5. `/admin/` at ~900px — no horizontal scrollbar, rail and top bar flush.

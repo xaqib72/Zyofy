@@ -3385,3 +3385,241 @@ body.auth-page input:focus-visible {
   .zf-card:hover, .product-card:hover, .retail-product-card:hover,
   .guide-library-item:hover, .guide-preview-card:hover { transform: none; }
 }
+
+/* ============================================================================ 31. LAYOUT AUTHORITY
+
+   This block is the last word on the shell, the header and the vertical rhythm.
+   Background: site.css (a pre-Pickwell layer) still ships a global reset, its
+   own `.shell`, a `.header-inner` height, an absolutely positioned `.mobile-menu`
+   and a `!important` brand chip. pickwell.css loads after it, so instead of
+   patching every template we restate the handful of primitives both layers
+   touch — once, here — and let one set of rules own the geometry on phone,
+   tablet, laptop and large desktop.
+
+   31.1  One page shell
+   31.2  One header bar (both renderers, one set of metrics)
+   31.3  Affiliate disclosure bar
+   31.4  Mobile drawer
+   31.5  Sticky-header offsets for anchors
+   31.6  Viewport units that survive mobile browser chrome
+   31.7  Vertical rhythm for content the reset flattened
+   31.8  Overflow guards
+   ------------------------------------------------------------------------- */
+
+/* 31.1 One page shell ------------------------------------------------------ */
+.shell {
+  width: 100%;
+  max-width: var(--zf-shell);
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 32px);
+}
+
+/* 31.2 One header bar ------------------------------------------------------ */
+.zf-header {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(255, 255, 255, .94);
+  border-bottom: 1px solid var(--zf-line);
+  box-shadow: none;
+}
+
+.zf-header-inner {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 26px);
+  min-height: var(--zf-header-h);
+  height: auto;
+  padding-block: 0;
+}
+
+/* Both renderers end up on these elements; make sure nothing from the older
+   sheet (fixed heights, navy chips, coral hovers) survives. */
+.zf-header .header-inner {
+  height: auto;
+  min-height: var(--zf-header-h);
+  justify-content: flex-start;
+}
+.zf-header .brand,
+.zf-header .brand-name { color: var(--zf-ink); }
+.zf-header .brand { gap: 11px; }
+.zf-header .brand-name { font-size: 1.32rem; letter-spacing: -.04em; }
+.zf-header .brand-mark,
+.zf-header .storefront-brand-mark {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: transparent !important;
+  box-shadow: none;
+  transform: none;
+}
+.zf-header .brand-mark img { width: 38px; height: 38px; border-radius: 11px; }
+.zf-header .brand:hover .brand-mark { transform: none; box-shadow: none; }
+
+.zf-header .desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.zf-header .nav-link {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--zf-ink-2);
+  font-size: .9rem;
+  font-weight: 500;
+}
+.zf-header .nav-link:hover { background: var(--zf-paper); color: var(--zf-ink); }
+.zf-header .nav-link.is-active {
+  border: 0;
+  background: transparent;
+  color: var(--zf-ink);
+  font-weight: 650;
+}
+.zf-header .header-actions { gap: 10px; }
+
+/* The account cluster never gets to squeeze the brand or the nav. */
+.zf-header-tools { min-width: 0; }
+.zf-header .zf-account { flex: 0 0 auto; }
+.zf-header .zf-brand-type { min-width: 0; }
+.zf-header .zf-brand-type b { white-space: nowrap; }
+
+/* 31.3 Affiliate disclosure bar -------------------------------------------- */
+/* It was being hidden wholesale by a "legacy markup" guard further up the file,
+   which meant the required Amazon disclosure never appeared above the fold. */
+.affiliate-header-disclosure,
+.affiliate-header-disclosure.zf-disclosure {
+  display: block;
+  position: relative;
+  z-index: 901;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--zf-ink);
+}
+.affiliate-header-disclosure .zf-disclosure-inner { padding-inline: clamp(16px, 4vw, 32px); }
+body.auth-page .zf-disclosure { display: block; }
+
+@media (max-width: 680px) {
+  .affiliate-header-disclosure .zf-disclosure-badge { order: -1; }
+}
+
+/* 31.4 Mobile drawer ------------------------------------------------------- */
+/* site.css leaves `.mobile-menu` absolutely positioned with its own padding and
+   no height cap, so a long menu ran off the bottom of a phone screen. */
+.mobile-menu,
+.zf-mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 0;
+  max-height: calc(100vh - var(--zf-header-h));
+  max-height: calc(100dvh - var(--zf-header-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 0;
+  border-radius: 0;
+  background: var(--zf-ink);
+  box-shadow: 0 28px 56px -32px rgba(13, 59, 50, .55);
+}
+
+.zf-mobile-inner {
+  display: grid;
+  gap: 2px;
+  padding-block: 10px calc(22px + env(safe-area-inset-bottom));
+}
+.mobile-menu a,
+.zf-mobile-inner > a { min-height: 50px; }
+
+/* Open/closed toggle state is owned by the §27 legacy guards
+   (body.storefront-page .zf-menu-toggle[.is-open] !important) — not repeated
+   here so the two layers cannot disagree about the icon colour. */
+
+/* Tablet band: between roughly 980px and 1140px the full nav, the search field
+   and the account cluster no longer fit on one line at the 1280px shell, so the
+   bar used to overflow sideways instead of collapsing. Collapse earlier. */
+@media (max-width: 1140px) {
+  .zf-nav { display: none; }
+  .zf-quick-search { display: none; }
+  .zf-menu-toggle { display: flex; }
+  .zf-header-tools { margin-left: auto; }
+  .zf-account { margin-left: auto; }
+}
+
+/* Keep the bar compact enough that the drawer never hides the footer of the
+   page it sits on. */
+@media (max-width: 980px) {
+  .zf-header-tools { gap: 8px; }
+  .zf-header .zf-brand-type small { display: none; }
+}
+@media (max-width: 680px) {
+  .zf-header-inner { gap: 10px; }
+  .zf-header .zf-brand-type b { font-size: 1.18rem; }
+  .zf-account .zf-btn,
+  .zf-account .storefront-join-link { padding-inline: 14px; min-height: 38px; font-size: .8rem; }
+}
+
+/* 31.5 Sticky-header offsets for anchors ----------------------------------- */
+/* Jumping to #guides or #edit used to land the heading underneath the sticky
+   bar. scroll-padding on <html> covers the document, scroll-margin covers the
+   per-section case (and older iOS Safari, which ignores the former). */
+html { scroll-padding-top: calc(var(--zf-header-h) + 16px); }
+:where(section, article, div, h1, h2, h3)[id] {
+  scroll-margin-top: calc(var(--zf-header-h) + 16px);
+}
+
+/* 31.6 Viewport units ------------------------------------------------------ */
+/* 100vh includes Safari's collapsing chrome, which pushed the auth panel and
+   contributor workspace past the fold on iPhone. */
+.auth-shell {
+  min-height: calc(100vh - var(--zf-header-h));
+  min-height: calc(100svh - var(--zf-header-h));
+}
+body.contributor-page .page,
+body.contributor-page main.page {
+  min-height: 0;
+}
+
+/* 31.7 Vertical rhythm ----------------------------------------------------- */
+/* site.css zeroes margin and padding on every element. Components that set
+   their own spacing are fine; plain content (policy pages, guide bodies, notes)
+   collapsed into a block of touching lines. These rules only add space *between*
+   siblings — never before a first child — and carry zero specificity, so any
+   component rule still wins. */
+main :where(p:not(:first-child)) { margin-block-start: .8em; }
+main :where(ul:not(:first-child), ol:not(:first-child)) { margin-block-start: .8em; }
+main :where(li:not(:first-child)) { margin-block-start: .28em; }
+main :where(blockquote:not(:first-child)) { margin-block-start: 1em; }
+main :where(blockquote) {
+  padding-inline-start: 1em;
+  border-inline-start: 3px solid var(--zf-line-strong);
+  color: var(--zf-slate);
+}
+
+/* 31.8 Overflow guards ---------------------------------------------------- */
+body.storefront-page,
+body.auth-page,
+body.contributor-page {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.zf-header-inner > *,
+.zf-section-head > *,
+.zf-footer-top > *,
+.zf-hero-grid > *,
+.product-detail-panel > * { min-width: 0; }
+
+body.storefront-page :where(table) { border-collapse: collapse; }

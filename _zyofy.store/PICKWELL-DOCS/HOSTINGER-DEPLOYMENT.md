@@ -6,6 +6,11 @@ Apache/LiteSpeed).
 This guide assumes you have the archive `Pickwell-deploy.zip`. Nothing in it
 contains production credentials — you will enter those yourself in step 4.
 
+Build note: this is the **layout-repair build** (one header, unified page shell,
+capped mobile drawer, visible affiliate disclosure, tablet-safe header collapse,
+admin rail/top-bar alignment). See `PICKWELL-CHANGE-REPORT.md` §10 for what was
+wrong and what changed.
+
 ---
 
 ## 0. What is in the archive
@@ -26,6 +31,21 @@ BRAND-ASSETS/                ← logo variants, icons, social image, SVG sources
 PICKWELL-CHANGE-REPORT.md    ← what changed and what was tested
 HOSTINGER-DEPLOYMENT.md      ← this file
 ```
+
+> **Already uploaded the first build?** This archive is a full replacement, but
+> only five files changed in the layout-repair pass — you can re-upload just
+> these instead of the whole site:
+>
+> ```
+> public_html/inc/layout.php
+> public_html/assets/css/site.css
+> public_html/assets/css/pickwell.css
+> public_html/admin/assets/pickwell-admin.css
+> public_html/my-earnings.php
+> ```
+>
+> Stylesheets are referenced with `?v=<last-modified>`, so browsers pick up the
+> new versions without a cache flush.
 
 Two directories from the original repository are deliberately **not** included:
 `tests/` (development test suite) and the previous production `config.php`
@@ -84,8 +104,8 @@ your account user — never 777.
 
 > **Existing site migration?** Keep your current database and simply point
 > `config.php` at it — the schema is unchanged by this redesign, so no data
-> migration is required. Do **not** import the old `u432321334_Zyofy.sql` dump on
-> top of a live database.
+> migration is required. Do **not** import any legacy `.sql` dump on top of a
+> live database.
 
 > **Fresh install?** The repository does not contain a complete schema dump, only
 > migration scripts (`sql/`, `migrations/`). On a brand-new empty database,

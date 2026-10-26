@@ -120,54 +120,16 @@ function dd_render_affiliate_header_disclosure()
 <?php
 }
 
-/* Existing contributor/internal header kept intact for generator/account pages. */
+/* Single header contract.
+
+   Every public template renders the same bar through this function. It used to
+   emit a second, older header (`.site-header` + `.brand` + `.desktop-nav`) that
+   the legacy site.css layer restyled with a different palette and metrics, so
+   auth screens disagreed with the rest of the site. The function name and
+   signature are kept because templates call it directly. */
 function dd_render_header($active = '', $user = null)
 {
-    $links = [
-        'home' => ['Home', '/'],
-        'guides' => ['Guides', '/guides/'],
-        'about' => ['About', '/about/'],
-        'contact' => ['Contact', '/contact/'],
-    ];
-    ?>
-<?php dd_render_affiliate_header_disclosure(); ?>
-<header class="site-header zf-header" data-site-header>
-  <div class="shell zf-header-inner">
-    <a class="brand zf-brand" href="<?= dd_e(dd_url('/')) ?>" aria-label="Pickwell home">
-      <span class="brand-mark zf-brand-mark" aria-hidden="true"><img src="<?= dd_e(dd_url('/assets/brand/pickwell-mark.svg')) ?>" alt=""></span>
-      <span class="brand-name zf-brand-type"><b>Pickwell</b><small>SMART SHOPPING, CURATED</small></span>
-    </a>
-    <nav class="desktop-nav zf-nav" aria-label="Primary navigation">
-      <?php foreach ($links as $key => [$label, $path]): ?>
-        <a class="nav-link zf-nav-link<?= $active === $key ? ' is-active' : '' ?>" href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
-      <?php endforeach; ?>
-    </nav>
-    <div class="header-actions zf-header-tools">
-      <?php if ($user): ?>
-        <a class="btn btn-ghost btn-sm zf-btn-ghost zf-btn-sm" href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
-      <?php else: ?>
-        <a class="zf-account-link" href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
-      <?php endif; ?>
-      <button class="menu-toggle zf-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
-    </div>
-  </div>
-  <div class="mobile-menu zf-mobile-menu" data-mobile-menu>
-    <div class="shell mobile-menu-inner zf-mobile-inner">
-      <?php foreach ($links as $key => [$label, $path]): ?>
-        <a href="<?= dd_e(dd_url($path)) ?>"><?= dd_e($label) ?></a>
-      <?php endforeach; ?>
-      <div class="zf-mobile-foot">
-        <?php if ($user): ?>
-          <a href="<?= dd_e(dd_url('/logout.php')) ?>">Sign out</a>
-        <?php else: ?>
-          <a href="<?= dd_e(dd_url('/login/')) ?>">Sign in</a>
-          <a class="zf-mobile-primary" href="<?= dd_e(dd_url('/register/')) ?>">Create account</a>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</header>
-<?php
+    dd_render_storefront_header($active, $user);
 }
 
 function dd_render_storefront_header($active = '', $user = null)

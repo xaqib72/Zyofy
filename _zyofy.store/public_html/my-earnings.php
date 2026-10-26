@@ -210,8 +210,8 @@ $shareText = ddOut($dummyCommissionText) . '%';
   }
   .hero-payout {
     background:
-      radial-gradient(ellipse 70% 50% at 80% 20%, rgba(16, 185, 129, 0.22), transparent 60%),
-      linear-gradient(140deg, #0f1914 0%, #15271d 60%, #0a0f0d 100%);
+      radial-gradient(ellipse 70% 50% at 80% 20%, rgba(220, 169, 79, 0.2), transparent 60%),
+      linear-gradient(140deg, #0d3b32 0%, #11493e 60%, #082a23 100%);
     color: #ffffff;
     border-radius: 28px;
     padding: 40px;
@@ -226,7 +226,7 @@ $shareText = ddOut($dummyCommissionText) . '%';
     font-weight: 850;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #7eed9b;
+    color: #dca94f;
   }
   .hero-payout .big-num {
     font-size: clamp(2.8rem, 6vw, 4.4rem);
@@ -240,7 +240,7 @@ $shareText = ddOut($dummyCommissionText) . '%';
   .hero-payout .big-num span {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #a7c9b2;
+    color: rgba(220, 169, 79, .8);
     margin-left: 10px;
     letter-spacing: 0;
   }
