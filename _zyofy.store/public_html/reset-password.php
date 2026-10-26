@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf = dd_csrf_token();
-dd_render_head('Reset Password · Zyofy', ['body_class' => 'auth-page']);
+dd_render_head('Reset Password · Pickwell', ['body_class' => 'auth-page']);
 dd_render_header();
 ?>
 <main class="auth-shell">

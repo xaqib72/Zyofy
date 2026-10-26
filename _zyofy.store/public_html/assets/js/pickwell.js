@@ -1,5 +1,5 @@
 /**
- * Zyofy — storefront presentation enhancements (2026 design layer).
+ * Pickwell — storefront presentation enhancements (2026 design layer).
  *
  * Strictly visual: it never submits, intercepts or rewrites application data.
  * Everything degrades gracefully if this file fails to load.

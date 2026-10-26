@@ -52,19 +52,19 @@ dd_render_storefront_header('guides', $user);
       <div class="store-faq-list">
         <details open>
           <summary>Do these guides claim every product was personally tested?</summary>
-          <p>No. Zyofy does not claim hands-on testing unless that actually happened and is stated clearly. These guides focus on buying criteria, specifications and practical questions shoppers can use when comparing options.</p>
+          <p>No. Pickwell does not claim hands-on testing unless that actually happened and is stated clearly. These guides focus on buying criteria, specifications and practical questions shoppers can use when comparing options.</p>
         </details>
         <details>
           <summary>Are prices listed in the guides?</summary>
           <p>No. Prices change quickly, so the guides focus on buying criteria. Check the seller's own page for the current price and availability.</p>
         </details>
         <details>
-          <summary>How does Zyofy make money?</summary>
+          <summary>How does Pickwell make money?</summary>
           <p>Some Amazon product links may be affiliate links. Any qualifying commission does not change the price you pay; see our affiliate disclosure for details.</p>
         </details>
         <details>
           <summary>Do brands pay to appear in these guides?</summary>
-          <p>Zyofy does not imply a brand paid for placement unless a sponsorship is explicitly disclosed.</p>
+          <p>Pickwell does not imply a brand paid for placement unless a sponsorship is explicitly disclosed.</p>
         </details>
       </div>
     </div>

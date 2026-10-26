@@ -100,7 +100,7 @@ discovery_test('Product Name and Product Code labels remain distinct from ASIN a
 $labelledAsin = dd_product_discovery_parse($pdo, "ASIN: B000000050\nMarketplace: USA");
 discovery_test('explicit ASIN label is retained as ASIN evidence, separately from search clues', $labelledAsin['valid'] && $labelledAsin['asin'] === 'B000000050' && $labelledAsin['keyword'] === '');
 discovery_test('product-code-only 10 character values do not trigger ASIN routing', !dd_product_discovery_has_product_identifier('Product Code: B000000051') && dd_product_discovery_has_product_identifier('ASIN: B000000051'));
-discovery_test('Zyofy product share URL with ASIN and USA routes to direct product generation', dd_product_discovery_has_product_identifier('https://zyofy.store/product/B0FYNXR41Y/-P1fGhvHxpWEYjVO_IrMc9jdosCjOvFz/ USA'));
+discovery_test('Pickwell product share URL with ASIN and USA routes to direct product generation', dd_product_discovery_has_product_identifier('https://pickwell.t86.site/product/B0FYNXR41Y/-P1fGhvHxpWEYjVO_IrMc9jdosCjOvFz/ USA'));
 discovery_test('other site product URL with ASIN and USA routes to direct product generation', dd_product_discovery_has_product_identifier('https://viralnesthome.shop/product/B09QYTLR3K/zyHcrXM1yutEg6UG5-IQt4C_nihZIvFf/ USA'));
 discovery_test('Amazon-shaped links on unrelated or suffix-spoofed hosts without marketplace remain search input', !dd_product_discovery_has_product_identifier('https://amazon.com.evil.example/dp/B000000052') && !dd_product_discovery_has_product_identifier('https://evil.example/dp/B000000052'));
 
@@ -166,7 +166,7 @@ $mockApiItem = dd_creator_map_item([
         ['merchantInfo' => ['name' => 'Other seller']],
         ['merchantInfo' => ['name' => 'GEYILO LLC-43'], 'isBuyBoxWinner' => true],
     ]],
-], 'www.amazon.com', ['partner_tag' => 'zyofy-test-20']);
+], 'www.amazon.com', ['partner_tag' => 'pickwell-test-20']);
 discovery_test('mock Creators API response maps brand, manufacturer, part number, and buy box seller fields', $mockApiItem['brand'] === 'TEPOTZ' && $mockApiItem['manufacturer'] === 'TEPOTZ Manufacturing' && $mockApiItem['product_code'] === '3054904' && $mockApiItem['seller'] === 'GEYILO LLC-43' && $mockApiItem['seller_verified'] === true);
 $missingSellerCandidate = dd_product_discovery_candidate(['asin' => 'B000000022', 'title' => 'Sample product', 'marketplace' => 'www.amazon.com'], 'amazon_creators_api', ['keyword' => 'Sample', 'seller' => 'Wanted seller']);
 discovery_test('missing seller data is explicitly shown as unverified', str_contains(dd_product_discovery_candidate_caption($missingSellerCandidate, 1), 'Sold by: Not verified'));

@@ -5,7 +5,7 @@ $db = dd_config('db', []);
 $password = (string) ($db['password'] ?? '');
 
 if ($password === '' || $password === 'PASTE_STAGING_DB_PASSWORD_HERE') {
-    throw new RuntimeException('Zyofy database is not configured yet. Add the staging database password in config.php.');
+    throw new RuntimeException('Pickwell database is not configured yet. Add the staging database password in config.php.');
 }
 
 $dsn = sprintf(
@@ -22,9 +22,9 @@ try {
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 } catch (Throwable $e) {
-    error_log('Zyofy database connection failed: ' . $e->getMessage());
+    error_log('Pickwell database connection failed: ' . $e->getMessage());
     if (dd_config('app.debug', false)) {
         throw $e;
     }
-    throw new RuntimeException('Zyofy cannot connect to its database right now.');
+    throw new RuntimeException('Pickwell cannot connect to its database right now.');
 }

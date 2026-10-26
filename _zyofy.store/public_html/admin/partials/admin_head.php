@@ -12,7 +12,7 @@
  *   $currentPage — payout | upload | settings   (marks the active tab)
  */
 
-if (!isset($pageTitle))   { $pageTitle = 'Zyofy Admin'; }
+if (!isset($pageTitle))   { $pageTitle = 'Pickwell Admin'; }
 if (!isset($currentPage)) { $currentPage = ''; }
 
 function adminOut($value)
@@ -42,18 +42,15 @@ $premiumCssVersion = is_file($premiumCssPath) ? (string) filemtime($premiumCssPa
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= adminOut($pageTitle) ?> — Zyofy Admin</title>
+<title><?= adminOut($pageTitle) ?> — Pickwell Admin</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<?php $brandPrefix = '../'; require __DIR__ . '/brand_icons.php'; ?>
 <link rel="stylesheet" href="assets/app.css?v=<?= adminOut($appCssVersion) ?>">
 <link rel="stylesheet" href="assets/premium-refresh.css?v=<?= adminOut($premiumCssVersion) ?>">
-<?php $opsCssPath = __DIR__ . '/../assets/admin-2026.css'; $opsCssVersion = is_file($opsCssPath) ? (string) filemtime($opsCssPath) : '1'; ?>
-<link rel="stylesheet" href="assets/admin-2026.css?v=<?= adminOut($opsCssVersion) ?>">
-<link rel="icon" type="image/svg+xml" href="../assets/images/zyofy-mark.svg">
+<?php $opsCssPath = __DIR__ . '/../assets/pickwell-admin.css'; $opsCssVersion = is_file($opsCssPath) ? (string) filemtime($opsCssPath) : '1'; ?>
+<link rel="stylesheet" href="assets/pickwell-admin.css?v=<?= adminOut($opsCssVersion) ?>">
 </head>
-<body class="zyofy-admin">
+<body class="pickwell-admin">
 <header class="header">
   <div class="header-inner">
     <button class="mobile-nav-toggle" id="adminNavToggle" type="button" aria-label="Open admin navigation" aria-controls="adminSidebar" aria-expanded="false"><i class="fas fa-bars"></i></button>
@@ -66,7 +63,7 @@ $premiumCssVersion = is_file($premiumCssPath) ? (string) filemtime($premiumCssPa
 </header>
 
 <aside class="admin-workspace-nav admin-side-rail" id="adminSidebar" aria-label="Admin workspace navigation">
-  <a class="rail-brand" href="index.php"><span class="brand-mark"><img src="../assets/images/zyofy-mark.svg" alt=""></span><span><b>Zyofy Admin</b><small>CONTROL CENTER</small></span></a>
+  <a class="rail-brand" href="index.php"><span class="brand-mark"><img src="../assets/brand/pickwell-mark-light.svg" alt=""></span><span><b>Pickwell</b><small>CONTROL CENTER</small></span></a>
   <span class="nav-group-label">PEOPLE</span>
   <a class="tab-button" href="index.php?tab=usersTab"><i class="fas fa-users"></i> Users &amp; tags</a>
   <a class="tab-button" href="index.php?tab=createTagTab"><i class="fas fa-tag"></i> Tracking tags</a>
@@ -118,6 +115,6 @@ $premiumCssVersion = is_file($premiumCssPath) ? (string) filemtime($premiumCssPa
 
 <main class="page">
   <div class="admin-welcome admin-subpage-welcome">
-    <div><span class="admin-overline">ZYOFY <i>/</i> WORKSPACE</span><h1><?= adminOut($pageTitle) ?></h1><p>Manage contributors, reports and marketplace settings from one secure workspace.</p></div>
+    <div><span class="admin-overline">PICKWELL <i>/</i> WORKSPACE</span><h1><?= adminOut($pageTitle) ?></h1><p>Manage contributors, reports and marketplace settings from one secure workspace.</p></div>
     <div class="admin-welcome-badge"><span class="status-dot"></span> Workspace protected</div>
   </div>

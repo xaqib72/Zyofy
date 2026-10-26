@@ -70,22 +70,19 @@ $adminExists = $stmt->fetchColumn() > 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Zyofy</title>
-    <link rel="icon" type="image/svg+xml" href="../assets/images/zyofy-mark.svg">
+    <title>Admin Login - Pickwell</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <?php $brandPrefix = '../'; require __DIR__ . '/partials/brand_icons.php'; ?>
 
-    <link rel="stylesheet" href="assets/admin-2026.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/admin-2026.css')) ?>">
+    <link rel="stylesheet" href="assets/pickwell-admin.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/pickwell-admin.css')) ?>">
 
 </head>
-<body class="zyofy-admin-login">
+<body class="pickwell-admin-login">
 <div class="login-card">
     <div class="login-header">
-        <div class="logo-icon"><img src="../assets/images/zyofy-mark.svg" alt="Zyofy"> </div>
-        <h1>Admin Login</h1>
-        <p class="sub">Zyofy • Control Panel</p>
+        <a class="login-brand" href="../index.php" aria-label="Pickwell home"><img src="../assets/brand/pickwell-logo-light.svg" alt="Pickwell" width="220" height="44"></a>
+        <h1>Sign in to Pickwell</h1>
+        <p class="sub">Merchant &amp; affiliate control panel</p>
     </div>
 
     <?php if ($error): ?>
@@ -93,15 +90,15 @@ $adminExists = $stmt->fetchColumn() > 0;
     <?php endif; ?>
 
     <?php if (!$adminExists): ?>
-        <div class="error" style="background: rgba(77, 163, 60, 0.2); border-left-color: #4da33c;">
-            ⚠️ No admin account found. <a href="setup-admin.php" style="color:#4da33c; font-weight:600;">Click here to create the first admin account</a>
+        <div class="error" style="background: rgba(31, 122, 77, 0.2); border-left-color: #1f7a4d;">
+            ⚠️ No admin account found. <a href="setup-admin.php" style="color:#1f7a4d; font-weight:600;">Click here to create the first admin account</a>
         </div>
     <?php endif; ?>
 
     <form method="POST">
         <div class="input-group">
             <label>Email Address</label>
-            <input type="email" name="email" required placeholder="admin@zyofy.store">
+            <input type="email" name="email" required placeholder="admin@pickwell.t86.site">
         </div>
         <div class="input-group">
             <label>Password</label>

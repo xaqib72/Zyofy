@@ -2,6 +2,11 @@ Options -Indexes
 DirectoryIndex index.php
 ErrorDocument 404 /404.php
 
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType image/x-icon .ico
+</IfModule>
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
 

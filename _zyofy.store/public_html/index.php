@@ -38,11 +38,11 @@ $leadGuide = $guideEntries[0] ?? null;
 $restGuides = array_slice($guideEntries, 1, 4);
 $featuredGuideSlugs = array_keys($guides);
 $leadGuideSlug = $featuredGuideSlugs[0] ?? '';
-dd_render_head('Practical buying guides', [
-    'description' => 'Original, practical buying guides covering home, tech, fitness, travel and everyday products.',
+dd_render_head('Smart shopping, curated', [
+    'description' => 'Pickwell curates useful everyday products and pairs them with plain-English buying guides. Independent picks for shoppers in the US, UK and Canada.',
     'body_class' => 'storefront-page storefront-home',
     'og_image' => $heroImage,
-    'og_image_alt' => 'Shopping lifestyle image for Zyofy',
+    'og_image_alt' => 'Shopping lifestyle image for Pickwell',
 ]);
 dd_render_storefront_header('home', $user);
 ?>
@@ -50,7 +50,7 @@ dd_render_storefront_header('home', $user);
   <section class="zf-hero">
     <div class="shell zf-hero-grid">
       <div class="zf-hero-copy">
-        <p class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The good choice edit — Vol. 01</p>
+        <p class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> The Pickwell edit — Vol. 01</p>
         <h1>Fewer tabs.<br><em>Better choices.</em></h1>
         <p class="zf-hero-lede">An independent edit of useful everyday products, paired with plain-English buying guides. Start with a search, or browse the collections we keep coming back to.</p>
         <form class="zf-hero-search" method="get" action="<?= dd_e(dd_url('/products/')) ?>" role="search">
@@ -108,13 +108,13 @@ dd_render_storefront_header('home', $user);
         </div>
         <a class="zf-section-link" href="<?= dd_e(dd_url('/products/')) ?>">Browse all products <span aria-hidden="true">↗</span></a>
       </div>
-      <p class="product-amazon-note">Some product links are affiliate links and may earn Zyofy a commission at no extra cost to you. As an Amazon Associate I earn from qualifying purchases. Product details and availability can change; check Amazon for current information.</p>
+      <p class="product-amazon-note">Some product links are affiliate links and may earn Pickwell a commission at no extra cost to you. As an Amazon Associate I earn from qualifying purchases. Product details and availability can change; check Amazon for current information.</p>
       <div class="retail-product-grid" data-zf-reveal="60"><?php foreach ($featuredProducts as $product): ?><?= dd_product_card($product) ?><?php endforeach; ?></div>
     </div>
   </section>
   <?php endif; ?>
 
-  <section class="zf-section zyofy-category-index">
+  <section class="zf-section pickwell-category-index">
     <div class="shell">
       <div class="zf-section-head" data-zf-reveal>
         <div>
@@ -138,7 +138,7 @@ dd_render_storefront_header('home', $user);
     </div>
   </section>
 
-  <section class="zf-section zyofy-guide-feature" id="guides">
+  <section class="zf-section pickwell-guide-feature" id="guides">
     <div class="shell">
       <div class="zf-section-head" data-zf-reveal>
         <div>
@@ -185,20 +185,20 @@ dd_render_storefront_header('home', $user);
       </div>
       <div class="store-faq-list" data-zf-reveal="80">
         <details open>
-          <summary>What does Zyofy publish?</summary>
+          <summary>What does Pickwell publish?</summary>
           <p>Original buying guides that explain practical comparison points such as size, materials, compatibility, maintenance and everyday usability.</p>
         </details>
         <details>
           <summary>Were these products personally tested?</summary>
-          <p>Zyofy does not claim hands-on testing unless that actually happened and is stated clearly on the page.</p>
+          <p>Pickwell does not claim hands-on testing unless that actually happened and is stated clearly on the page.</p>
         </details>
         <details>
-          <summary>Does Zyofy use affiliate links?</summary>
+          <summary>Does Pickwell use affiliate links?</summary>
           <p>Some Amazon product links may be affiliate links. Any qualifying commission does not change the price you pay; see our affiliate disclosure for details.</p>
         </details>
         <details>
-          <summary>Does Zyofy sell or ship products?</summary>
-          <p>No. Zyofy is an editorial website and does not sell, ship or fulfill any products.</p>
+          <summary>Does Pickwell sell or ship products?</summary>
+          <p>No. Pickwell is an editorial website and does not sell, ship or fulfill any products.</p>
         </details>
       </div>
     </div>
@@ -210,10 +210,10 @@ dd_render_storefront_header('home', $user);
         <div>
           <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Transparency first</span>
           <h2>Know what this site is<br><span>before you take its word.</span></h2>
-          <p>See how the guides are written, how product data is sourced and what Zyofy does — and does not — claim.</p>
+          <p>See how the guides are written, how product data is sourced and what Pickwell does — and does not — claim.</p>
         </div>
         <div class="zf-cta-actions">
-          <a class="store-btn store-btn-primary" href="<?= dd_e(dd_url('/about/')) ?>">About Zyofy <span aria-hidden="true">→</span></a>
+          <a class="store-btn store-btn-primary" href="<?= dd_e(dd_url('/about/')) ?>">About Pickwell <span aria-hidden="true">→</span></a>
           <a class="store-btn store-btn-secondary light" href="<?= dd_e(dd_url('/affiliate-disclaimer/')) ?>">Read the disclosure</a>
         </div>
       </div>

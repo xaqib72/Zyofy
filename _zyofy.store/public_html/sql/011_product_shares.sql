@@ -1,4 +1,4 @@
--- Zyofy: restore contributor-specific short product links.
+-- Pickwell: restore contributor-specific short product links.
 -- Safe to run on an existing database; does not delete or rewrite user data.
 
 CREATE TABLE IF NOT EXISTS `product_shares` (

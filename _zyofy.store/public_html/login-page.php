@@ -6,14 +6,14 @@ if (dd_user_is_logged_in()) {
     exit;
 }
 $csrf = dd_csrf_token();
-dd_render_head('Login', ['body_class' => 'auth-page', 'description' => 'Sign in to your Zyofy account.']);
+dd_render_head('Login', ['body_class' => 'auth-page', 'description' => 'Sign in to your Pickwell account.']);
 dd_render_header();
 ?>
 <main class="auth-shell">
   <section class="auth-art">
     <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Welcome Back</span>
     <h1>Account<br>sign in.</h1>
-    <p>Sign in to your existing Zyofy account. New registrations are currently closed.</p>
+    <p>Sign in to your existing Pickwell account. New registrations are currently closed.</p>
     <div class="auth-benefits">
       <span>Original buying guides</span>
       <span>No paid placements</span>
@@ -23,7 +23,7 @@ dd_render_header();
   <section class="auth-panel">
     <div class="auth-card">
       <span class="zf-eyebrow"><span class="zf-dot" aria-hidden="true"></span> Account Access</span>
-      <h2>Login to Zyofy</h2>
+      <h2>Login to Pickwell</h2>
       <p class="sub">Enter the email address and password connected to your account.</p>
 
       <div id="authNotice"></div>
@@ -52,7 +52,7 @@ dd_render_header();
         </button>
       </form>
 
-      <p class="auth-switch">New to Zyofy? <a href="<?= dd_e(dd_url('/register/')) ?>">Create an account</a><br><span>Questions?</span> <a href="<?= dd_e(dd_url('/contact/')) ?>">Contact us</a></p>
+      <p class="auth-switch">New to Pickwell? <a href="<?= dd_e(dd_url('/register/')) ?>">Create an account</a><br><span>Questions?</span> <a href="<?= dd_e(dd_url('/contact/')) ?>">Contact us</a></p>
     </div>
   </section>
 </main>

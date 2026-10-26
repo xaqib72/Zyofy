@@ -1,0 +1,1774 @@
+/* ==========================================================================
+   PICKWELL OPS — 2026 admin design system
+   --------------------------------------------------------------------------
+   Presentation-only. Loaded after app.css / premium-refresh.css (and after the
+   legacy inline <style> blocks) so it can replace the old green-and-cream
+   workspace with an obsidian operations console.
+   ========================================================================== */
+
+:root {
+  --a-ink: #0d3b32;
+  --a-ink-2: #14453a;
+  --a-ink-3: #1c5346;
+  --a-canvas: #f7f6f1;
+  --a-surface: #ffffff;
+  --a-line: #e4e0d6;
+  --a-line-soft: #f1efe8;
+  --a-muted: #5d6a64;
+  --a-muted-2: #7d8983;
+  --a-accent: #dca94f;
+  --a-accent-soft: #fbf3e2;
+  --a-accent-ink: #7a5a12;
+  --a-red: #a8332a;
+  --a-red-soft: #fbeae7;
+  --a-amber: #7a5510;
+  --a-amber-soft: #fbf3e2;
+  --a-green: #1f7a4d;
+  --a-green-soft: #e8f5ec;
+  --a-blue: #1f5f8b;
+  --a-blue-soft: #eaf1f7;
+  --a-radius: 14px;
+  --a-radius-sm: 10px;
+  --a-radius-lg: 20px;
+  --a-faint: #a9b3ac;
+  --a-display: "Plus Jakarta Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --a-text: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --a-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --a-focus: 0 0 0 3px rgba(200, 150, 60, .34);
+
+  /* Legacy admin vars, repointed. */
+  --admin-navy: #0d3b32;
+  --admin-navy-soft: #1a4a3f;
+  --admin-coral: #0d3b32;
+  --admin-muted: #5d6a64;
+  --admin-line: #e4e0d6;
+  --admin-canvas: #f7f6f1;
+}
+
+/* ------------------------------------------------------------- 1. Shell */
+body.pickwell-admin {
+  margin: 0;
+  background: var(--a-canvas);
+  color: var(--a-ink);
+  font-family: var(--a-text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pickwell-admin *,
+.pickwell-admin *::before,
+.pickwell-admin *::after { box-sizing: border-box; }
+
+.pickwell-admin :where(h1, h2, h3, h4) {
+  font-family: var(--a-display);
+  letter-spacing: -.03em;
+  color: var(--a-ink);
+}
+
+.pickwell-admin a { color: inherit; }
+
+.pickwell-admin :where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--a-ink);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------ 2. Top bar */
+.pickwell-admin > .header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px;
+  width: auto;
+  margin-left: 264px;
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--a-line);
+  box-shadow: none;
+  color: var(--a-ink);
+}
+.pickwell-admin > .header .header-inner {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pickwell-admin .admin-topbar-title {
+  margin-right: auto;
+  font-family: var(--a-mono);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pickwell-admin .header-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.pickwell-admin .admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 220px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--a-line);
+  background: var(--a-canvas);
+  color: var(--a-ink-3);
+  font-size: .74rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pickwell-admin .admin-badge i { color: var(--a-muted-2); }
+.pickwell-admin .logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--a-ink);
+  font-size: .74rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+.pickwell-admin .logout:hover { background: var(--a-ink); border-color: var(--a-ink); color: #fff; }
+.pickwell-admin .mobile-nav-toggle {
+  display: none;
+  width: 38px; height: 38px;
+  place-items: center;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--a-ink);
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- 3. Rail */
+.pickwell-admin .admin-side-rail,
+.pickwell-admin .admin-workspace-nav {
+  position: fixed;
+  z-index: 1101;
+  inset: 0 auto 0 0;
+  width: 264px;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 18px 14px 14px;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(420px 260px at 10% 0%, rgba(220, 169, 79, .1), transparent 65%),
+    var(--a-ink);
+  color: #cfd7e5;
+  box-shadow: none;
+  scrollbar-width: thin;
+}
+
+.pickwell-admin .rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: auto;
+  min-height: 0;
+  flex: 0 0 auto;
+  margin: 0 0 14px;
+  padding: 2px 6px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  text-decoration: none;
+  color: #fff;
+}
+.pickwell-admin .rail-brand .brand-mark {
+  width: 38px; height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 11px;
+  background: var(--a-accent);
+}
+.pickwell-admin .rail-brand .brand-mark img { width: 24px; height: 24px; filter: invert(1); border-radius: 0; }
+.pickwell-admin .rail-brand span { min-width: 0; }
+.pickwell-admin .rail-brand b {
+  display: block;
+  font-family: var(--a-display);
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  color: #fff;
+}
+.pickwell-admin .rail-brand small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--a-mono);
+  font-size: .54rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  color: #8d99ad;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pickwell-admin .admin-side-rail .nav-group-label,
+.pickwell-admin .admin-workspace-nav .nav-group-label {
+  display: block;
+  padding: 14px 12px 6px;
+  font-family: var(--a-mono);
+  font-size: .56rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #6f7c92;
+}
+.pickwell-admin .admin-side-rail .nav-group-spaced,
+.pickwell-admin .admin-workspace-nav .nav-group-spaced { margin-top: 4px; }
+
+.pickwell-admin .admin-side-rail .tab-button,
+.pickwell-admin .admin-workspace-nav .tab-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #bdC7d8;
+  font-family: var(--a-text);
+  font-size: .8rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease;
+}
+.pickwell-admin .admin-side-rail .tab-button i,
+.pickwell-admin .admin-workspace-nav .tab-button i {
+  width: 17px;
+  flex: 0 0 17px;
+  color: #7f8ca2;
+  font-size: .78rem;
+  text-align: center;
+  transition: color .16s ease;
+}
+.pickwell-admin .admin-side-rail .tab-button:hover,
+.pickwell-admin .admin-workspace-nav .tab-button:hover {
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+}
+.pickwell-admin .admin-side-rail .tab-button:hover i,
+.pickwell-admin .admin-workspace-nav .tab-button:hover i { color: var(--a-accent); }
+.pickwell-admin .admin-side-rail .tab-button.active,
+.pickwell-admin .admin-workspace-nav button.tab-button.active {
+  background: rgba(220, 169, 79, .14);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(220, 169, 79, .22);
+}
+.pickwell-admin .admin-side-rail .tab-button.active::before,
+.pickwell-admin .admin-workspace-nav button.tab-button.active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 0 3px 3px 0;
+  background: var(--a-accent);
+}
+.pickwell-admin .admin-side-rail .tab-button.active i,
+.pickwell-admin .admin-workspace-nav button.tab-button.active i { color: var(--a-accent); }
+
+.pickwell-admin .nav-rail-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 14px 8px 4px;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  color: #c3cddd;
+  font-size: .72rem;
+  min-width: 0;
+}
+.pickwell-admin .nav-rail-foot > span:not(.status-dot) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pickwell-admin .nav-rail-foot small { display: block; color: #7f8ca2; font-size: .62rem; }
+.pickwell-admin .nav-rail-foot > a { margin-left: auto; padding: 6px; color: #a9b5c9; }
+.pickwell-admin .nav-rail-foot > a:hover { color: var(--a-accent); }
+.pickwell-admin .status-dot {
+  width: 7px; height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--a-accent);
+  box-shadow: 0 0 0 3px rgba(220, 169, 79, .18);
+}
+
+.pickwell-admin .admin-nav-backdrop { display: none; }
+
+/* ------------------------------------------------------------- 4. Page */
+.pickwell-admin .page,
+.pickwell-admin .wrap {
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  min-height: calc(100vh - 64px);
+  margin: 0 0 0 264px;
+  padding: 30px clamp(20px, 3vw, 40px) 64px;
+  background: var(--a-canvas);
+}
+
+.pickwell-admin .admin-welcome,
+.pickwell-admin .admin-subpage-welcome {
+  max-width: none;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 auto 24px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--a-line);
+}
+.pickwell-admin .admin-welcome > div { min-width: 0; }
+.pickwell-admin .admin-overline {
+  font-family: var(--a-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .admin-overline i { padding: 0 5px; font-style: normal; color: var(--a-muted-2); }
+.pickwell-admin .admin-welcome h1,
+.pickwell-admin .admin-subpage-welcome h1 {
+  margin: 10px 0 6px;
+  font-family: var(--a-display);
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+  color: var(--a-ink);
+}
+.pickwell-admin .admin-welcome p,
+.pickwell-admin .admin-subpage-welcome p {
+  margin: 0;
+  color: var(--a-muted);
+  font-size: .84rem;
+  line-height: 1.5;
+  max-width: 70ch;
+}
+.pickwell-admin .admin-welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--a-muted);
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pickwell-admin .admin-welcome-badge .status-dot { background: var(--a-green); box-shadow: 0 0 0 3px rgba(15, 123, 95, .14); }
+
+.pickwell-admin .page-title { margin: 0 0 22px; }
+.pickwell-admin .page-title h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--a-display);
+  font-size: clamp(1.5rem, 2.3vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+.pickwell-admin .page-title h1 i { font-size: .9em; color: var(--a-muted-2); }
+.pickwell-admin .page-title .lede { margin: 8px 0 0; color: var(--a-muted); font-size: .84rem; max-width: 82ch; }
+
+/* ------------------------------------------------------------ 5. Cards */
+.pickwell-admin .card {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 22px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius);
+  background: var(--a-surface);
+  box-shadow: 0 1px 2px rgba(13, 59, 50, .04);
+}
+.pickwell-admin .card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.pickwell-admin .card-header > div { min-width: 0; }
+.pickwell-admin .card h2,
+.pickwell-admin .card-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-family: var(--a-display);
+  font-size: 1.16rem;
+  font-weight: 700;
+  letter-spacing: -.028em;
+}
+.pickwell-admin .card h2 i,
+.pickwell-admin .card-header h2 i { font-size: .82em; color: var(--a-muted-2); }
+.pickwell-admin .card .sub,
+.pickwell-admin .subtext {
+  color: var(--a-muted);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+.pickwell-admin .card .sub { margin: 6px 0 0; }
+.pickwell-admin .sub { color: var(--a-muted); }
+.pickwell-admin .section-title {
+  margin: 26px 0 10px;
+  font-family: var(--a-mono);
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .card > h3 { font-size: 1rem; margin: 0 0 10px; }
+.pickwell-admin .spacer { flex: 1 1 auto; }
+
+/* ---------------------------------------------------------- 6. Metrics */
+.pickwell-admin .metrics,
+.pickwell-admin .analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.pickwell-admin .metric-card,
+.pickwell-admin .metric {
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius-sm);
+  background: #fff;
+  box-shadow: none;
+}
+.pickwell-admin .metric-card.primary,
+.pickwell-admin .metric.lead {
+  background: var(--a-ink);
+  border-color: var(--a-ink);
+  color: #fff;
+}
+.pickwell-admin .metric-label,
+.pickwell-admin .metric .l {
+  font-family: var(--a-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .metric-card.primary .metric-label,
+.pickwell-admin .metric.lead .l { color: #97a4ba; }
+.pickwell-admin .metric-value,
+.pickwell-admin .metric .v {
+  margin-top: 6px;
+  font-family: var(--a-display);
+  font-size: 1.62rem;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1.1;
+  color: var(--a-ink);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.pickwell-admin .metric-card.primary .metric-value,
+.pickwell-admin .metric.lead .v { color: var(--a-accent); }
+.pickwell-admin .metric-note,
+.pickwell-admin .metric .n {
+  margin-top: 6px;
+  font-size: .7rem;
+  line-height: 1.4;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .metric-card.primary .metric-note,
+.pickwell-admin .metric.lead .n { color: #8d9ab0; }
+
+/* ----------------------------------------------------------- 7. Tables */
+.pickwell-admin .table-wrap,
+.pickwell-admin .tw {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius-sm);
+  background: #fff;
+}
+.pickwell-admin table {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  font-size: .8rem;
+}
+.pickwell-admin thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 11px 14px;
+  background: #faf9f5;
+  border-bottom: 1px solid var(--a-line);
+  font-family: var(--a-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.pickwell-admin tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--a-line-soft);
+  color: var(--a-ink-3);
+  vertical-align: middle;
+}
+.pickwell-admin tbody tr:last-child td { border-bottom: 0; }
+.pickwell-admin tbody tr { transition: background-color .12s ease; }
+.pickwell-admin tbody tr:hover { background: #faf9f5; }
+.pickwell-admin tfoot td {
+  padding: 13px 14px;
+  background: #faf9f5;
+  border-top: 1px solid var(--a-line);
+  font-weight: 600;
+}
+.pickwell-admin .num,
+.pickwell-admin .money-cell { font-variant-numeric: tabular-nums; text-align: right; }
+.pickwell-admin .r { text-align: right; }
+.pickwell-admin .dim { color: var(--a-muted-2); }
+.pickwell-admin .name { color: var(--a-ink); font-weight: 600; }
+.pickwell-admin .indent { padding-left: 28px; }
+.pickwell-admin .filename { max-width: 280px; overflow-wrap: anywhere; font-weight: 500; color: var(--a-ink); }
+.pickwell-admin .calc { font-family: var(--a-mono); font-size: .72rem; color: var(--a-muted); }
+.pickwell-admin .identity-cell { font-weight: 600; color: var(--a-ink); }
+
+/* ---------------------------------------------------------- 8. Buttons */
+.pickwell-admin .button,
+.pickwell-admin .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-family: var(--a-text);
+  font-size: .76rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.pickwell-admin .button:disabled,
+.pickwell-admin .btn:disabled { opacity: .5; cursor: not-allowed; }
+.pickwell-admin .button-primary,
+.pickwell-admin .btn-dark {
+  background: var(--a-ink);
+  border-color: var(--a-ink);
+  color: #fff;
+  box-shadow: none;
+}
+.pickwell-admin .button-primary:hover:not(:disabled),
+.pickwell-admin .btn-dark:hover:not(:disabled) {
+  background: var(--a-accent);
+  border-color: var(--a-accent);
+  color: var(--a-ink);
+}
+.pickwell-admin .button-secondary,
+.pickwell-admin .btn-ghost {
+  background: #fff;
+  border-color: var(--a-line);
+  color: var(--a-ink-3);
+}
+.pickwell-admin .button-secondary:hover:not(:disabled),
+.pickwell-admin .btn-ghost:hover:not(:disabled) { border-color: var(--a-ink); color: var(--a-ink); }
+.pickwell-admin .button-danger {
+  background: var(--a-red-soft);
+  border-color: #f0c9c4;
+  color: var(--a-red);
+}
+.pickwell-admin .button-danger:hover:not(:disabled) { background: var(--a-red); border-color: var(--a-red); color: #fff; }
+.pickwell-admin .btn-sm { min-height: 30px; padding: 0 12px; font-size: .72rem; }
+.pickwell-admin .icon-button {
+  width: 30px; height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--a-muted);
+  font-size: .76rem;
+  cursor: pointer;
+  transition: background-color .14s ease, color .14s ease, border-color .14s ease;
+}
+.pickwell-admin .icon-button:hover { background: var(--a-canvas); border-color: var(--a-line); color: var(--a-ink); }
+.pickwell-admin .edit-button { color: var(--a-blue); }
+.pickwell-admin .delete-button { color: var(--a-red); }
+.pickwell-admin .icon-button.danger { width: 32px; height: 32px; background: var(--a-red-soft); color: var(--a-red); }
+.pickwell-admin .icon-button.danger:hover { background: var(--a-red); color: #fff; }
+.pickwell-admin .action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.pickwell-admin .product-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ----------------------------------------------------------- 9. Forms */
+.pickwell-admin .field,
+.pickwell-admin .fld { min-width: 0; margin: 0 0 15px; }
+.pickwell-admin .field label,
+.pickwell-admin .fld label,
+.pickwell-admin label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--a-ink-3);
+  letter-spacing: 0;
+}
+.pickwell-admin input:not([type=checkbox]):not([type=radio]):not([type=file]),
+.pickwell-admin select,
+.pickwell-admin textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--a-ink);
+  font-family: var(--a-text);
+  font-size: .82rem;
+  line-height: 1.45;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.pickwell-admin textarea { min-height: 96px; resize: vertical; }
+.pickwell-admin input::placeholder,
+.pickwell-admin textarea::placeholder { color: #a4aebe; }
+.pickwell-admin input:focus,
+.pickwell-admin select:focus,
+.pickwell-admin textarea:focus {
+  outline: 0;
+  border-color: var(--a-ink);
+  box-shadow: 0 0 0 3px rgba(13, 59, 50, .08);
+}
+.pickwell-admin input[type=file] { font-size: .78rem; color: var(--a-muted); }
+.pickwell-admin select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2364708a' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 30px;
+}
+.pickwell-admin .settings-input { width: min(100%, 260px); min-width: 0; text-align: left; }
+.pickwell-admin .field-full { grid-column: 1 / -1; }
+.pickwell-admin .field p,
+.pickwell-admin .field .subtext { margin: 6px 0 0; font-size: .72rem; color: var(--a-muted-2); line-height: 1.5; }
+.pickwell-admin .admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+  row-gap: 0;
+}
+.pickwell-admin .admin-form-grid .field { min-width: 0; }
+.pickwell-admin .admin-form-grid button,
+.pickwell-admin .admin-form-grid + .status { grid-column: 1 / -1; }
+.pickwell-admin .row { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 11px; min-width: 0; }
+.pickwell-admin .row > .fld { margin: 0; }
+.pickwell-admin .report-filter { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+.pickwell-admin .report-filter .field { margin: 0; min-width: 180px; }
+.pickwell-admin .upload-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+.pickwell-admin .upload-form .wide { grid-column: span 1; }
+
+/* --------------------------------------------------- 10. Status + notes */
+.pickwell-admin .status {
+  display: none;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  font-size: .78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid transparent;
+}
+.pickwell-admin .status.success,
+.pickwell-admin .status.ok { display: block; background: var(--a-green-soft); border-color: #c6e3d2; color: #0b5342; }
+.pickwell-admin .status.error,
+.pickwell-admin .status.bad { display: block; background: var(--a-red-soft); border-color: #f0c9c4; color: var(--a-red); }
+
+.pickwell-admin .note,
+.pickwell-admin .warning {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 13px 15px;
+  border: 1px solid var(--a-line);
+  border-left: 3px solid var(--a-muted-2);
+  border-radius: 9px;
+  background: #faf9f5;
+  color: var(--a-ink-3);
+  font-size: .79rem;
+  line-height: 1.55;
+}
+.pickwell-admin .note i,
+.pickwell-admin .warning i { margin-top: 2px; color: var(--a-muted); }
+.pickwell-admin .note > div { min-width: 0; }
+.pickwell-admin .note-amber { background: var(--a-amber-soft); border-color: #ecdcbb; border-left-color: #c8963c; color: var(--a-amber); }
+.pickwell-admin .note-red { background: var(--a-red-soft); border-color: #f0c9c4; border-left-color: var(--a-red); color: var(--a-red); }
+.pickwell-admin .note-blue { background: var(--a-blue-soft); border-color: #c9dce8; border-left-color: #4b63d8; color: #1c4d70; }
+.pickwell-admin .warning { background: var(--a-amber-soft); border-color: #ecdcbb; border-left-color: #c8963c; color: var(--a-amber); }
+.pickwell-admin .row-warning { background: var(--a-amber-soft); }
+.pickwell-admin .note a { color: inherit; text-decoration: underline; }
+
+/* -------------------------------------------------- 11. Badges + pills */
+.pickwell-admin .badge,
+.pickwell-admin .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: var(--a-canvas);
+  color: var(--a-muted);
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.pickwell-admin .badge-exact,
+.pickwell-admin .pill-green { background: var(--a-green-soft); border-color: #c6e3d2; color: #0b5342; }
+.pickwell-admin .badge-legacy,
+.pickwell-admin .pill-amber { background: var(--a-amber-soft); border-color: #ecdcbb; color: var(--a-amber); }
+.pickwell-admin .badge-locked,
+.pickwell-admin .pill-slate { background: var(--a-canvas); border-color: var(--a-line); color: var(--a-muted); }
+
+/* tags */
+.pickwell-admin .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--a-ink-3);
+  font-size: .72rem;
+  font-weight: 500;
+}
+.pickwell-admin .tag-country { color: var(--a-muted-2); font-size: .64rem; text-transform: uppercase; letter-spacing: .06em; padding-right: 6px; border-right: 1px solid var(--a-line); }
+.pickwell-admin .tag-code { font-family: var(--a-mono); font-size: .68rem; color: var(--a-ink); }
+.pickwell-admin .tag-shared { background: var(--a-amber-soft); border-color: #ecdcbb; color: var(--a-amber); }
+.pickwell-admin .tag-shared .tag-country { color: #a37b34; border-right-color: #eed9ae; }
+.pickwell-admin .tag-shared > i { color: #a87d12; font-size: .68rem; }
+.pickwell-admin .tag .icon-button { width: 20px; height: 20px; font-size: .6rem; background: transparent; }
+.pickwell-admin .tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* user cells */
+.pickwell-admin .user-ident { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pickwell-admin .user-avatar {
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  border-radius: 50%;
+  background: var(--a-ink);
+  color: var(--a-accent);
+  font-family: var(--a-mono);
+  font-size: .7rem;
+  font-weight: 600;
+}
+.pickwell-admin .user-name { font-weight: 600; color: var(--a-ink); }
+.pickwell-admin .user-email { color: var(--a-muted-2); font-size: .72rem; }
+.pickwell-admin .commission-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--a-ink);
+  font-family: var(--a-mono);
+  font-size: .7rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .14s ease, color .14s ease, border-color .14s ease;
+}
+.pickwell-admin .commission-btn:hover { background: var(--a-ink); border-color: var(--a-ink); color: var(--a-accent); }
+.pickwell-admin .commission-btn i { font-size: .6rem; opacity: .6; }
+.pickwell-admin .commission-read {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: var(--a-canvas);
+  color: var(--a-muted);
+  font-family: var(--a-mono);
+  font-size: .68rem;
+}
+.pickwell-admin .users-table td { vertical-align: top; padding-block: 14px; }
+.pickwell-admin .users-table td:last-child { white-space: nowrap; }
+.pickwell-admin .users-table .action-row { flex-wrap: nowrap; gap: 5px; }
+
+/* ------------------------------------------------ 12. Pagination */
+.pickwell-admin .pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.pickwell-admin .pagination-link {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border: 1px solid var(--a-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--a-ink-3);
+  font-size: .74rem;
+  text-decoration: none;
+}
+.pickwell-admin .pagination-link:hover { border-color: var(--a-ink); color: var(--a-ink); }
+.pickwell-admin .pagination-link.active { background: var(--a-ink); border-color: var(--a-ink); color: var(--a-accent); }
+.pickwell-admin .pagination-link.disabled { opacity: .4; pointer-events: none; }
+
+/* ------------------------------------------------ 13. Modals */
+.pickwell-admin .modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(13, 59, 50, .55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+.pickwell-admin .modal.open,
+.pickwell-admin .modal.active,
+.pickwell-admin .modal.show { display: flex; }
+.pickwell-admin .modal-card {
+  width: min(100%, 540px);
+  max-height: calc(100svh - 40px);
+  overflow-y: auto;
+  margin: auto;
+  padding: 26px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius);
+  background: #fff;
+  box-shadow: 0 40px 80px -30px rgba(13, 59, 50, .5);
+}
+.pickwell-admin .modal-card h3 {
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--a-line-soft);
+  font-family: var(--a-display);
+  font-size: 1.16rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+.pickwell-admin .modal-card p { color: var(--a-muted); font-size: .8rem; }
+.pickwell-admin .modal-card .action-row { margin-top: 6px; }
+.pickwell-admin .modal-card label { font-size: .72rem; }
+
+/* ------------------------------------------------- 14. Picker + results */
+.pickwell-admin .tracking-picker { position: relative; }
+.pickwell-admin .tracking-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--a-ink-3);
+  font-family: var(--a-text);
+  font-size: .8rem;
+  text-align: left;
+  cursor: pointer;
+}
+.pickwell-admin .tracking-picker-trigger:hover { border-color: var(--a-ink); }
+.pickwell-admin .tracking-picker-panel {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 18px 40px -30px rgba(13, 59, 50, .5);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.pickwell-admin .tracking-picker-search { margin-bottom: 8px; }
+.pickwell-admin .tracking-picker-option {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--a-ink-3);
+  font-family: var(--a-text);
+  font-size: .76rem;
+  text-align: left;
+  cursor: pointer;
+}
+.pickwell-admin .tracking-picker-option:hover { background: var(--a-canvas); color: var(--a-ink); }
+.pickwell-admin .catalog-search-results { display: grid; gap: 8px; margin-top: 12px; }
+.pickwell-admin .catalog-search-result,
+.pickwell-admin .catalog-selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: #fff;
+}
+.pickwell-admin .catalog-search-result img,
+.pickwell-admin .catalog-selected img { width: 48px; height: 48px; object-fit: contain; border-radius: 6px; background: var(--a-canvas); }
+.pickwell-admin .catalog-search-result h4,
+.pickwell-admin .catalog-selected h4 { margin: 0 0 3px; font-family: var(--a-text); font-size: .8rem; font-weight: 600; letter-spacing: 0; } 
+.pickwell-admin .catalog-post-result { margin-top: 12px; }
+.pickwell-admin .catalog-post-result input { font-family: var(--a-mono); font-size: .72rem; }
+
+/* ------------------------------------------------ 15. Login + setup */
+body.pickwell-admin-login,
+body.pickwell-admin-setup {
+  margin: 0;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(700px 420px at 88% 0%, rgba(220, 169, 79, .18), transparent 62%),
+    var(--a-ink);
+  color: #e7ebf3;
+  font-family: var(--a-text);
+}
+.pickwell-admin-login .login-card,
+.pickwell-admin-setup .setup-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--a-ink);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, .6);
+}
+.pickwell-admin-login .login-header { text-align: left; margin-bottom: 22px; }
+.pickwell-admin-login .logo-icon,
+.pickwell-admin-setup .logo-icon {
+  width: 44px; height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  margin: 0 0 16px;
+  border-radius: 12px;
+  background: var(--a-ink);
+  box-shadow: none;
+}
+.pickwell-admin-login .logo-icon img,
+.pickwell-admin-setup .logo-icon img { width: 26px; height: 26px; }
+.pickwell-admin-login h1,
+.pickwell-admin-setup h1 {
+  margin: 0;
+  font-family: var(--a-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -.04em;
+  color: var(--a-ink);
+}
+.pickwell-admin-login .sub,
+.pickwell-admin-setup .sub {
+  margin: 8px 0 0;
+  font-family: var(--a-mono);
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.pickwell-admin-login .input-group,
+.pickwell-admin-setup .input-group { margin-bottom: 14px; }
+.pickwell-admin-login label,
+.pickwell-admin-setup label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--a-ink-3);
+}
+.pickwell-admin-login input,
+.pickwell-admin-setup input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 13px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--a-ink);
+  font-family: var(--a-text);
+  font-size: .88rem;
+}
+.pickwell-admin-login input:focus,
+.pickwell-admin-setup input:focus {
+  outline: none;
+  border-color: var(--a-ink);
+  box-shadow: 0 0 0 3px rgba(13, 59, 50, .08);
+}
+.pickwell-admin-login button,
+.pickwell-admin-setup button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--a-ink);
+  color: #fff;
+  font-family: var(--a-text);
+  font-size: .86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease;
+}
+.pickwell-admin-login button:hover,
+.pickwell-admin-setup button:hover { background: var(--a-accent); color: var(--a-ink); }
+.pickwell-admin-login .error,
+.pickwell-admin-setup .error {
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid #f0c9c4;
+  border-left: 3px solid var(--a-red);
+  border-radius: 8px;
+  background: var(--a-red-soft);
+  color: var(--a-red);
+  font-size: .8rem;
+}
+.pickwell-admin-login .error a,
+.pickwell-admin-setup .error a { color: var(--a-red); font-weight: 600; }
+.pickwell-admin-login .login-footer,
+.pickwell-admin-setup .login-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .74rem;
+  color: var(--a-muted);
+  text-align: center;
+}
+
+/* -------------------------------------------------- 16. Page-specific */
+.pickwell-admin .tab-pane { display: none; }
+.pickwell-admin .tab-pane.active { display: block; }
+.pickwell-admin .tab-pane > .card:first-child { margin-top: 0; }
+.pickwell-admin .analytics-context { margin: 0 0 16px; color: var(--a-muted); font-size: .8rem; }
+.pickwell-admin .card > .analytics-grid { margin-top: 4px; }
+.pickwell-admin .contribution-bar,
+.pickwell-admin .progress { background: var(--a-line); border-radius: 999px; height: 6px; overflow: hidden; }
+.pickwell-admin .contribution-bar > span,
+.pickwell-admin .progress > span { display: block; height: 100%; background: var(--a-ink); border-radius: inherit; }
+.pickwell-admin .admin-workspace-nav::-webkit-scrollbar { width: 8px; }
+.pickwell-admin .admin-workspace-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .16); border-radius: 8px; }
+
+/* ---------------------------------------------------------- 17. Responsive */
+@media (max-width: 1200px) {
+  .pickwell-admin > .header { margin-left: 236px; }
+  .pickwell-admin .admin-side-rail,
+  .pickwell-admin .admin-workspace-nav { width: 236px; }
+  .pickwell-admin .page,
+  .pickwell-admin .wrap { margin-left: 236px; }
+  .pickwell-admin .metrics,
+  .pickwell-admin .analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pickwell-admin .upload-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pickwell-admin table { min-width: 680px; }
+  .pickwell-admin .users-table { min-width: 860px; }
+}
+
+@media (max-width: 860px) {
+  .pickwell-admin > .header {
+    margin-left: 0;
+    height: 58px;
+  }
+  .pickwell-admin > .header .header-inner { padding: 0 14px; gap: 10px; }
+  .pickwell-admin > .header .mobile-nav-toggle {
+    display: grid;
+    z-index: 1301;
+  }
+  .pickwell-admin .admin-topbar-title { max-width: none; font-size: .62rem; }
+  .pickwell-admin .admin-badge { display: none; }
+  .pickwell-admin .page,
+  .pickwell-admin .wrap {
+    margin: 0;
+    min-height: calc(100vh - 58px);
+    padding: 20px 14px 40px;
+  }
+  .pickwell-admin .admin-side-rail,
+  .pickwell-admin .admin-workspace-nav {
+    z-index: 1200;
+    top: 58px;
+    bottom: 0;
+    left: 0;
+    width: min(86vw, 300px);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 14px 12px max(16px, env(safe-area-inset-bottom));
+    border-radius: 0 14px 14px 0;
+    visibility: hidden;
+    transform: translateX(-104%);
+    transition: transform .22s ease, visibility .22s ease;
+    box-shadow: 18px 0 44px rgba(0, 0, 0, .35);
+    overflow-y: auto;
+  }
+  .pickwell-admin.admin-nav-open .admin-side-rail,
+  .pickwell-admin.admin-nav-open .admin-workspace-nav {
+    visibility: visible;
+    transform: translateX(0);
+  }
+  .pickwell-admin .rail-brand { padding: 0 6px 16px; margin-bottom: 10px; }
+  .pickwell-admin .admin-side-rail .nav-group-label,
+  .pickwell-admin .admin-workspace-nav .nav-group-label { display: block; }
+  .pickwell-admin .nav-rail-foot { display: flex; }
+  .pickwell-admin .admin-nav-backdrop {
+    position: fixed;
+    z-index: 1100;
+    inset: 58px 0 0;
+    display: block;
+    width: 100%;
+    height: calc(100% - 58px);
+    padding: 0;
+    border: 0;
+    background: rgba(6, 10, 18, .5);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s ease, visibility .2s ease;
+  }
+  .pickwell-admin.admin-nav-open .admin-nav-backdrop { opacity: 1; visibility: visible; }
+  .pickwell-admin.admin-nav-open { overflow: hidden; }
+
+  .pickwell-admin .admin-welcome,
+  .pickwell-admin .admin-subpage-welcome { align-items: flex-start; margin-bottom: 18px; }
+  .pickwell-admin .admin-welcome-badge { display: none; }
+  .pickwell-admin .admin-welcome h1,
+  .pickwell-admin .admin-subpage-welcome h1 { font-size: 1.5rem; }
+  .pickwell-admin .card { padding: 16px; border-radius: 12px; }
+  .pickwell-admin .admin-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .pickwell-admin .admin-form-grid button,
+  .pickwell-admin .admin-form-grid + .status { grid-column: auto; }
+  .pickwell-admin .upload-form { grid-template-columns: minmax(0, 1fr); }
+  .pickwell-admin .row > .fld { flex: 1 1 100%; }
+  .pickwell-admin .row select,
+  .pickwell-admin .row input:not([type=checkbox]),
+  .pickwell-admin .row .btn { width: 100%; max-width: 100%; }
+  .pickwell-admin .settings-input { width: 100% !important; }
+  .pickwell-admin .card-header { flex-direction: column; align-items: stretch; }
+  .pickwell-admin .modal-card { padding: 18px; border-radius: 12px; }
+}
+
+@media (max-width: 520px) {
+  .pickwell-admin .metrics,
+  .pickwell-admin .analytics-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .pickwell-admin .metric-value,
+  .pickwell-admin .metric .v { font-size: 1.4rem; }
+  .pickwell-admin .admin-welcome h1 { font-size: 1.35rem; }
+  .pickwell-admin .page-title h1 { font-size: 1.28rem; }
+  .pickwell-admin .card { padding: 14px 12px; }
+  .pickwell-admin .logout { padding: 0 10px; }
+  .pickwell-admin .mobile-nav-toggle { width: 34px; height: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickwell-admin *,
+  .pickwell-admin *::before,
+  .pickwell-admin *::after { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+}
+
+/* ---------------------------------------- 18. First-run setup screen */
+.pickwell-admin-setup .card,
+.pickwell-admin-setup .setup-card {
+  width: 100%;
+  max-width: 470px;
+  margin: 0;
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--a-ink);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, .6);
+}
+.pickwell-admin-setup .setup-mark {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 0 20px;
+  font-family: var(--a-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--a-ink);
+}
+.pickwell-admin-setup .setup-mark img {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--a-ink);
+  padding: 8px;
+}
+.pickwell-admin-setup .setup-mark small {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--a-mono);
+  font-size: .5rem;
+  font-weight: 500;
+  letter-spacing: .16em;
+  color: var(--a-muted-2);
+}
+.pickwell-admin-setup h2 {
+  margin: 0 0 6px;
+  font-family: var(--a-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -.04em;
+  color: var(--a-ink);
+}
+.pickwell-admin-setup .sub {
+  margin: 0 0 22px;
+  color: var(--a-muted);
+  font-family: var(--a-text);
+  font-size: .84rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.pickwell-admin-setup .success {
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid #c6e3d2;
+  border-left: 3px solid var(--a-green);
+  border-radius: 8px;
+  background: var(--a-green-soft);
+  color: #0b5342;
+  font-size: .8rem;
+}
+.pickwell-admin-setup .success a { color: #0b5342; font-weight: 600; }
+.pickwell-admin-setup label { margin-top: 2px; }
+.pickwell-admin-setup input { margin-bottom: 4px; }
+.pickwell-admin-setup a { color: var(--a-ink); }
+
+/* ------------------------------------- 19. Legacy admin components
+   app.css still carries the original green identity for a handful of blocks
+   (payout hero, contributor header, month checklist). They are restated here in
+   the Ops palette so sub-pages match the dashboard without editing app.css. */
+.pickwell-admin .hero {
+  position: relative;
+  margin-top: 0;
+  padding: 30px 32px;
+  border: 1px solid var(--a-ink);
+  border-radius: var(--a-radius-lg);
+  background:
+    radial-gradient(620px 260px at 92% -10%, rgba(220, 169, 79, .22), transparent 62%),
+    linear-gradient(150deg, #123c33, var(--a-ink) 55%, #0b2f28);
+  color: #fff;
+  box-shadow: 0 24px 48px -34px rgba(13, 59, 50, .8);
+  overflow: hidden;
+}
+.pickwell-admin .hero .cap {
+  font-family: var(--a-mono);
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #9aaba3;
+}
+.pickwell-admin .hero .big {
+  margin-top: 14px;
+  font-family: var(--a-display);
+  font-size: clamp(2.4rem, 4.4vw, 3.3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.pickwell-admin .hero .big span {
+  margin-left: 10px;
+  font-family: var(--a-mono);
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--a-accent);
+}
+.pickwell-admin .hero .msg { margin-top: 12px; max-width: 68ch; color: #b4c4bd; font-size: .92rem; line-height: 1.62; }
+.pickwell-admin .hero .paid-line { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.pickwell-admin .hero .stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.pickwell-admin .hero .stats .l {
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8e9e97;
+}
+.pickwell-admin .hero .stats .v {
+  margin-top: 6px;
+  font-family: var(--a-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.pickwell-admin .hero .pill-red { background: rgba(179, 38, 30, .22); border-color: rgba(255, 120, 110, .45); color: #f4cdc7; }
+.pickwell-admin .hero .pill-green { background: rgba(220, 169, 79, .16); border-color: rgba(220, 169, 79, .4); color: var(--a-accent); }
+.pickwell-admin .hero .pill-amber { background: rgba(255, 193, 94, .16); border-color: rgba(255, 193, 94, .4); color: #ecc98a; }
+
+/* Contributor report header */
+.pickwell-admin .who-head { display: flex; align-items: center; gap: 16px; }
+.pickwell-admin .who-head h1 { margin: 0; }
+.pickwell-admin .who-head .lede { margin-top: 4px; }
+.pickwell-admin .who-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: var(--a-ink);
+  color: var(--a-accent);
+  font-family: var(--a-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.pickwell-admin .who-card { padding: 24px 26px; }
+.pickwell-admin .who-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px; }
+.pickwell-admin .who-facts .l {
+  display: block;
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .who-facts .v {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--a-display);
+  font-size: 1.14rem;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: var(--a-ink);
+  font-variant-numeric: tabular-nums;
+}
+.pickwell-admin .who-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--a-line);
+}
+.pickwell-admin .who-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: var(--a-canvas);
+  color: var(--a-ink);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.pickwell-admin .who-tag-country {
+  padding-right: 7px;
+  border-right: 1px solid var(--a-line);
+  font-family: var(--a-mono);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.pickwell-admin .who-tag-pct {
+  padding-left: 7px;
+  border-left: 1px solid var(--a-line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-green);
+}
+.pickwell-admin .who-tag-shared { background: var(--a-amber-soft); border-color: #ecdcbb; color: var(--a-amber); }
+.pickwell-admin .who-tag-shared .who-tag-country { border-right-color: #ecdcbb; color: #7c5f2c; }
+.pickwell-admin .who-tag-shared .who-tag-pct { border-left-color: #ecdcbb; color: var(--a-amber); }
+.pickwell-admin .who-tag-shared i { font-size: .72rem; color: var(--a-amber); }
+
+/* Report import checklist */
+.pickwell-admin .btn-block { width: 100%; justify-content: center; padding: 14px 18px; font-size: .95rem; border-radius: 14px; }
+.pickwell-admin .month-progress { margin-top: 20px; border: 1px solid var(--a-line); border-radius: 16px; overflow: hidden; background: #fff; }
+.pickwell-admin .month-progress .mp-head {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--a-line);
+  background: var(--a-canvas);
+  font-size: .84rem;
+  color: var(--a-muted);
+}
+.pickwell-admin .month-progress .mp-head b { color: var(--a-ink); font-weight: 600; }
+.pickwell-admin .month-progress ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pickwell-admin .month-progress li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .86rem;
+  color: var(--a-muted);
+}
+.pickwell-admin .month-progress li b { color: var(--a-ink); font-weight: 600; }
+.pickwell-admin .month-progress li span { font-size: .78rem; }
+.pickwell-admin .month-progress li.in i { color: var(--a-green); }
+.pickwell-admin .month-progress li.partial-row { background: var(--a-amber-soft); }
+.pickwell-admin .month-progress li.partial-row i { color: var(--a-amber); }
+.pickwell-admin .month-progress .partial { color: var(--a-amber); font-weight: 600; }
+.pickwell-admin .month-progress li.out { background: #fbfaf7; }
+.pickwell-admin .month-progress li.out i,
+.pickwell-admin .month-progress li.out b { color: var(--a-faint); }
+
+@media (max-width: 720px) {
+  .pickwell-admin .hero { padding: 24px 20px; border-radius: 18px; }
+  .pickwell-admin .hero .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .pickwell-admin .hero .big { font-size: 2.3rem; }
+  .pickwell-admin .who-head { align-items: flex-start; }
+  .pickwell-admin .who-tags { gap: 6px; }
+}
+
+/* ============================================================== 20. PICKWELL
+   Brand layer for the console: the same evergreen ink, brass accent and ivory
+   canvas as the storefront, tuned for dense data work. */
+
+:root {
+  --a-ink-deep: #082a23;
+  --a-brass-ink: #8a6520;
+  --a-radius-btn: 10px;
+}
+
+.pickwell-admin ::selection { background: var(--a-accent); color: var(--a-ink); }
+
+.pickwell-admin :focus-visible,
+.pickwell-admin input:focus-visible,
+.pickwell-admin select:focus-visible,
+.pickwell-admin textarea:focus-visible,
+.pickwell-admin button:focus-visible,
+.pickwell-admin a:focus-visible {
+  outline: 2px solid var(--a-accent);
+  outline-offset: 2px;
+}
+
+/* Rail: deeper ink, brass active marker, brand plate. */
+.pickwell-admin .admin-side-rail,
+.pickwell-admin .admin-workspace-nav {
+  background:
+    radial-gradient(460px 300px at 6% -4%, rgba(220, 169, 79, .13), transparent 62%),
+    linear-gradient(180deg, #0f4438 0%, var(--a-ink-deep) 62%, #07241e 100%);
+  border-right: 1px solid rgba(255, 255, 255, .06);
+}
+.pickwell-admin .rail-brand {
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  padding-bottom: 16px;
+}
+.pickwell-admin .rail-brand .brand-mark {
+  border-radius: 11px;
+  overflow: hidden;
+  filter: none;
+  background: transparent;
+}
+.pickwell-admin .rail-brand .brand-mark img { filter: none; width: 38px; height: 38px; border-radius: 11px; }
+.pickwell-admin .rail-brand b {
+  font-family: var(--a-display);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: #fff;
+}
+.pickwell-admin .rail-brand small {
+  font-family: var(--a-mono);
+  font-size: .52rem;
+  letter-spacing: .2em;
+  color: var(--a-accent);
+}
+.pickwell-admin .admin-workspace-nav .nav-group-label {
+  font-family: var(--a-mono);
+  font-size: .55rem;
+  letter-spacing: .2em;
+  color: #8fa198;
+}
+.pickwell-admin .admin-workspace-nav button.tab-button.active {
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+.pickwell-admin .admin-workspace-nav button.tab-button.active::before {
+  background: var(--a-accent);
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+}
+.pickwell-admin .admin-workspace-nav .tab-button:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+.pickwell-admin .nav-rail-foot {
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  color: #c2d0c8;
+}
+.pickwell-admin .nav-rail-foot small { color: #8fa198; }
+.pickwell-admin .nav-rail-foot .status-dot,
+.pickwell-admin .admin-welcome-badge .status-dot { background: var(--a-accent); box-shadow: 0 0 0 3px rgba(220, 169, 79, .18); }
+
+/* Top bar: ivory, hairline, brass title rule. */
+.pickwell-admin > .header {
+  background: rgba(248, 247, 243, .94);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid rgba(13, 59, 50, .12);
+  box-shadow: none;
+}
+.pickwell-admin .admin-topbar-title {
+  font-family: var(--a-display);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--a-ink);
+}
+.pickwell-admin .admin-badge {
+  font-family: var(--a-mono);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: #fff;
+  border: 1px solid var(--a-line);
+  color: var(--a-muted);
+}
+.pickwell-admin .admin-badge i { color: var(--a-brass-ink); }
+.pickwell-admin .logout {
+  border: 1px solid var(--a-line);
+  border-radius: var(--a-radius-btn);
+  background: #fff;
+  color: var(--a-ink);
+  font-weight: 600;
+}
+.pickwell-admin .logout:hover { background: var(--a-ink); border-color: var(--a-ink); color: #fff; }
+.pickwell-admin .mobile-nav-toggle {
+  border-radius: var(--a-radius-btn);
+  border: 1px solid var(--a-line);
+  background: #fff;
+  color: var(--a-ink);
+}
+
+/* Welcome band: editorial serif, brass overline. */
+.pickwell-admin .admin-welcome h1,
+.pickwell-admin .admin-subpage-welcome h1 {
+  font-family: var(--a-display);
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+.pickwell-admin .admin-overline {
+  font-family: var(--a-mono);
+  font-size: .58rem;
+  letter-spacing: .2em;
+  color: var(--a-brass-ink);
+}
+.pickwell-admin .admin-welcome p { color: var(--a-muted); max-width: 62ch; }
+
+/* Cards + tables: squarer corners, quieter borders, brass detail. */
+.pickwell-admin .card {
+  border: 1px solid var(--a-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(13, 59, 50, .04);
+}
+.pickwell-admin .card h2,
+.pickwell-admin .card h3 {
+  font-family: var(--a-display);
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.pickwell-admin .metric {
+  border-radius: 14px;
+  border: 1px solid var(--a-line);
+  background: #fff;
+}
+.pickwell-admin .metric .l {
+  font-family: var(--a-mono);
+  font-size: .56rem;
+  letter-spacing: .16em;
+  color: var(--a-muted-2);
+}
+.pickwell-admin .metric .v {
+  font-family: var(--a-display);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-ink);
+}
+.pickwell-admin .metric.lead {
+  background:
+    radial-gradient(420px 200px at 100% 0%, rgba(220, 169, 79, .2), transparent 60%),
+    linear-gradient(150deg, #10503f, var(--a-ink-deep));
+  border-color: var(--a-ink-deep);
+  color: #fff;
+}
+.pickwell-admin .metric.lead .l { color: #a9bcb2; }
+.pickwell-admin .metric.lead .v { color: #fff; }
+
+.pickwell-admin table thead th {
+  font-family: var(--a-mono);
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--a-muted-2);
+  background: #fbfaf7;
+  border-bottom: 1px solid var(--a-line);
+}
+.pickwell-admin table tbody tr:hover { background: #fbfaf5; }
+.pickwell-admin table td { border-bottom: 1px solid var(--a-line-soft); }
+
+/* Buttons + fields. */
+.pickwell-admin .btn,
+.pickwell-admin .button,
+.pickwell-admin .tab-button,
+.pickwell-admin button.btn {
+  border-radius: var(--a-radius-btn);
+}
+.pickwell-admin .btn-dark,
+.pickwell-admin .button.dark {
+  background: var(--a-ink);
+  border-color: var(--a-ink);
+  color: #fff;
+}
+.pickwell-admin .btn-dark:hover { background: var(--a-ink-deep); border-color: var(--a-ink-deep); }
+.pickwell-admin input[type="text"],
+.pickwell-admin input[type="email"],
+.pickwell-admin input[type="password"],
+.pickwell-admin input[type="number"],
+.pickwell-admin input[type="search"],
+.pickwell-admin input[type="date"],
+.pickwell-admin select,
+.pickwell-admin textarea {
+  border-radius: var(--a-radius-btn);
+  border: 1px solid var(--a-line);
+  background: #fff;
+}
+.pickwell-admin input:focus,
+.pickwell-admin select:focus,
+.pickwell-admin textarea:focus {
+  border-color: var(--a-accent);
+  box-shadow: var(--a-focus, 0 0 0 3px rgba(200, 150, 60, .3));
+  outline: 0;
+}
+
+/* Sign-in + first-run setup. */
+.pickwell-admin-login .login-brand,
+.pickwell-admin-setup .setup-mark img { display: block; }
+.pickwell-admin-login .login-brand img { width: min(220px, 62vw); height: auto; }
+.pickwell-admin-login .login-card,
+.pickwell-admin-setup .setup-card {
+  border: 1px solid rgba(13, 59, 50, .1);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 40px 90px -60px rgba(13, 59, 50, .7);
+}
+.pickwell-admin-login .login-card h1,
+.pickwell-admin-setup .setup-card h2 {
+  font-family: var(--a-display);
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+.pickwell-admin-setup .setup-mark span {
+  font-family: var(--a-display);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--a-ink);
+}
+.pickwell-admin-setup .setup-mark small {
+  font-family: var(--a-mono);
+  font-size: .55rem;
+  letter-spacing: .2em;
+  color: var(--a-brass-ink);
+}

@@ -1,4 +1,4 @@
-ownerdomain=dealdigger.site
+ownerdomain=pickwell.t86.site
 managerdomain=revbid.net
 revbid.net, 21173, DIRECT
 # RevBid + Adagio

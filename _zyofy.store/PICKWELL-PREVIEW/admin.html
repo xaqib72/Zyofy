@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Zyofy Ops — design preview (admin)</title>
+<title>Pickwell Ops — design preview (admin)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="icon" href="../public_html/assets/brand/favicon.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link rel="stylesheet" href="../../public_html/admin/assets/admin-2026.css">
+<link rel="stylesheet" href="../public_html/admin/assets/pickwell-admin.css">
 <style>
   .preview-note{position:fixed;z-index:3000;left:50%;bottom:14px;transform:translateX(-50%);
     display:flex;gap:10px;align-items:center;padding:9px 16px;border-radius:999px;
     background:#c9f45b;color:#0a101c;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 </style>
 </head>
-<body class="zyofy-admin">
+<body class="Pickwell-admin">
 <header class="header">
   <div class="header-inner">
     <button class="mobile-nav-toggle" type="button" aria-label="Open admin navigation"><i class="fas fa-bars"></i></button>
@@ -28,7 +29,7 @@
 </header>
 
 <aside class="admin-workspace-nav admin-side-rail" id="adminSidebar" aria-label="Admin workspace navigation">
-  <a class="rail-brand" href="#"><span class="brand-mark"><img src="../../public_html/assets/images/zyofy-mark.svg" alt=""></span><span><b>Zyofy Admin</b><small>CONTROL CENTER</small></span></a>
+  <a class="rail-brand" href="#"><span class="brand-mark"><img src="../public_html/assets/brand/pickwell-mark.svg" alt=""></span><span><b>Pickwell</b><small>CONTROL CENTER</small></span></a>
   <span class="nav-group-label">PEOPLE</span>
   <a class="tab-button active" href="#"><i class="fas fa-users"></i> Users &amp; tags</a>
   <a class="tab-button" href="#"><i class="fas fa-box-open"></i> Products</a>
@@ -50,7 +51,7 @@
 <main class="page">
   <div class="admin-welcome">
     <div>
-      <span class="admin-overline">ZYOFY <i>/</i> OPERATIONS</span>
+      <span class="admin-overline">Pickwell <i>/</i> OPERATIONS</span>
       <h1>Good day, Admin.</h1>
       <p>Everything your team needs to manage contributors and reporting.</p>
     </div>
@@ -83,13 +84,13 @@
         <tbody>
           <tr>
             <td><div class="user-ident"><span class="user-avatar">AM</span><div><div class="user-name">Ayesha Malik</div><div class="user-email">ayesha@example.com</div></div></div></td>
-            <td><div class="tag-grid"><span class="tag"><span class="tag-country">US</span><span class="tag-code">zyofy-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span><span class="tag tag-shared"><i class="fas fa-people-group"></i><span class="tag-country">UK</span><span class="tag-code">zyofyuk-21</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
+            <td><div class="tag-grid"><span class="tag"><span class="tag-country">US</span><span class="tag-code">Pickwell-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span><span class="tag tag-shared"><i class="fas fa-people-group"></i><span class="tag-country">UK</span><span class="tag-code">Pickwelluk-21</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
             <td><button class="commission-btn" type="button">70% <i class="fas fa-pen"></i></button></td>
             <td><div class="action-row"><button class="icon-button edit-button" type="button"><i class="fas fa-pen"></i></button><button class="icon-button danger" type="button"><i class="fas fa-user-minus"></i></button></div></td>
           </tr>
           <tr>
             <td><div class="user-ident"><span class="user-avatar">HR</span><div><div class="user-name">Hamza Raza</div><div class="user-email">hamza@example.com</div></div></div></td>
-            <td><div class="tag-grid"><span class="tag"><span class="tag-country">DE</span><span class="tag-code">zyofyde-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
+            <td><div class="tag-grid"><span class="tag"><span class="tag-country">DE</span><span class="tag-code">Pickwellde-20</span><button class="icon-button" type="button"><i class="fas fa-xmark"></i></button></span></div></td>
             <td><span class="commission-read">65%</span></td>
             <td><div class="action-row"><button class="icon-button edit-button" type="button"><i class="fas fa-pen"></i></button><button class="icon-button danger" type="button"><i class="fas fa-user-minus"></i></button></div></td>
           </tr>
@@ -129,7 +130,7 @@
     <div class="card-header"><div><h2><i class="fas fa-tag"></i> Create a tracking tag</h2><p class="subtext">Assign an Amazon tracking ID to a contributor email.</p></div></div>
     <form class="admin-form-grid">
       <div class="field"><label for="a1">User email</label><input id="a1" type="email" placeholder="contributor@example.com"></div>
-      <div class="field"><label for="a2">Tracking ID</label><input id="a2" type="text" placeholder="zyofy-20"></div>
+      <div class="field"><label for="a2">Tracking ID</label><input id="a2" type="text" placeholder="Pickwell-20"></div>
       <div class="field"><label for="a3">Marketplace</label><select id="a3"><option>United States — www.amazon.com</option><option>United Kingdom — www.amazon.co.uk</option></select></div>
       <div class="field"><label for="a4">Commission rate</label><input id="a4" type="number" value="70"></div>
       <button class="button button-primary" type="button"><i class="fas fa-plus"></i> Assign tag</button>

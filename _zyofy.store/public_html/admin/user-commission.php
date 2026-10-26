@@ -473,7 +473,7 @@ function payoutQuery($overrides = array())
 
 <style>
   .person { cursor: pointer; }
-  .person:hover { background: #f4faf5; }
+  .person:hover { background: #f5faf6; }
   .person-cell { display: flex; align-items: center; gap: 11px; }
   .chev { color: #9db3a3; display: inline-block; width: 12px; transition: transform .18s; }
   .person.open .chev { transform: rotate(90deg); }
@@ -481,9 +481,9 @@ function payoutQuery($overrides = array())
             color: var(--brand-soft-ink); display: grid; place-items: center;
             font-weight: 800; font-size: .82rem; flex: 0 0 auto; }
   .avatar-warn { background: var(--amber-bg); color: var(--amber-tx); }
-  .pname { font-weight: 750; color: #183d21; }
+  .pname { font-weight: 750; color: #1a4a3c; }
   .pmail { color: var(--muted); font-size: .8rem; }
-  .detail { display: none; background: #fafdfa; }
+  .detail { display: none; background: #fafbf8; }
   .detail.show { display: table-row; }
   .detail td { color: #43554a; font-size: .89rem; }
   .detail .indent { padding-left: 63px !important; font-weight: 700; color: var(--brand); }
@@ -492,9 +492,9 @@ function payoutQuery($overrides = array())
   .person.idle { display: none; }
   .person.idle.show { display: table-row; }
   .person.idle td { color: var(--faint); }
-  .idle-header td { background: #f2f8f3; }
+  .idle-header td { background: #f4f3ee; }
 </style>
-<link rel="stylesheet" href="assets/admin-2026.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/admin-2026.css')) ?>">
+<link rel="stylesheet" href="assets/pickwell-admin.css?v=<?= rawurlencode((string) filemtime(__DIR__ . '/assets/pickwell-admin.css')) ?>">
 
 <script>
 /* ---- recording payments ---- */

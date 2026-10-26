@@ -1,4 +1,4 @@
-# Zyofy photo sources
+# Pickwell photo sources
 
 The storefront photos are remote Unsplash images. Unsplash’s standard license permits free commercial use; attribution is optional. Check the source pages before launch for current availability and any visible third-party marks.
 

@@ -134,7 +134,7 @@ dd_render_storefront_header('products', $user);
       <?php if ($error !== ''): ?><div class="product-search-notice" role="status"><?= dd_e($error) ?></div><?php endif; ?>
       <div class="product-catalog-meta"><span><?= $query !== '' ? 'Results for “' . dd_e($query) . '”' : 'Recently added products' ?></span><?php if ($isLiveSearch): ?><small>Live Amazon catalog results</small><?php endif; ?></div>
       <?php if ($displayProducts): ?>
-        <div class="product-amazon-note">Some product links are affiliate links and may earn Zyofy a commission at no extra cost to you. As an Amazon Associate I earn from qualifying purchases. Product information and availability can change; check Amazon for current details.</div>
+        <div class="product-amazon-note">Some product links are affiliate links and may earn Pickwell a commission at no extra cost to you. As an Amazon Associate I earn from qualifying purchases. Product information and availability can change; check Amazon for current details.</div>
         <div class="retail-product-grid">
           <?php foreach ($displayProducts as $product): ?><?= dd_product_card($product) ?><?php endforeach; ?>
         </div>
@@ -152,7 +152,7 @@ dd_render_storefront_header('products', $user);
       <?php if (!$isLiveSearch && $page * $perPage < $catalogTotal): ?>
         <button class="product-load-more" id="loadMoreProducts" type="button" data-offset="<?= (int) ($page * $perPage) ?>" data-url="<?= dd_e(dd_url('/load_more.php?' . http_build_query(['category' => $category, 'q' => $query, 'marketplace' => $marketplace]))) ?>">Load more products <span aria-hidden="true">↓</span></button>
       <?php endif; ?>
-      <p class="store-disclosure product-disclosure"><strong>Affiliate disclosure.</strong> Some links may earn Zyofy a commission at no additional cost to you. Product availability and prices can change; always confirm current details on Amazon before buying.</p>
+      <p class="store-disclosure product-disclosure"><strong>Affiliate disclosure.</strong> Some links may earn Pickwell a commission at no additional cost to you. Product availability and prices can change; always confirm current details on Amazon before buying.</p>
     </div>
   </section>
 </main>

@@ -1,11 +1,11 @@
 /**
- * Zyofy — Centralized CSS Design System
+ * Pickwell — Centralized CSS Design System
  * Premium, dimensional 3D SaaS visual language.
  * Mobile-first responsive repair. Performance-optimized.
  */
 
 :root {
-  /* Brand Palette - Deep Charcoal & Zyofy Emerald */
+  /* Brand Palette - Deep Charcoal & Pickwell Emerald */
   --ink: #0d1611;
   --ink-2: #192720;
   --ink-3: #2d3e33;
@@ -28,7 +28,7 @@
   --green-light: #6ee7b7;
   --green-dark: #059669;
   --green-deep: #047857;
-  --green-soft: #e8f7ee;
+  --green-soft: #e8f5ec;
   --green-soft-ink: #065f46;
   --green-glow: rgba(16, 185, 129, 0.25);
 
@@ -1435,11 +1435,11 @@ button, input, select, textarea {
 .site-header .brand{gap:11px;color:#1c2941}
 .site-header .brand-mark{width:42px;height:42px;border:1px solid rgba(28,41,65,.08);border-radius:13px;background:#1c2941;box-shadow:0 5px 16px rgba(28,41,65,.14)}
 .site-header .brand-name{color:#1c2941;font-size:1.32rem;letter-spacing:-.045em}
-.site-header .desktop-nav{gap:4px;padding:4px;border:1px solid #eee9e2;border-radius:999px;background:#fbfaf8}
+.site-header .desktop-nav{gap:4px;padding:4px;border:1px solid #efece5;border-radius:999px;background:#fbfaf8}
 .site-header .nav-link{padding:10px 15px;color:#566174;font-size:.84rem}
 .site-header .nav-link:hover{background:#f4eee8;color:#a94f49}
 .site-header .nav-link.is-active{border:1px solid #f1ddd3;background:#fff4ed;color:#a94f49}
-.site-header .btn-ghost{border-color:#dedbd5;color:#47536a}
+.site-header .btn-ghost{border-color:#dcd8ce;color:#47536a}
 .site-header .btn-ghost:hover{border-color:#d77c70;background:#fff7f3;color:#a64d46}
 .site-header .menu-toggle{border:1px solid #35425a;background:#1c2941}
 .site-header .menu-toggle span{background:#fff}
@@ -2371,14 +2371,14 @@ button, input, select, textarea {
   }
 }
 
-/* Zyofy global brand tokens */
-:root{--ink:#18233a;--ink-2:#26334d;--ink-3:#3b4963;--muted:#697385;--muted-2:#8993a3;--bg:#fcfbf9;--bg-subtle:#f5f2ed;--surface:#fff;--surface-2:#f6f3ee;--surface-3:#ece8e1;--line:#e7e2db;--line-light:#f0ede8;--line-strong:#d8d1c7;--green:#d15a56;--green-bright:#ea7867;--green-light:#ffb58e;--green-dark:#bd4c4c;--green-deep:#a94345;--green-soft:#fff0e9;--green-soft-ink:#a94345;--green-glow:rgba(209,90,86,.22);--shadow-btn-primary:0 9px 22px rgba(209,90,86,.24)}
+/* Pickwell global brand tokens */
+:root{--ink:#18233a;--ink-2:#26334d;--ink-3:#3b4963;--muted:#697385;--muted-2:#8993a3;--bg:#fcfbf9;--bg-subtle:#f6f4ee;--surface:#fff;--surface-2:#f6f3ee;--surface-3:#ece8e1;--line:#e4e0d6;--line-light:#f0ede8;--line-strong:#d8d1c7;--green:#b07a2b;--green-bright:#ea7867;--green-light:#ffb58e;--green-dark:#bd4c4c;--green-deep:#a94345;--green-soft:#fff0e9;--green-soft-ink:#a94345;--green-glow:rgba(209,90,86,.22);--shadow-btn-primary:0 9px 22px rgba(209,90,86,.24)}
 .brand-mark{background:#18233a!important;border-radius:13px!important;padding:1px}.brand-mark img{width:100%;height:100%;display:block;border-radius:inherit}
 
-.image-placeholder{display:grid!important;place-items:center;background:#f5f2ed!important}.image-placeholder img{width:42px;height:42px;object-fit:contain}
+.image-placeholder{display:grid!important;place-items:center;background:#f6f4ee!important}.image-placeholder img{width:42px;height:42px;object-fit:contain}
 
 /* Contributor finance workspace and shared mobile guardrails. */
-body.contributor-page{min-width:320px;overflow-x:hidden;background:#f5f3ef!important;color:#202a3f}
+body.contributor-page{min-width:320px;overflow-x:hidden;background:#f5f3ef!important;color:#123f36}
 body.contributor-page .fintech-header{position:sticky;background:#19263d;border-bottom:1px solid rgba(255,255,255,.12);box-shadow:0 5px 24px rgba(24,35,58,.12)}
 body.contributor-page .fintech-header-inner{max-width:1440px}
 body.contributor-page .brand-mark{background:#1c2941!important}
@@ -2386,10 +2386,10 @@ body.contributor-page .contributor-nav{border:0;border-radius:0;background:trans
 body.contributor-page .contributor-nav a{border-radius:6px;font-size:.8rem}
 body.contributor-page .contributor-nav a.on{background:rgba(219,119,99,.2);border:1px solid rgba(240,165,139,.28)}
 body.contributor-page .page{width:100%;min-width:0;max-width:1440px!important;margin:40px auto!important;padding:0 clamp(16px,4vw,48px) 72px!important;box-sizing:border-box}
-body.contributor-page .page-title h1{font:500 clamp(2rem,4vw,3rem)/1 Georgia,serif;letter-spacing:-.045em;color:#202a3f}
+body.contributor-page .page-title h1{font:500 clamp(2rem,4vw,3rem)/1 Georgia,serif;letter-spacing:-.045em;color:#123f36}
 body.contributor-page .row{display:flex;flex-wrap:wrap;gap:14px;min-width:0}
 body.contributor-page .row>.spacer{flex:1 1 auto}
-body.contributor-page .hero-payout{position:relative;overflow:hidden;border:1px solid #34435b;border-radius:10px;background:linear-gradient(135deg,#1b2941 0%,#283c58 63%,#3c4657 100%);box-shadow:0 17px 45px rgba(24,35,58,.15)}
+body.contributor-page .hero-payout{position:relative;overflow:hidden;border:1px solid #34435b;border-radius:10px;background:linear-gradient(135deg,#0d3b32 0%,#283c58 63%,#3c4657 100%);box-shadow:0 17px 45px rgba(24,35,58,.15)}
 body.contributor-page .hero-payout:after{content:'✳';position:absolute;right:35px;top:18px;color:rgba(245,188,151,.17);font-size:8rem;line-height:1;pointer-events:none}
 body.contributor-page .hero-payout .cap{color:#f2b797}
 body.contributor-page .hero-payout-stats{position:relative;z-index:1;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top-color:rgba(255,255,255,.16)}

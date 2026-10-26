@@ -1,104 +1,104 @@
-/* Zyofy Admin visual refresh — CSS only; navigation and form behavior stay in app.css. */
+/* Pickwell Admin visual refresh — CSS only; navigation and form behavior stay in app.css. */
 :root {
-  --admin-navy: #1b2941;
-  --admin-coral: #d45d58;
+  --admin-navy: #0d3b32;
+  --admin-coral: #b07a2b;
   --admin-muted: #687589;
   --admin-line: #e5e9f0;
-  --admin-canvas: #f5f6f9;
+  --admin-canvas: #f7f6f1;
 }
-.zyofy-admin {
+.pickwell-admin {
   background: var(--admin-canvas);
   color: var(--admin-navy);
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-.zyofy-admin .header { background: rgba(255,255,255,.97); border-bottom: 1px solid var(--admin-line); box-shadow: 0 3px 15px rgba(27,41,65,.045); }
-.zyofy-admin .header-inner { min-height: 66px; }
-.zyofy-admin .admin-topbar-title { color: var(--admin-navy); font-size: .84rem; font-weight: 800; letter-spacing: -.01em; }
-.zyofy-admin .admin-side-rail, .zyofy-admin .admin-workspace-nav {
+.pickwell-admin .header { background: rgba(255,255,255,.97); border-bottom: 1px solid var(--admin-line); box-shadow: 0 3px 15px rgba(13, 59, 50,.045); }
+.pickwell-admin .header-inner { min-height: 66px; }
+.pickwell-admin .admin-topbar-title { color: var(--admin-navy); font-size: .84rem; font-weight: 800; letter-spacing: -.01em; }
+.pickwell-admin .admin-side-rail, .pickwell-admin .admin-workspace-nav {
   background: #17243b;
   box-shadow: 8px 0 28px rgba(19,31,51,.08);
 }
-.zyofy-admin .rail-brand { min-height: 58px; }
-.zyofy-admin .rail-brand .brand-mark { border-radius: 13px; background: #253550; }
-.zyofy-admin .admin-side-rail .tab-button, .zyofy-admin .admin-workspace-nav .tab-button {
+.pickwell-admin .rail-brand { min-height: 58px; }
+.pickwell-admin .rail-brand .brand-mark { border-radius: 13px; background: #253550; }
+.pickwell-admin .admin-side-rail .tab-button, .pickwell-admin .admin-workspace-nav .tab-button {
   min-height: 42px; border-radius: 10px; transition: background .16s ease, color .16s ease, transform .16s ease;
 }
-.zyofy-admin .admin-side-rail .tab-button:hover, .zyofy-admin .admin-workspace-nav .tab-button:hover { transform: translateX(2px); }
-.zyofy-admin .admin-side-rail .tab-button.active, .zyofy-admin .admin-workspace-nav button.tab-button.active { background: var(--admin-coral); box-shadow: 0 7px 16px rgba(212,93,88,.22); }
-.zyofy-admin .page { background: var(--admin-canvas); }
-.zyofy-admin .admin-welcome h1, .zyofy-admin .admin-subpage-welcome h1,
-.zyofy-admin .page-title h1 { letter-spacing: -.04em; }
-.zyofy-admin .admin-welcome p, .zyofy-admin .page-title .lede { max-width: 760px; }
-.zyofy-admin .card {
+.pickwell-admin .admin-side-rail .tab-button:hover, .pickwell-admin .admin-workspace-nav .tab-button:hover { transform: translateX(2px); }
+.pickwell-admin .admin-side-rail .tab-button.active, .pickwell-admin .admin-workspace-nav button.tab-button.active { background: var(--admin-coral); box-shadow: 0 7px 16px rgba(212,93,88,.22); }
+.pickwell-admin .page { background: var(--admin-canvas); }
+.pickwell-admin .admin-welcome h1, .pickwell-admin .admin-subpage-welcome h1,
+.pickwell-admin .page-title h1 { letter-spacing: -.04em; }
+.pickwell-admin .admin-welcome p, .pickwell-admin .page-title .lede { max-width: 760px; }
+.pickwell-admin .card {
   border-color: var(--admin-line);
   border-radius: 16px;
-  box-shadow: 0 5px 19px rgba(27,41,65,.035);
+  box-shadow: 0 5px 19px rgba(13, 59, 50,.035);
   transition: box-shadow .18s ease, border-color .18s ease;
 }
-.zyofy-admin .card-header h2, .zyofy-admin .card h2 { letter-spacing: -.015em; }
-.zyofy-admin .metric-card, .zyofy-admin .metric-card.primary, .zyofy-admin .metric {
-  border-color: var(--admin-line); border-radius: 14px; box-shadow: 0 3px 12px rgba(27,41,65,.025);
+.pickwell-admin .card-header h2, .pickwell-admin .card h2 { letter-spacing: -.015em; }
+.pickwell-admin .metric-card, .pickwell-admin .metric-card.primary, .pickwell-admin .metric {
+  border-color: var(--admin-line); border-radius: 14px; box-shadow: 0 3px 12px rgba(13, 59, 50,.025);
 }
-.zyofy-admin .metric-card.primary, .zyofy-admin .metric.lead { background: linear-gradient(145deg,#263754,#1b2941); color: #fff; }
-.zyofy-admin .table-wrap, .zyofy-admin .tw { border-color: var(--admin-line); border-radius: 13px; background: #fff; }
-.zyofy-admin table { width: 100%; }
-.zyofy-admin th { padding: 13px 14px; background: #f7f8fb; color: #738096; }
-.zyofy-admin td { padding: 13px 14px; }
-.zyofy-admin tbody tr { transition: background .14s ease; }
-.zyofy-admin tbody tr:hover { background: #fbfbfd; }
-.zyofy-admin input:not([type=checkbox]):not([type=radio]), .zyofy-admin select, .zyofy-admin textarea {
+.pickwell-admin .metric-card.primary, .pickwell-admin .metric.lead { background: linear-gradient(145deg,#263754,#0d3b32); color: #fff; }
+.pickwell-admin .table-wrap, .pickwell-admin .tw { border-color: var(--admin-line); border-radius: 13px; background: #fff; }
+.pickwell-admin table { width: 100%; }
+.pickwell-admin th { padding: 13px 14px; background: #f7f8fb; color: #738096; }
+.pickwell-admin td { padding: 13px 14px; }
+.pickwell-admin tbody tr { transition: background .14s ease; }
+.pickwell-admin tbody tr:hover { background: #fbfbfd; }
+.pickwell-admin input:not([type=checkbox]):not([type=radio]), .pickwell-admin select, .pickwell-admin textarea {
   border-radius: 11px; transition: border-color .16s ease, box-shadow .16s ease;
 }
-.zyofy-admin input:focus, .zyofy-admin select:focus, .zyofy-admin textarea:focus {
+.pickwell-admin input:focus, .pickwell-admin select:focus, .pickwell-admin textarea:focus {
   outline: 0; border-color: var(--admin-coral); box-shadow: 0 0 0 4px rgba(212,93,88,.12);
 }
-.zyofy-admin .button, .zyofy-admin .btn { min-height: 40px; border-radius: 10px; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
-.zyofy-admin .button-primary, .zyofy-admin .btn-dark { background: var(--admin-coral); box-shadow: 0 5px 13px rgba(212,93,88,.16); }
-.zyofy-admin .button-primary:hover, .zyofy-admin .btn-dark:hover { background: #bd4d4d; transform: translateY(-1px); }
-.zyofy-admin .button-secondary, .zyofy-admin .btn-ghost { border-radius: 10px; }
-.zyofy-admin .tag, .zyofy-admin .commission-btn { border-radius: 999px; }
-.zyofy-admin .modal { align-items: center; padding: max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom)); backdrop-filter: blur(3px); }
-.zyofy-admin .modal-card { border: 1px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: 0 24px 70px rgba(14,24,41,.24); }
-.zyofy-admin .pagination-link { border-radius: 10px; }
-.zyofy-admin .pagination-link.active { background: var(--admin-coral); }
-.zyofy-admin .mobile-nav-toggle { border-radius: 11px !important; }
+.pickwell-admin .button, .pickwell-admin .btn { min-height: 40px; border-radius: 10px; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.pickwell-admin .button-primary, .pickwell-admin .btn-dark { background: var(--admin-coral); box-shadow: 0 5px 13px rgba(212,93,88,.16); }
+.pickwell-admin .button-primary:hover, .pickwell-admin .btn-dark:hover { background: #bd4d4d; transform: translateY(-1px); }
+.pickwell-admin .button-secondary, .pickwell-admin .btn-ghost { border-radius: 10px; }
+.pickwell-admin .tag, .pickwell-admin .commission-btn { border-radius: 999px; }
+.pickwell-admin .modal { align-items: center; padding: max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom)); backdrop-filter: blur(3px); }
+.pickwell-admin .modal-card { border: 1px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: 0 24px 70px rgba(14,24,41,.24); }
+.pickwell-admin .pagination-link { border-radius: 10px; }
+.pickwell-admin .pagination-link.active { background: var(--admin-coral); }
+.pickwell-admin .mobile-nav-toggle { border-radius: 11px !important; }
 
 /* Admin sign-in shares the same navy / coral / warm-neutral identity. */
-body.zyofy-admin-login {
+body.pickwell-admin-login {
   min-height: 100svh; padding: 22px;
   background: radial-gradient(ellipse at 15% 10%, rgba(212,93,88,.16), transparent 34%),
               radial-gradient(ellipse at 90% 90%, rgba(98,126,164,.18), transparent 38%), #f3f4f7 !important;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-.zyofy-admin-login .login-card {
+.pickwell-admin-login .login-card {
   max-width: 460px; padding: clamp(28px,5vw,46px);
   border: 1px solid rgba(255,255,255,.75); border-radius: 22px;
-  background: #fff; box-shadow: 0 24px 70px rgba(27,41,65,.14);
+  background: #fff; box-shadow: 0 24px 70px rgba(13, 59, 50,.14);
 }
-.zyofy-admin-login .logo-icon { width: 58px; height: 58px; border-radius: 16px; background: var(--admin-navy); box-shadow: 0 8px 20px rgba(27,41,65,.17); }
-.zyofy-admin-login h1 { color: var(--admin-navy); letter-spacing: -.035em; }
-.zyofy-admin-login .sub { color: var(--admin-muted); }
-.zyofy-admin-login label { color: #47556d; font-weight: 700; }
-.zyofy-admin-login input { min-height: 50px; border: 1px solid #dce1e9; border-radius: 11px; background: #fff; color: var(--admin-navy); }
-.zyofy-admin-login input:focus { border-color: var(--admin-coral); box-shadow: 0 0 0 4px rgba(212,93,88,.12); }
-.zyofy-admin-login button { min-height: 50px; border-radius: 11px; background: var(--admin-coral); box-shadow: 0 8px 18px rgba(212,93,88,.2); }
-.zyofy-admin-login button:hover { background: #bd4d4d; }
-.zyofy-admin-login .error { border-radius: 11px; }
+.pickwell-admin-login .logo-icon { width: 58px; height: 58px; border-radius: 16px; background: var(--admin-navy); box-shadow: 0 8px 20px rgba(13, 59, 50,.17); }
+.pickwell-admin-login h1 { color: var(--admin-navy); letter-spacing: -.035em; }
+.pickwell-admin-login .sub { color: var(--admin-muted); }
+.pickwell-admin-login label { color: #47556d; font-weight: 700; }
+.pickwell-admin-login input { min-height: 50px; border: 1px solid #dce1e9; border-radius: 11px; background: #fff; color: var(--admin-navy); }
+.pickwell-admin-login input:focus { border-color: var(--admin-coral); box-shadow: 0 0 0 4px rgba(212,93,88,.12); }
+.pickwell-admin-login button { min-height: 50px; border-radius: 11px; background: var(--admin-coral); box-shadow: 0 8px 18px rgba(212,93,88,.2); }
+.pickwell-admin-login button:hover { background: #bd4d4d; }
+.pickwell-admin-login .error { border-radius: 11px; }
 
 @media (max-width: 700px) {
-  .zyofy-admin .page { padding: 19px 13px 32px; }
-  .zyofy-admin .admin-welcome { align-items: flex-start; }
-  .zyofy-admin .admin-welcome h1 { font-size: clamp(1.55rem,7vw,1.9rem); }
-  .zyofy-admin .card { border-radius: 14px; }
-  .zyofy-admin .card-header { gap: 9px; }
-  .zyofy-admin .table-wrap, .zyofy-admin .tw { border-radius: 11px; }
-  .zyofy-admin .modal-card { width: min(100%,560px); max-height: calc(100svh - 24px); padding: 20px 16px; border-radius: 16px; }
-  .zyofy-admin .admin-side-rail, .zyofy-admin .admin-workspace-nav { box-shadow: 10px 0 32px rgba(14,24,41,.25); }
+  .pickwell-admin .page { padding: 19px 13px 32px; }
+  .pickwell-admin .admin-welcome { align-items: flex-start; }
+  .pickwell-admin .admin-welcome h1 { font-size: clamp(1.55rem,7vw,1.9rem); }
+  .pickwell-admin .card { border-radius: 14px; }
+  .pickwell-admin .card-header { gap: 9px; }
+  .pickwell-admin .table-wrap, .pickwell-admin .tw { border-radius: 11px; }
+  .pickwell-admin .modal-card { width: min(100%,560px); max-height: calc(100svh - 24px); padding: 20px 16px; border-radius: 16px; }
+  .pickwell-admin .admin-side-rail, .pickwell-admin .admin-workspace-nav { box-shadow: 10px 0 32px rgba(14,24,41,.25); }
 }
 @media (max-width: 390px) {
-  .zyofy-admin .page { padding-inline: 10px; }
-  .zyofy-admin .card { padding: 13px; }
-  .zyofy-admin .analytics-grid, .zyofy-admin .metrics { gap: 8px; }
-  .zyofy-admin-login .login-card { padding: 25px 20px; }
+  .pickwell-admin .page { padding-inline: 10px; }
+  .pickwell-admin .card { padding: 13px; }
+  .pickwell-admin .analytics-grid, .pickwell-admin .metrics { gap: 8px; }
+  .pickwell-admin-login .login-card { padding: 25px 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .zyofy-admin *, .zyofy-admin-login * { transition-duration: .01ms !important; } }
+@media (prefers-reduced-motion: reduce) { .pickwell-admin *, .pickwell-admin-login * { transition-duration: .01ms !important; } }

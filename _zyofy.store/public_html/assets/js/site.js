@@ -1,5 +1,5 @@
 /**
- * Zyofy — Global Interactive Scripts
+ * Pickwell — Global Interactive Scripts
  * Mobile navigation, accessible clipboard copy, micro-interactions.
  * Performance: IIFE, zero dependencies, runs after DOMContentLoaded via defer.
  */

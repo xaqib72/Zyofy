@@ -1,0 +1,26 @@
+{
+  "name": "Pickwell — Smart shopping, curated",
+  "short_name": "Pickwell",
+  "description": "Independent buying guides and a carefully checked product catalog for shoppers in the US, UK and Canada.",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8f7f3",
+  "theme_color": "#0d3b32",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["shopping", "lifestyle", "productivity"],
+  "icons": [
+    { "src": "/assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/brand/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/brand/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Product catalog", "url": "/products/", "description": "Browse the Pickwell product edit" },
+    { "name": "Buying guides", "url": "/guides/", "description": "Read Pickwell buying guides" }
+  ]
+}

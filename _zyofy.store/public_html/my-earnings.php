@@ -124,18 +124,22 @@ $shareText = ddOut($dummyCommissionText) . '%';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>My Earnings · Zyofy</title>
+<title>My Earnings · Pickwell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;850;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <!-- Absolute paths so clean nested URLs never break stylesheet loading -->
 <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/site.css?v=' . $siteCssVersion)) ?>">
-<link rel="icon" type="image/svg+xml" href="<?= dd_e(dd_url('/assets/images/zyofy-mark.svg')) ?>">
+<link rel="icon" href="<?= dd_e(dd_url('/favicon.ico')) ?>" sizes="any">
+<link rel="icon" type="image/svg+xml" href="<?= dd_e(dd_url('/assets/brand/favicon.svg')) ?>">
+<link rel="apple-touch-icon" sizes="180x180" href="<?= dd_e(dd_url('/apple-touch-icon.png')) ?>">
+<link rel="manifest" href="<?= dd_e(dd_url('/manifest.webmanifest')) ?>">
+<meta name="theme-color" content="#0d3b32">
 <link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/storefront.css?v=' . (is_file(__DIR__ . '/assets/css/storefront.css') ? filemtime(__DIR__ . '/assets/css/storefront.css') : '20261007'))) ?>">
 <link rel="stylesheet" href="<?= dd_e(dd_url('/admin/assets/app.css?v=' . $appCssVersion)) ?>">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/zyofy-2026.css?v=' . (is_file(__DIR__ . '/assets/css/zyofy-2026.css') ? filemtime(__DIR__ . '/assets/css/zyofy-2026.css') : '1'))) ?>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/pickwell.css?v=' . (is_file(__DIR__ . '/assets/css/pickwell.css') ? filemtime(__DIR__ . '/assets/css/pickwell.css') : '1'))) ?>">
 <style>
   .fintech-header {
     position: sticky;
@@ -343,7 +347,7 @@ $shareText = ddOut($dummyCommissionText) . '%';
     .fintech-user-badge { display: none; }
   }
 </style>
-<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/zyofy-2026.css?v=' . (is_file(__DIR__ . '/assets/css/zyofy-2026.css') ? filemtime(__DIR__ . '/assets/css/zyofy-2026.css') : '2'))) ?>">
+<link rel="stylesheet" href="<?= dd_e(dd_url('/assets/css/pickwell.css?v=' . (is_file(__DIR__ . '/assets/css/pickwell.css') ? filemtime(__DIR__ . '/assets/css/pickwell.css') : '2'))) ?>">
 </head>
 <body class="storefront-page contributor-earnings-page contributor-page" style="background:var(--bg)">
 
@@ -603,7 +607,7 @@ $shareText = ddOut($dummyCommissionText) . '%';
         <span style="color:var(--muted);font-size:0.88rem">Click to expand</span>
       </summary>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;padding:0 0 30px;border-top:1px solid var(--line);margin-top:8px;padding-top:24px">
-        <div><strong style="color:var(--ink)">Clicks:</strong><br><span style="color:var(--muted);font-size:0.88rem">Total customer clicks routed through your attributed Zyofy links.</span></div>
+        <div><strong style="color:var(--ink)">Clicks:</strong><br><span style="color:var(--muted);font-size:0.88rem">Total customer clicks routed through your attributed Pickwell links.</span></div>
         <div><strong style="color:var(--ink)">Items Ordered:</strong><br><span style="color:var(--muted);font-size:0.88rem">Products added to an Amazon cart following an attributed referral.</span></div>
         <div><strong style="color:var(--ink)">Items Shipped:</strong><br><span style="color:var(--muted);font-size:0.88rem">Orders physically fulfilled by Amazon. Commissions are payable on shipped volume.</span></div>
         <div><strong style="color:var(--ink)">Items Returned:</strong><br><span style="color:var(--muted);font-size:0.88rem">Orders returned by buyers, with associated commission retracted.</span></div>

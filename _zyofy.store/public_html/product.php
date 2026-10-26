@@ -149,7 +149,7 @@ dd_render_storefront_header('products', $user);
           </section>
         <?php endif; ?>
 
-        <p class="product-detail-content-notice"><strong><?= $isManualProduct ? 'Product information' : 'Amazon content notice' ?></strong><span><?= $isManualProduct ? 'Product details are provided by Zyofy. Check the Amazon listing for current product information.' : 'Certain content that appears on this site comes from Amazon. This content is provided as is and may change or be removed at any time.' ?></span></p>
+        <p class="product-detail-content-notice"><strong><?= $isManualProduct ? 'Product information' : 'Amazon content notice' ?></strong><span><?= $isManualProduct ? 'Product details are provided by Pickwell. Check the Amazon listing for current product information.' : 'Certain content that appears on this site comes from Amazon. This content is provided as is and may change or be removed at any time.' ?></span></p>
       </div>
     </section>
   </div>
