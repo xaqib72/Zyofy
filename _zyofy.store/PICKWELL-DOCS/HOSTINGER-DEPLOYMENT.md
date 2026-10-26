@@ -84,7 +84,7 @@ your account user — never 777.
 
 > **Existing site migration?** Keep your current database and simply point
 > `config.php` at it — the schema is unchanged by this redesign, so no data
-> migration is required. Do **not** import the old `u432321334_Zyofy.sql` dump on
+> migration is required. Do **not** import the old database dump from the previous host on
 > top of a live database.
 
 > **Fresh install?** The repository does not contain a complete schema dump, only
