@@ -29,6 +29,9 @@ export class CameraRig {
     this._right = new THREE.Vector3();
     this._initialised = false;
     this._fpsBlend = 0;
+    this.baseFov = camera.fov;
+    this.fov = camera.fov;
+    this.scoped = false;
     this.modeChangedAt = 0;
   }
 
@@ -52,7 +55,26 @@ export class CameraRig {
     return this.camera.getWorldDirection(out);
   }
 
+  /**
+   * Aim-down-sights zoom. The camera's field of view is driven by the weapon:
+   * a scoped rifle collapses to a narrow sight picture, everything else just
+   * tightens a little. `scoped` tells the HUD to raise the optical overlay.
+   */
+  _updateFov(dt, controller) {
+    const def = controller && controller.def;
+    const aiming = !!(controller && controller.aiming);
+    const scoped = aiming && this.mode === 'fps' && !!(def && def.scope);
+    const want = scoped ? 19 : aiming ? this.baseFov * 0.82 : this.baseFov;
+    this.scoped = scoped;
+    this.fov += (want - this.fov) * Math.min(1, dt * 12);
+    if (Math.abs(this.camera.fov - this.fov) > 0.01) {
+      this.camera.fov = this.fov;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
   update(dt, input, character, controller) {
+    this._updateFov(dt, controller);
     if (input.locked) {
       this.yaw -= input.mouse.dx * this.sensitivity;
       this.pitch += input.mouse.dy * this.sensitivity;

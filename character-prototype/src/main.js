@@ -9,13 +9,15 @@ import { loadCharacterGLTF, loadSourceClips } from './assets.js';
 import { CHARACTERS } from './config.js';
 import { ShootingRange } from './range.js';
 import { WeaponAudio } from './audio.js';
-import { WEAPONS } from './weaponCatalog.js';
+import { WEAPONS, WEAPON_LIST } from './weaponCatalog.js';
+import { loadAllWeaponModels } from './weaponAssets.js';
+import { FpsRig } from './fpsRig.js';
 
 /**
  * Build stamp shown in the HUD. Bumped on every behavioural change so a stale
  * cached module in the browser is instantly recognisable.
  */
-const BUILD = 'r5 · belly crawl + FPS/TPS + range + weapon system';
+const BUILD = 'r6 · downloaded weapon models + real FPS rig + CC0 audio';
 
 /**
  * Boot: renderer, a pure white ground plane, the shooting targets, two
@@ -123,27 +125,63 @@ async function boot() {
     });
   }
 
+  // ------------------------------------------------- real weapon GLB models
+  hud.setProgress(0.96, 'loading weapon models…');
+  const assetReport = await loadAllWeaponModels(WEAPON_LIST, (n, total, def) => {
+    hud.setProgress(0.96 + (n / total) * 0.02, `weapon model ${n}/${total} — ${def.glb}`);
+  });
+
   const fx = new WeaponFX(scene);
-  for (const character of list) {
-    character.setupWeapons(scene);
-    character.attachViewModel(camera);
-  }
+  for (const character of list) character.setupWeapons(scene);
+
+  // ------------------------------------------------- first-person viewmodel
+  // One shared rig (the downloaded, rigged AK-47 + hands asset) is reused for
+  // every weapon: it holds the active weapon on its `gun` bone and plays its own
+  // real `fire` / `reload_empty` clips.
+  const fpsRig = new FpsRig();
+  await fpsRig.load('assets/fps/ak47_hands.glb', { length: 0.88 });
+  fpsRig.gripOffset.set(0.16, -0.15, -0.70);
+  fpsRig.placeForCamera();
+  fpsRig.refreshBase();
+  camera.add(fpsRig.group);
 
   const audio = new WeaponAudio();
+  const audioReport = await audio.loadSamples((n, total, name) => {
+    hud.setProgress(0.98 + (n / total) * 0.015, `sound ${n}/${total} — ${name}`);
+  });
 
   // -------------------------------------------------------------- controllers
   const cameraRig = new CameraRig(camera);
   const controllers = {};
+  let activeCharacterRef = null;
+  const activeCharacter = () => activeCharacterRef;
   for (const character of list) {
     const controller = new CharacterController(character, {
       fx,
       hitTest: (origin, dir, def) => range.hitTest(origin, dir, def),
       aimProbe: (origin, dir, maxDistance) => range.probe(origin, dir, maxDistance),
+      muzzleProvider: (out) => (cameraRig.mode === 'fps'
+        ? fpsRig.getMuzzleWorld(out)
+        : character.getMuzzleWorld(out)),
       onEvent: (type, payload) => {
-        if (type === 'shot') audio.play(WEAPONS[payload.weapon]);
-        else if (type === 'melee') audio.swoosh();
-        else if (type === 'reloading') audio.click(WEAPONS[payload.weapon].reloadStyle);
-        else if (type === 'reloaded') audio.click('mag');
+        if (type === 'shot') {
+          audio.play(WEAPONS[payload.weapon]);
+          if (character === activeCharacter()) fpsRig.shoot();
+        } else if (type === 'impact') {
+          if (character === activeCharacter()) audio.impact(true);
+        } else if (type === 'melee') {
+          audio.swoosh(!!payload.hit);
+          if (character === activeCharacter()) fpsRig.play('idle', 0.1);
+        } else if (type === 'reloading') {
+          audio.click(WEAPONS[payload.weapon].reloadStyle);
+          if (character === activeCharacter()) fpsRig.reload(payload.duration);
+        } else if (type === 'dryReload') {
+          audio.click('dry');
+        } else if (type === 'reloaded') {
+          audio.click('mag');
+        } else if (type === 'weapon') {
+          audio.equip();
+        }
       },
     });
     controller.setCameraProvider(cameraRig);
@@ -162,9 +200,11 @@ async function boot() {
     Object.entries(characters).forEach(([key2, c]) => { c.group.visible = key2 === id; });
     activeId = id;
     active = next;
+    activeCharacterRef = active.character;
     cameraRig._initialised = false;
   };
   Object.entries(characters).forEach(([id, c]) => { c.group.visible = id === activeId; });
+  activeCharacterRef = active.character;
   active._applyTransform();
 
   // ------------------------------------------------------------------ resize
@@ -214,7 +254,15 @@ async function boot() {
     for (const character of list) {
       const isActive = character === active.character;
       character.group.visible = isActive ? cameraRig.mode !== 'fps' : false;
-      character.updateViewModel(dt, controllers[character.def.id], cameraRig.mode);
+      character.updateHandWeaponVisibility(isActive ? cameraRig.mode : 'tps');
+    }
+
+    // first-person viewmodel: the shared downloaded rig holds the active weapon
+    const activeDef = WEAPONS[active.weapon];
+    if (activeDef) fpsRig.setWeapon(activeDef);
+    fpsRig.group.visible = cameraRig.mode === 'fps';
+    if (cameraRig.mode === 'fps') {
+      fpsRig.update(dt, { recoil: active.recoilPitch || 0, aiming: active.aiming });
     }
 
     // keep the shadow frustum centred on the active character
@@ -234,7 +282,11 @@ async function boot() {
     }
 
     hud.update(active.getDebugState(), {
-      aiming: active.aiming, fps, locked: input.locked, range: range.getDebugState(),
+      aiming: active.aiming,
+      fps,
+      locked: input.locked,
+      range: range.getDebugState(),
+      scoped: cameraRig.scoped,
     });
 
     renderer.render(scene, camera);
@@ -250,6 +302,7 @@ async function boot() {
   // handy for poking at the scene from the console while testing
   window.__characterPrototype = {
     scene, camera, cameraRig, characters, controllers, sourceClips, renderer, range, audio, input, hud,
+    fpsRig, assetReport, audioReport,
     get active() { return active; },
     get activeId() { return activeId; },
   };

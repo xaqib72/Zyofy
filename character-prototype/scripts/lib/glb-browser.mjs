@@ -9,6 +9,7 @@
 import fs from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 if (!globalThis.self) globalThis.self = globalThis;
 
@@ -67,6 +68,7 @@ export function parseGLB(file, { keepMaterials = false } = {}) {
   if (!keepMaterials) stripImages(json);
   const buffer = writeGLB(json, bin);
   const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
   return new Promise((resolve, reject) => {
     loader.parse(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength), '', resolve, reject);
   });

@@ -255,3 +255,48 @@ html, body {
 
 #crosshair.aim .dot { width: 3px; height: 3px; background: #c0392b; }
 #crosshair.hidden { opacity: 0; }
+
+/* ------------------------------------------------------- optical sight overlay */
+/* Shown only while aiming a weapon whose catalogue entry has `scope: true`, and
+   only in first person, where the shot really does go down the camera axis. */
+#scope {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+}
+#scope.hidden { display: none; }
+#scope .lens {
+  width: min(72vh, 72vw);
+  height: min(72vh, 72vw);
+  border-radius: 50%;
+  box-shadow: 0 0 0 100vmax #000, inset 0 0 46px rgba(0, 0, 0, 0.85);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
+  position: absolute;
+}
+#scope .ring {
+  width: min(72vh, 72vw);
+  height: min(72vh, 72vw);
+  border-radius: 50%;
+  border: 2px solid rgba(10, 12, 14, 0.9);
+  position: absolute;
+}
+#scope .post {
+  position: absolute;
+  width: 2px;
+  height: 36%;
+  background: rgba(8, 10, 12, 0.92);
+  bottom: 50%;
+  transform: translateY(54%);
+}
+#scope .post::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  bottom: -6px;
+  width: 16px;
+  height: 2px;
+  background: rgba(8, 10, 12, 0.92);
+}

@@ -24,6 +24,7 @@ import { CameraRig } from '../src/camera.js';
 import { ShootingRange } from '../src/range.js';
 import { CHARACTERS, CLIP_DEFS } from '../src/config.js';
 import { WEAPON_LIST, WEAPONS, WEAPON_ORDER } from '../src/weaponCatalog.js';
+import { cacheModel } from '../src/weaponAssets.js';
 import { parseGLB } from './lib/glb-browser.mjs';
 import { findBone } from '../src/retarget.js';
 
@@ -38,6 +39,12 @@ function check(label, ok, detail = '') {
 }
 
 /* -------------------------------------------------------------------- assets */
+
+// the real downloaded weapon models, the same ones the app loads at boot
+for (const def of WEAPON_LIST) {
+  const gltf = await parseGLB(path.join(ROOT, 'public/assets/weapons', def.glb));
+  cacheModel(def, gltf);
+}
 
 const sourceClips = new Map();
 for (const def of CLIP_DEFS) {
@@ -272,7 +279,7 @@ check('FPS aim ray starts at the camera', aimOrigin.distanceTo(camera.position) 
 // across the screen instead of down the sights.
 {
   const offenders = [];
-  for (const id of ['m4a1', 'ak47', 'awp', 'g17', 'python', 'r870', 'm249']) {
+  for (const id of ['m4a1', 'ak47', 'awp', 'g17', 'python', 'r870', 'm2', 'bayonet']) {
     controller.equip(id);
     settle();
     for (let i = 0; i < 40; i += 1) frame();
@@ -476,7 +483,7 @@ check('shotgun pellets hit the target multiple times per shot', range.totalHits 
   `${range.totalHits} pellet hits`);
 
 range.reset();
-controller.equip('combat_knife');
+controller.equip('bayonet');
 run(30, () => hold());
 settle();
 controller.position.set(targetPos.x, 0, targetPos.z + 1.3);

@@ -16,14 +16,27 @@ import * as THREE from 'three';
 import { Character } from '../src/character.js';
 import { CharacterController } from '../src/controller.js';
 import { CameraRig } from '../src/camera.js';
+import { FpsRig } from '../src/fpsRig.js';
+import { cacheModel } from '../src/weaponAssets.js';
 import { ShootingRange } from '../src/range.js';
 import { CHARACTERS, CLIP_DEFS } from '../src/config.js';
-import { WEAPON_LIST } from '../src/weaponCatalog.js';
+import { WEAPON_LIST, WEAPONS } from '../src/weaponCatalog.js';
 import { buildWeapon } from '../src/weapons.js';
 import { parseGLB, skinnedVertex } from './lib/glb-browser.mjs';
 import { Canvas } from './lib/raster.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
+
+/* --------------------------------------------------- real weapon models */
+
+// The game preloads every weapon GLB before it builds the characters; do the same
+// here so the renders show the downloaded meshes rather than the fallback.
+for (const def of WEAPON_LIST) {
+  const gltf = await parseGLB(path.join(ROOT, 'public/assets/weapons', def.glb));
+  cacheModel(def, gltf);
+}
+
+
 const OUT = '/home/user/renders';
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -51,7 +64,14 @@ scene.add(camera);
 const rig = new CameraRig(camera);
 
 character.setupWeapons(new THREE.Scene());
-character.attachViewModel(camera);
+
+// the same downloaded, rigged first-person asset the game uses
+const fpsRig = new FpsRig();
+fpsRig.gripOffset.set(0.16, -0.15, -0.70);
+fpsRig.adopt(await parseGLB(path.join(ROOT, 'public/assets/fps/ak47_hands.glb')), { length: 0.88 });
+fpsRig.placeForCamera();
+fpsRig.refreshBase();
+camera.add(fpsRig.group);
 
 const input = {
   keys: new Set(),
@@ -164,7 +184,11 @@ function step(frames, setup) {
     character.group.updateMatrixWorld(true);
     camera.updateMatrixWorld(true);
     character.group.visible = rig.mode !== 'fps';
-    character.updateViewModel(1 / 60, controller, rig.mode);
+    character.updateHandWeaponVisibility(rig.mode);
+    const def = WEAPONS[controller.weapon];
+    if (def) fpsRig.setWeapon(def);
+    fpsRig.group.visible = rig.mode === 'fps';
+    if (rig.mode === 'fps') fpsRig.update(1 / 60, { recoil: controller.recoilPitch || 0, aiming: controller.aiming });
     camera.updateMatrixWorld(true);
     input.endFrame();
   }
@@ -237,7 +261,10 @@ for (let i = 0; i < WEAPON_LIST.length; i += 1) {
       c.fromBufferAttribute(pos, ic).applyMatrix4(mesh.matrixWorld);
       const normal = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
       const shade = 0.45 + 0.55 * Math.abs(normal.dot(new THREE.Vector3(0.3, 0.8, 0.4).normalize()));
-      const colour = def.model.wood ? [140, 100, 66] : def.model.tan ? [150, 140, 108] : [90, 94, 100];
+      const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+      const colour = mat && mat.color
+        ? [mat.color.r, mat.color.g, mat.color.b].map((c) => Math.round(Math.pow(c, 1 / 2.2) * 255))
+        : [90, 94, 100];
       const shaded = colour.map((v) => Math.min(255, Math.round(v * shade)));
       sheet.triangle(project(a), project(b), project(c), shaded);
     }

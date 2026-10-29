@@ -181,7 +181,7 @@ compact list on the right of the HUD selects any of them by click. **E** refills
 every magazine and reserve. **T** resets the targets and hit counter. The
 selected character and camera mode are preserved.
 
-### Assets that could not be integrated
+### Assets, as they stood in r5
 
 The brief asks for downloaded weapon models, animation packs and audio. What was
 actually obtained and what was not:
@@ -209,6 +209,88 @@ open /home/user/renders/*.png
 The renders are real geometry with a flat shader; they do not reproduce lighting,
 shadows or faces, but they do show pose, framing and whether the right mesh is
 where it should be.
+
+## r6 — real downloaded assets replace the placeholders
+
+The r5 build was honest about its gaps: the 30 weapons were procedural
+primitives, the first-person arms were stand-in cylinders, gunshots were
+synthesised noise. **All three are now actual downloaded assets**, with the
+sources and licences recorded in [`public/assets/ASSETS.md`](public/assets/ASSETS.md).
+
+| what | before (r5) | now (r6) |
+| --- | --- | --- |
+| weapon models | 30 procedural primitive builds | **19 downloaded GLBs** — Quaternius "Ultimate Guns" (CC0) plus the Remington 870 MCS and Browning M2 from Sketchfab (CC BY 4.0) |
+| first person | procedural cylinder arms, camera-parented | **`ak47_hands.glb`** — a rigged FPS arms + weapon asset with its own `idle` / `fire` / `reload_empty` clips (kursat_sokmen, CC BY 4.0) |
+| gunshot / reload / impact audio | Web Audio noise synthesis | **12 recorded CC0 samples** from the OpenSpades free pak and its documented upstream sources |
+| muzzle flash / tracers / impacts | untextured quads and line segments | **Kenney Particle Pack atlas** (CC0) — muzzle cells, sparks, tracer streaks, scorch marks |
+
+### How a downloaded weapon becomes a held weapon (`src/weaponAssets.js`)
+
+No hand tuning per model, and no procedural fallback geometry at all:
+
+1. **long axis → +Z** by measuring the bounding box;
+2. **scale to real length** from `modelLength` in the catalogue;
+3. **which end is the muzzle?** the adapter profiles how much geometry hangs
+   *below the bore* at each end - a receiver, grip, trigger guard and stock all
+   hang below, a bare barrel does not. The `flip` override exists only for
+   silhouettes the test cannot separate (the revolver), and every override was
+   checked against the rendered weapon sheet;
+4. **detached junk is pruned** by union-finding touching mesh bounds (the 870 MCS
+   ships a second copy of its geometry 60 units behind the real one);
+5. **grip at the origin**, muzzle anchor at the bore;
+6. **moving parts are discovered** from the asset's own node names - the 870's
+   `ActionBar_low` becomes the pump, its `MagazineLoadPort_low` sits where rounds
+   are fed.
+
+`verify-weapons` asserts all of it: 114 checks, including that the 19 meshes are
+geometrically distinct, that the thin end ends up forward on every model, that
+every weapon mounts on both rigs, and that the assets' own parts animate.
+
+### First person is a real asset
+
+The AK-47 model is an unusual find: the *gun is a separate skinned mesh driven by
+its own bones* (`gun`, `slider`, `magazine`, `trigger`, `gun_end`), inside a rigged
+pair of hands with `idle`, `fire` and `reload_empty` clips. `src/fpsRig.js` uses
+that:
+
+* equip the AK → its own gun mesh is shown;
+* equip anything else → the gun mesh is hidden and **the downloaded weapon model
+  is parented to the `gun` bone**, scaled so the hands keep their grip spacing,
+  with its local rotation *solved* from the bone's world orientation (the asset's
+  bone space carries a 90° rig convention, which a hard-coded rotation gets
+  wrong);
+* firing plays the asset's `fire` clip, reloading plays `reload_empty` stretched
+  to the weapon's reload time;
+* the barrel is aligned to the camera axis by measuring the skinned gun mesh -
+  `Box3.setFromObject` reads *bind-pose* geometry for skinned meshes, so the rig
+  refreshes `skeleton.boneMatrices` before measuring. That bug alone made the
+  first three attempts at FPS framing look wrong.
+
+### Effects are functional, not decorative
+
+`WeaponFX` now draws the atlas cells: the muzzle cell for the weapon's class
+(long flash for rifles, round for pistols/shotguns, small for SMGs), a glow
+sprite, a `trace_07` streak stretched along the **real** shot direction, spark
+cells plus a scorch cell at the **real** hit point returned by the hitscan, and a
+point light for the flash. The tracer starts at the muzzle that actually fired -
+in first person that is the rig's muzzle bone, in third person the hand weapon's.
+
+### Scope
+
+Scoped sniper rifles (AWP, marksman rifle) now genuinely zoom when aiming in
+first person: the camera FOV collapses to 19° and an optical overlay is raised.
+This is the one place where a *downloaded* asset could not be used - no CC0
+reticle/sight-picture pack was reachable - so the overlay is CSS drawn over the
+real zoomed view. It is not a fake: the shot goes down the same camera axis the
+sight is centred on.
+
+### Audio
+
+`src/audio.js` decodes the 12 Opus files at boot and plays the recorded shot,
+reload, pump, dry-fire, melee-impact and bullet-impact for the right weapon
+class. `WeaponAudio.status()` reports whether recorded samples or the old
+synthesiser are live; if a browser refuses Opus the game falls back rather than
+going silent.
 
 ## Controls
 
@@ -263,8 +345,10 @@ coyote-free simple ground clamp. Clip playback rate is time-scaled by
 distance & shoulder offset (wider when sprinting, tighter when aiming, low and close
 when prone), head-bone target with smoothing, recoil pitch and strafe roll.
 
-**Weapons.** 30 procedural weapons (see the r5 section) with per-weapon handling, a
-camera-parented first-person viewmodel, and mechanical part animation.
+**Weapons.** 19 downloaded weapon models (see the r6 section and
+`public/assets/ASSETS.md`) with per-weapon handling, a rigged first-person
+viewmodel that holds every one of them, and the mechanical parts the assets
+themselves provide.
 
 **Environment.** A 160 m white `MeshStandardMaterial` plane, white background, one
 hemisphere + one shadow-casting key + one rim light. No sky, no geometry, no props.
@@ -326,8 +410,9 @@ node-name sanitisation:
 | --- | --- |
 | `npm run verify-rig` | all 40 clips retarget onto both rigs; head/hip heights and durations sane |
 | `npm run verify-fidelity` | retargeted limb directions match the source motion (mean error per clip) |
-| `npm run verify-weapons` | 79 assertions: 30 geometrically distinct models, all mount on both rigs, reload mechanics, fire-mode config |
-| `npm run verify-controls` | 120 assertions: walkthrough, single-action invariant, belly-crawl heights on **both rigs**, exclusive states, FPS/TPS state preservation and aim alignment, every weapon's fire + reload + mechanics, ammunition accounting, range hitscan in both camera modes, melee reach |
+| `npm run verify-assets` | 73 assertions: every file documented in ASSETS.md exists, all 19 weapon GLBs load and mount, the FPS rig exposes its clips and gun bones with an auto-aligned barrel, 12 real Ogg sound files, the 1024² particle atlas |
+| `npm run verify-weapons` | 114 assertions: 19 downloaded meshes are geometrically distinct, the muzzle end is correctly identified on every one, all mount on both rigs, the assets' own parts animate, fire-mode config |
+| `npm run verify-controls` | 100 assertions: walkthrough, single-action invariant, belly-crawl heights on **both rigs**, exclusive states, FPS/TPS state preservation and aim alignment, every weapon's fire + reload + mechanics, ammunition accounting, range hitscan in both camera modes, melee reach |
 | `npm run verify-browser` | loads the GLBs with the **real `GLTFLoader`** the page uses (images stripped, since Node has no DOM) and asserts prepareRetarget / bakeClip / mixer binding for all 40 clips on both rigs |
 
 Current results: 40/40 clips retarget, worst clip fidelity 5.3° mean, all 4 weapon mounts
@@ -356,7 +441,11 @@ Every binary in `public/assets/` is downloaded from a public GitHub mirror by
 | --- | --- | --- | --- |
 | `characters/vanguard_male.glb` | [mrdoob/three.js · examples/models/gltf/Soldier.glb](https://github.com/mrdoob/three.js/blob/dev/examples/models/gltf/Soldier.glb) | Mixamo **"Vanguard By T. Choonyung"** | Mixamo asset — royalty-free use |
 | `characters/michelle_female.glb` | [mrdoob/three.js · examples/models/gltf/Michelle.glb](https://github.com/mrdoob/three.js/blob/dev/examples/models/gltf/Michelle.glb) | Mixamo **"Michelle"** | Mixamo asset — royalty-free use |
-| `animations/*.glb` (40 files) | [MisterYI/deevid-mixamo-assets · anim/](https://github.com/MisterYI/deevid-mixamo-assets) | raw Mixamo motion clips, X-Bot rig | Mixamo asset — royalty-free use |
+| `weapons/*.glb` (19 files) | Quaternius "Ultimate Guns", plus 2 Sketchfab CC BY models | see `public/assets/ASSETS.md` | CC0 / CC BY 4.0 |
+| `fps/ak47_hands.glb` | [ALAKH-BEST/BulletFall](https://github.com/ALAKH-BEST/BulletFall) | "Ak47" by kursat_sokmen | CC BY 4.0 |
+| `sfx/*.opus` (12 files) | [DeathByDenim/openspades-free-pak](https://github.com/DeathByDenim/openspades-free-pak) | Free Firearm Sound Library and others | CC0 |
+| `fx/particles.png` | [Karnak19/bagarre](https://github.com/Karnak19/bagarre) | Kenney Particle Pack | CC0 1.0 |
+| `animations/*.glb` (49 files) | [MisterYI/deevid-mixamo-assets · anim/](https://github.com/MisterYI/deevid-mixamo-assets) | raw Mixamo motion clips, X-Bot rig | Mixamo asset — royalty-free use |
 
 Notes on licensing and honesty:
 
@@ -367,8 +456,14 @@ Notes on licensing and honesty:
   MIT-licensed repository for exactly this purpose.
 * The clip names in `src/config.js` (`source:` field) are the original Mixamo names, so each
   `.glb` stays traceable to its upstream file. `fetch-assets.mjs` re-downloads them by name.
-* Weapons are procedural primitives — no third-party models are involved, so no extra
-  license applies.
+* **Weapons, first-person arms, gunfire/impact audio and the particle atlas are all
+  downloaded** as of r6; their exact upstream file, author and licence (CC0 for
+  Quaternius/Kenney/OpenSpades, CC BY 4.0 for the two Sketchfab weapons and the AK-47
+  hands) are tabulated in [`public/assets/ASSETS.md`](public/assets/ASSETS.md). The CC BY
+  models **require attribution** and it is given there and below:
+  * "870 MCS Shotgun" by FelipeMSX — https://sketchfab.com/3d-models/870-mcs-shotgun-8fa7d482920e4eda8648766fb38596c0 — CC BY 4.0
+  * "Low-Poly Browning M2E2" by Kaan — https://skfb.ly/ovSrR — CC BY 4.0
+  * "Ak47" first-person rigged model by kursat_sokmen — https://skfb.ly/6UEL9 — CC BY 4.0
 * Runtime dependencies: [three.js](https://github.com/mrdoob/three.js) (MIT) and
   [Vite](https://github.com/vitejs/vite) (MIT).
 
@@ -388,14 +483,18 @@ repositories. Several candidates were rejected: `Orillusion/assets` and
 2. **Female retarget residual ~5°.** Bone proportions differ between the X-Bot source rig and
    Michelle, so limb *directions* match but segment *shapes* differ slightly. A hand-authored
    pose set per character would be needed to remove this entirely.
-3. **Some Mixamo clips are mislabelled upstream.** Two files whose names suggest prone poses
+3. **Weapon-specific reload animation comes from the assets, not from Mixamo.** Mixamo's
+   library has no per-weapon reload clips; it has `Reloading`, `Reload` and
+   `Prone_Reloading` (one per posture, all three used). The weapon-specific part of a reload
+   is the weapon's own animated geometry plus the downloaded `reload_empty` FPS clip.
+4. **Some Mixamo clips are mislabelled upstream.** Two files whose names suggest prone poses
    are actually upright; the prone set therefore uses `Prone_Backwards_Stop` as the prone
    idle, `Crawling` / `Crawling_Backwards` for crawl, and `Kip_Up` to get up. Similar
    substitutions: `Crouched_Sneaking_Right` is the only usable crouch-right clip,
    `Pistol_Strafe` stands in for forward pistol aim-walk (no such clip exists), and
    `Gunplay` is used as the looping pistol firing pose.
-4. **Root motion is stripped.** Clips keep vertical hip motion but zero XZ drift; translation
+5. **Root motion is stripped.** Clips keep vertical hip motion but zero XZ drift; translation
    is driven by the controller so speed changes don't fight the animation.
-5. **No IK, no foot planting, no ragdoll.** Deaths are clip-driven, not physics.
-6. **Single rig pair.** Only the two bundled characters are supported; adding another Mixamo
+6. **No IK, no foot planting, no ragdoll.** Deaths are clip-driven, not physics.
+7. **Single rig pair.** Only the two bundled characters are supported; adding another Mixamo
    GLB means adding a `CHARACTERS` entry (and, if it faces another way, a `modelYaw`).

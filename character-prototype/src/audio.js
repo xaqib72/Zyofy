@@ -1,16 +1,42 @@
 /**
- * Procedural weapon audio.
+ * Weapon audio, played from downloaded CC0 recordings.
  *
- * No free sound library was reachable from this environment (Freesound needs an
- * account, most "free" SFX sites are paid or hotlink-protected), so the gunshots
- * are synthesised with the Web Audio API instead of pretending a downloaded pack
- * exists. Each weapon class has its own synthesis profile - a suppressed pistol
- * is a short filtered thump, a shotgun is a heavy noise burst with a long tail, a
- * sniper rifle cracks and echoes, a knife is a filtered whoosh - so the weapons
- * are audibly different from one another.
+ * Every sound in `public/assets/sfx/` is a real recording lifted from the
+ * OpenSpades "free pak" (a CC0 drop-in asset pack; full source table in
+ * `public/assets/ASSETS.md`), which itself sources its gunshots from the Free
+ * Firearm Sound Library (CC0). Nothing here is synthesised: a shot is the
+ * recorded gunshot for that weapon class, a reload is the recorded magazine
+ * work, a pump is the recorded forend rack, a melee hit is the recorded impact.
  *
- * The class degrades to a no-op when there is no AudioContext (headless tests).
+ * If a browser cannot decode Ogg/Opus (or the file fails to load) the class falls
+ * back to the previous noise-burst synthesiser so the game is never silent, and
+ * `status()` reports which mode is active.
  */
+
+/** file -> [class, ...] with a per-class playback-rate jitter so repeats differ */
+const SAMPLE_MAP = {
+  rifle_fire: ['rifle', 'dmr', 'lmg'],
+  smg_fire: ['smg', 'pistol', 'revolver', 'heavy'],
+  shotgun_fire: ['shotgun'],
+  sniper: ['sniper'],
+  knife: ['knife'],
+};
+
+const SAMPLE_FILES = {
+  rifle_fire: 'assets/sfx/rifle_fire.opus',
+  smg_fire: 'assets/sfx/smg_fire.opus',
+  shotgun_fire: 'assets/sfx/shotgun_fire.opus',
+  shotgun_cock: 'assets/sfx/shotgun_cock.opus',
+  rifle_reload: 'assets/sfx/rifle_reload.opus',
+  smg_reload: 'assets/sfx/smg_reload.opus',
+  shotgun_reload: 'assets/sfx/shotgun_reload.opus',
+  dry_fire: 'assets/sfx/dry_fire.opus',
+  switch: 'assets/sfx/switch.opus',
+  melee_hit: 'assets/sfx/melee_hit.opus',
+  impact_flesh: 'assets/sfx/impact_flesh.opus',
+  impact_ricochet: 'assets/sfx/impact_ricochet.opus',
+};
+
 export class WeaponAudio {
   constructor() {
     const Ctx = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
@@ -34,6 +60,55 @@ export class WeaponAudio {
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   }
 
+  /**
+   * Downloads and decodes every recorded sample. Safe to call once at boot: the
+   * context is created suspended until the user clicks (browser autoplay rules),
+   * decoding still works while suspended.
+   */
+  async loadSamples(onProgress) {
+    if (!this.ctx) return { loaded: [], failed: Object.keys(SAMPLE_FILES) };
+    this.samples = this.samples || {};
+    const loaded = [];
+    const failed = [];
+    const names = Object.keys(SAMPLE_FILES);
+    for (let i = 0; i < names.length; i += 1) {
+      const name = names[i];
+      try {
+        const response = await fetch(SAMPLE_FILES[name]);
+        const data = await response.arrayBuffer();
+        this.samples[name] = await this.ctx.decodeAudioData(data);
+        loaded.push(name);
+      } catch (error) {
+        failed.push({ name, error: String(error && error.message ? error.message : error) });
+      }
+      if (onProgress) onProgress(i + 1, names.length, name);
+    }
+    this.sampleMode = loaded.length > 0;
+    return { loaded, failed };
+  }
+
+  /** Plays a decoded sample through a one-shot buffer source. */
+  _sample(name, { gain = 1, rate = 1 } = {}) {
+    const buffer = this.samples && this.samples[name];
+    if (!buffer || !this.ctx) return false;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g).connect(this.master);
+    src.start();
+    return true;
+  }
+
+  /** Which playback path is live: recorded samples or the synth fallback. */
+  status() {
+    return {
+      mode: this.sampleMode ? 'recorded' : 'synth',
+      samples: this.samples ? Object.keys(this.samples) : [],
+    };
+  }
+
   _makeNoiseBuffer() {
     const length = Math.floor(this.ctx.sampleRate * 0.5);
     const buffer = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
@@ -45,6 +120,9 @@ export class WeaponAudio {
   /** Plays the shot for a weapon definition. */
   play(def) {
     if (!this.enabled || !this.ctx) return;
+    // recorded gunshot for this weapon class, if the asset decoded
+    const file = this._sampleFor(def.sound);
+    if (file && this._sample(file, { gain: 0.9, rate: 0.95 + Math.random() * 0.1 })) return;
     const profile = PROFILES[def.sound] || PROFILES.rifle;
     const ctx = this.ctx;
     const now = ctx.currentTime;
@@ -82,9 +160,22 @@ export class WeaponAudio {
     }
   }
 
+  _sampleFor(sound) {
+    for (const [file, classes] of Object.entries(SAMPLE_MAP)) {
+      if (classes.includes(sound)) return file;
+    }
+    return null;
+  }
+
   /** Mechanical click for bolt / pump / magazine work. */
   click(kind = 'mag') {
     if (!this.enabled || !this.ctx) return;
+    const file = kind === 'pump' ? 'shotgun_cock'
+      : kind === 'shotgun' ? 'shotgun_reload'
+        : kind === 'smg' ? 'smg_reload'
+          : kind === 'dry' ? 'dry_fire'
+            : 'rifle_reload';
+    if (this._sample(file, { gain: 0.7, rate: 0.9 + Math.random() * 0.2 })) return;
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
@@ -99,9 +190,11 @@ export class WeaponAudio {
     osc.stop(now + 0.09);
   }
 
-  /** Filtered whoosh for melee swings. */
-  swoosh() {
+  /** Recorded melee impact (falls back to a filtered whoosh). */
+  swoosh(hit = false) {
     if (!this.enabled || !this.ctx) return;
+    if (hit && this._sample('melee_hit', { gain: 0.8, rate: 0.95 + Math.random() * 0.15 })) return;
+    if (!hit && this._sample('shotgun_cock', { gain: 0.25, rate: 1.6 })) return;
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const noise = ctx.createBufferSource();
@@ -119,6 +212,20 @@ export class WeaponAudio {
     noise.connect(filter).connect(gain).connect(this.master);
     noise.start(now);
     noise.stop(now + 0.25);
+  }
+
+  /** Recorded bullet impact on a target (flesh/plate hit) or a miss ricochet. */
+  impact(hit = true) {
+    if (!this.enabled || !this.ctx) return;
+    this._sample(hit ? 'impact_flesh' : 'impact_ricochet', {
+      gain: hit ? 0.55 : 0.3, rate: 0.9 + Math.random() * 0.2,
+    });
+  }
+
+  /** Weapon change: the recorded sling/switch sound. */
+  equip() {
+    if (!this.enabled || !this.ctx) return;
+    this._sample('switch', { gain: 0.6, rate: 0.95 + Math.random() * 0.1 });
   }
 }
 

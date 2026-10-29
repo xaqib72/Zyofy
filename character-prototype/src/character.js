@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { prepareRetarget, bakeClip, findBone } from './retarget.js';
-import { buildWeapon, alignWeaponToHand, buildViewArms } from './weapons.js';
+import { buildWeapon, alignWeaponToHand } from './weapons.js';
 import { WEAPON_LIST, WEAPONS } from './weaponCatalog.js';
 import { BONE_NAMES, TUNING } from './config.js';
 
@@ -49,9 +49,6 @@ export class Character {
     this.activeWeapon = 'm4a1';
 
     /** camera-relative viewmodel used in first person (one per weapon) */
-    this.viewModels = {};
-    this.viewModelRoot = null;
-    this.viewModelId = null;
 
     // weapon mechanics state
     this._slideTimer = 0;
@@ -135,7 +132,6 @@ export class Character {
     for (const [key, weapon] of Object.entries(this.weapons)) {
       weapon.group.visible = key === id;
     }
-    this._syncViewModels();
     this._slideTimer = 0;
     this._cycle = null;
     this._reload = null;
@@ -316,94 +312,14 @@ export class Character {
   /* -------------------------------------------------------------- viewmodel */
 
   /**
-   * A first-person weapon needs to be camera-relative, otherwise it is seen from
-   * an eye that sits *behind* the hand and the barrel sweeps across the screen.
-   * The character's hand-welded weapon stays for third person (and for the world
-   * position of the muzzle); in first person this viewmodel is shown instead,
-   * parented to the camera at a fixed offset, exactly like a normal FPS.
+   * First person is handled by a shared, downloaded, rigged viewmodel (see
+   * fpsRig.js) rather than by anything attached to this character. All this
+   * needs to do is keep the hand-welded third-person weapon out of the way while
+   * the first-person rig is on screen, and hand the active weapon over to it.
    */
-  attachViewModel(camera) {
-    this.viewModelRoot = new THREE.Group();
-    this.viewModelRoot.name = `viewmodel_${this.def.id}`;
-    camera.add(this.viewModelRoot);
-    if (camera.parent === null) this._orphanCamera = camera;
-    this._syncViewModels();
-  }
-
-  _syncViewModels() {
-    if (!this.viewModelRoot) return;
-    const def = WEAPONS[this.activeWeapon];
-    let vm = this.viewModels[def.id];
-    if (!vm) {
-      vm = buildWeapon(def, { viewmodel: true });
-      vm.group.visible = false;
-      // arms belong to the weapon so the hands sit exactly on its grips
-      const foreZ = Math.max(0.18, vm.length * 0.42);
-      vm.group.add(buildViewArms(def.firePose === 'long', foreZ));
-      this.viewModelRoot.add(vm.group);
-      for (const part of Object.values(vm.parts)) {
-        part.userData.basePosition = part.position.clone();
-        part.userData.baseRotation = part.rotation.clone();
-      }
-      this.viewModels[def.id] = vm;
-    }
-    for (const [key, model] of Object.entries(this.viewModels)) {
-      model.group.visible = key === def.id;
-    }
-    this.viewModelId = def.id;
-  }
-
-  /** Places the viewmodel for the current camera mode, recoil and reload. */
-  updateViewModel(dt, controller, mode) {
-    if (!this.viewModelRoot) return;
+  updateHandWeaponVisibility(mode) {
     const handWeapon = this.weapons[this.activeWeapon];
     if (handWeapon) handWeapon.group.visible = mode !== 'fps';
-    this.viewModelRoot.visible = mode === 'fps';
-    if (mode !== 'fps') return;
-
-    const vm = this.viewModels[this.viewModelId];
-    if (!vm) return;
-
-    const recoil = controller ? Math.min(0.06, (controller.recoilPitch || 0) * 1.4) : 0;
-    const isLong = this.activeWeaponDef ? this.activeWeaponDef.firePose === 'long' : true;
-    const base = isLong
-      ? { x: 0.16, y: -0.14, z: -0.38 }
-      : { x: 0.15, y: -0.13, z: -0.34 };
-
-    // reload: dip and tilt the weapon out of the line of sight
-    let reloadK = 0;
-    if (controller && controller.reloading > 0 && controller.reloadDuration > 0) {
-      const t = 1 - controller.reloading / controller.reloadDuration;
-      reloadK = Math.sin(Math.PI * THREE.MathUtils.clamp(t, 0, 1));
-    }
-
-    vm.group.scale.setScalar(0.95);
-    vm.group.position.set(
-      base.x - reloadK * 0.04,
-      base.y - reloadK * 0.12 + recoil * 0.25,
-      base.z + recoil * 0.6,
-    );
-    // The weapon models are authored with the barrel along +Z. The camera looks
-    // down its own -Z, so a half-turn about Y points the barrel downrange.
-    vm.group.rotation.set(
-      -0.02 + recoil * 1.6 + reloadK * 0.5,
-      Math.PI - 0.06 - reloadK * 0.35,
-      reloadK * 0.4,
-    );
-    void dt;
-
-    // the moving parts of the viewmodel mirror the hand weapon
-    for (const [name, part] of Object.entries(vm.parts)) {
-      const source = handWeapon && handWeapon.parts[name];
-      if (!source || !part.userData.basePosition) continue;
-      part.position.copy(part.userData.basePosition);
-      part.rotation.copy(part.userData.baseRotation);
-      if (handWeaponActivePart(source, handWeapon)) {
-        part.position.y += source.position.y - (source.userData.basePosition?.y ?? source.position.y);
-        part.position.z += source.position.z - (source.userData.basePosition?.z ?? source.position.z);
-        part.rotation.z += source.rotation.z - (source.userData.baseRotation?.z ?? source.rotation.z);
-      }
-    }
   }
 
   update(dt) {

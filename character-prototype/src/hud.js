@@ -23,6 +23,7 @@ export class Hud {
         <div class="row"><span>Last hit</span><span data-field="lastHit">-</span></div>
         <div class="row"><span>Speed</span><span data-field="speed">-</span></div>
         <div class="clip" data-field="clip">clip: -</div>
+        <div class="row"><span>Assets</span><span data-field="assets">-</span></div>
         <div class="build" data-field="build">build -</div>
       </div>
       <div id="weapons" class="panel">
@@ -44,6 +45,7 @@ export class Hud {
         </div>
       </div>
       <div id="crosshair"><div class="dot"></div></div>
+      <div id="scope" class="hidden"><div class="lens"></div><div class="post"></div><div class="ring"></div></div>
       <div id="fps"></div>
       <div id="lock-hint">Click to capture the mouse · Esc to release</div>
       <div id="overlay">
@@ -58,6 +60,7 @@ export class Hud {
 
     this.canvas = root.querySelector('#viewport');
     this.overlay = root.querySelector('#overlay');
+    this.scopeEl = root.querySelector('#scope');
     this.fill = root.querySelector('.bar .fill');
     this.label = root.querySelector('.label');
     this.lockHint = root.querySelector('#lock-hint');
@@ -131,6 +134,7 @@ export class Hud {
     }
 
     this.root.querySelector('#crosshair').classList.toggle('aim', !!aiming);
+    if (this.scopeEl) this.scopeEl.classList.toggle('hidden', !state.scoped);
     this.root.querySelector('#crosshair').classList.toggle('hidden', state.posture === 'prone' && !aiming);
     if (this.fields.fps) this.fields.fps.textContent = `${fps.toFixed(0)} fps`;
     this.lockHint.classList.toggle('hidden', locked);

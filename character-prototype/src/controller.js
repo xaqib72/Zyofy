@@ -25,12 +25,15 @@ const TAKEOFF_TIME = 0.16;
 const LAND_TIME = 0.18;
 
 export class CharacterController {
-  constructor(character, { fx, onEvent, hitTest, aimProbe } = {}) {
+  constructor(character, { fx, onEvent, hitTest, aimProbe, muzzleProvider } = {}) {
     this.character = character;
     this.fx = fx;
     this.onEvent = onEvent || (() => {});
     this.hitTest = hitTest || null;
     this.aimProbe = aimProbe || null;
+    // In first person the visible weapon is the camera-parented rig, so the
+    // muzzle flash and tracer must start at *that* barrel, not the hidden body's.
+    this.muzzleProvider = muzzleProvider || null;
 
     this.position = new THREE.Vector3(0, 0, 0);
     this.velocity = new THREE.Vector3();
@@ -432,7 +435,9 @@ export class CharacterController {
     this._aimRay(origin, dir);
 
     const spreadBase = def.spread * (this.aiming ? 0.55 : 1) + this.speed * 0.0025;
-    const muzzle = this.character.getMuzzleWorld(new THREE.Vector3());
+    const muzzle = this.muzzleProvider
+      ? this.muzzleProvider(new THREE.Vector3())
+      : this.character.getMuzzleWorld(new THREE.Vector3());
     let hit = null;
 
     const pellets = def.pellets || 1;
@@ -443,10 +448,13 @@ export class CharacterController {
       shotDir.z += (Math.random() - 0.5) * spreadBase * 2;
       shotDir.normalize();
       const result = this.hitTest ? this.hitTest(origin, shotDir, def) : null;
+      // the impact marker/sound is placed at the *real* hit point of this pellet
       if (result && this.fx) this.fx.impact(result.point, result.normal);
+      if (result) this.onEvent('impact', { weapon: this.weapon, point: result.point, hit: true });
       if (result && (!hit || result.damage > hit.damage)) hit = result;
       if (this.fx) {
         this.fx.fire(muzzle, shotDir, {
+          sound: def.sound,
           tracerLength: Math.min(def.range, 120),
           scale: def.pellets > 1 ? 1.5 : 1,
         });
@@ -468,7 +476,9 @@ export class CharacterController {
 
   _meleeAttack() {
     const def = this.def;
-    const clip = def.model.machete ? 'melee_slash' : 'melee_stab';
+    // The only melee model in the pack is a bayonet, so the Mixamo `Stabbing`
+    // clip (a thrust) is the correct one - see CLIP_DEFS.melee_stab.
+    const clip = 'melee_stab';
     this._startAction(clip, { timeScale: def.rpm / 40, fade: 0.1, movement: 'lock' });
     this.meleeSwings += 1;
 
