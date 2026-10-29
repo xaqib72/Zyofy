@@ -1,0 +1,302 @@
+:root {
+  --ink: #101214;
+  --muted: #5b636b;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-border: rgba(16, 18, 20, 0.12);
+  --accent: #b8823a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#viewport {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.panel {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 22px rgba(16, 18, 20, 0.08);
+  user-select: none;
+  pointer-events: none;
+}
+
+#state {
+  top: 18px;
+  left: 18px;
+  min-width: 236px;
+}
+
+#state h1 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+#state .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+#state .row span:first-child { color: var(--muted); }
+#state .row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+#state .clip {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--panel-border);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+#controls {
+  left: 18px;
+  bottom: 18px;
+  font-size: 11.5px;
+}
+
+#controls h2 {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+#controls .grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 16px;
+}
+
+#controls kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  background: rgba(16, 18, 20, 0.05);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  text-align: center;
+}
+
+#crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+#crosshair.active { opacity: 1; }
+
+#crosshair::before,
+#crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(16, 18, 20, 0.75);
+}
+
+#crosshair::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-0.5px); }
+#crosshair::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-0.5px); }
+
+#crosshair .dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #101214;
+  transform: translate(-50%, -50%);
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  transition: opacity 0.35s ease;
+  z-index: 10;
+}
+
+#overlay.hidden { opacity: 0; pointer-events: none; }
+
+#overlay .box {
+  width: min(460px, 82vw);
+  text-align: center;
+}
+
+#overlay h1 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#overlay p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+#overlay .bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(16, 18, 20, 0.1);
+  overflow: hidden;
+}
+
+#overlay .bar .fill {
+  height: 100%;
+  width: 0%;
+  background: var(--ink);
+  transition: width 0.18s ease;
+}
+
+#overlay .label {
+  margin-top: 10px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#overlay.error .box { color: #8a1d1d; }
+#overlay.error .label { color: #8a1d1d; white-space: pre-wrap; text-align: left; }
+
+#lock-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(16, 18, 20, 0.82);
+  color: #fff;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  user-select: none;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+#lock-hint.hidden { opacity: 0; }
+
+#fps {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  user-select: none;
+  pointer-events: none;
+}
+
+#state .build {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #a8a8a8;
+}
+
+/* ---- weapon selector ------------------------------------------------------ */
+#weapons {
+  position: fixed; top: 14px; right: 14px; width: 214px;
+  max-height: 46vh; display: flex; flex-direction: column;
+}
+#weapons h2 { margin-bottom: 6px; }
+#weapons .count { color: #999; font-weight: 400; font-size: 11px; }
+.weapon-list { overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.weapon {
+  display: flex; gap: 7px; align-items: center; width: 100%;
+  font: inherit; font-size: 11px; text-align: left; cursor: pointer;
+  background: transparent; border: 0; border-radius: 5px;
+  padding: 3px 6px; color: #4a4a4a;
+}
+.weapon:hover { background: rgba(0, 0, 0, 0.05); }
+.weapon .idx { width: 12px; color: #b0b0b0; font-variant-numeric: tabular-nums; }
+.weapon.active { background: #1f2226; color: #fff; }
+.weapon.active .idx { color: #9aa0a6; }
+
+#crosshair.aim .dot { width: 3px; height: 3px; background: #c0392b; }
+#crosshair.hidden { opacity: 0; }
+
+/* ------------------------------------------------------- optical sight overlay */
+/* Shown only while aiming a weapon whose catalogue entry has `scope: true`, and
+   only in first person, where the shot really does go down the camera axis. */
+#scope {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+}
+#scope.hidden { display: none; }
+#scope .lens {
+  width: min(72vh, 72vw);
+  height: min(72vh, 72vw);
+  border-radius: 50%;
+  box-shadow: 0 0 0 100vmax #000, inset 0 0 46px rgba(0, 0, 0, 0.85);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
+  position: absolute;
+}
+#scope .ring {
+  width: min(72vh, 72vw);
+  height: min(72vh, 72vw);
+  border-radius: 50%;
+  border: 2px solid rgba(10, 12, 14, 0.9);
+  position: absolute;
+}
+#scope .post {
+  position: absolute;
+  width: 2px;
+  height: 36%;
+  background: rgba(8, 10, 12, 0.92);
+  bottom: 50%;
+  transform: translateY(54%);
+}
+#scope .post::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  bottom: -6px;
+  width: 16px;
+  height: 2px;
+  background: rgba(8, 10, 12, 0.92);
+}
