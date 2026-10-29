@@ -91,6 +91,125 @@ legs trail), but it is mocap named for a zombie drag, not authored for a
 soldier. It was chosen over the alternative — a hands-and-knees crawl — because
 staying flat is the explicit requirement.
 
+## r5 — FPS/TPS, shooting range, 30-weapon system
+
+### Why the previous round did not settle it
+
+`r4` fixed real bugs (leaked cross-fade weights, `LoopOnce` looping forever,
+missing state guards) and every headless assertion passed - but the *visual*
+result was never verified, because there is no browser in this environment. That
+is now fixed at the tooling level: `scripts/render-views.mjs` and
+`scripts/render-poses.mjs` render the **real skinned meshes**, produced by the
+real GLTFLoader + retargeter + controller, into PNGs with a software rasteriser.
+Every visual claim below was checked by looking at those renders.
+
+Two defects the renders exposed that the assertions could not:
+
+* In first person the weapon was **not shouldered** (the body followed the
+  camera but the weapon stayed in the hip-fire pose, so the barrel pointed
+  across the screen). Fixed: the aim family of clips is now the "weapon ready"
+  pose in FPS.
+* The first-person weapon and hands were rendered from an eye that sits *behind*
+  the right hand, which is geometrically impossible to frame. Fixed with a
+  camera-parented viewmodel.
+
+### First person / third person
+
+| | third person | first person |
+| --- | --- | --- |
+| toggle | **V** | **V** |
+| camera | spring-arm orbit, over-the-shoulder aiming, closer and lower when prone, ground-clamped | eye level, parked ahead of the face (head stays behind the near plane) |
+| weapon | welded to the right hand, aligned per weapon family | camera-parented viewmodel with its own arms, no stock geometry (it is in the shoulder) |
+| body | visible | hidden (its hand-welded weapon would sit between eye and sights) |
+| aiming | camera ray | camera ray |
+
+State (position, posture, weapon, ammunition, hits) is untouched by the toggle -
+`verify-controls` asserts position/weapon/ammo survive a switch. In first person
+the body turns instantly to the look direction and uses the aim clips, so the
+weapon always points down the sights; the test asserts the barrel stays within
+16 degrees of the view for rifle, sniper, pistol, revolver, shotgun and LMG.
+
+### Shooting range
+
+Six concentric bullseyes (8, 15, 25, 40, 60, 90 m) and three humanoid
+silhouettes (12, 30, 55 m) on thin posts, plus floor distance rings. Nothing
+else exists in the world. Hitscan comes from the camera along the real aim
+direction; damage falls off past 60 % of the weapon's effective range; impacts
+leave a mark that fades; hit targets flash. HUD shows hit count, last hit and
+damage. Verified in both camera modes by the test suite.
+
+### Weapon system — 30 distinct weapons
+
+| category | weapons |
+| --- | --- |
+| pistols | Glock 17, M9, Desert Eagle .50, USP-S (suppressed) |
+| revolvers | Colt Python, S&W 629 |
+| SMGs | MP5, MP7, Vector (burst), Uzi, MP5SD (suppressed) |
+| assault rifles | AK-47, M4A1, SCAR-L, AK-74U |
+| battle rifles | FN FAL, SCAR-H |
+| marksman | M14 EBR, SVD |
+| snipers | AWP (bolt), M24 (bolt), SR-25 (semi) |
+| shotguns | Remington 870 (pump), SPAS-12 (pump), Benelli M4 (semi) |
+| machine guns | M249 SAW, PKM |
+| melee | combat knife, tactical knife, machete |
+
+Every weapon has its own fire mode, rate, recoil, spread, magazine, reserve,
+reload time, damage, range, draw animation and body mechanics. `verify-weapons`
+asserts the 30 models are **geometrically distinct** (bounding box + mesh count +
+moving-part set are unique), that no weapon is a renamed duplicate, and that all
+30 mount correctly on both rigs.
+
+Weapon-specific behaviour that is actually implemented:
+
+* **Trigger semantics** - `auto` reads the held button, `semi`/`bolt`/`pump`
+  consume the press edge, `burst` fires its burst then stops.
+* **Bolt-action** - one shot, then a forced cycle; the bolt handle lifts and
+  travels back on the model before the next round.
+* **Pump-action** - one shot, then the forend racks back and forward.
+* **Revolver** - cylinder swings out and spins during the reload, and indexes a
+  sixth of a turn per shot.
+* **Magazine-fed** - the magazine drops out of the well and seats again during
+  the reload; the slide kicks on every shot.
+* **Machine guns** - sustained fire with an elevated recoil impulse and belt box.
+* **Melee** - no bullets; a stab/slash clip plays, the swing ray is aimed at the
+  point the crosshair is on, and the impact registers on the target.
+
+### Weapon selection
+
+`1`–`9` quick-pick the first nine, **Q** or the mouse wheel cycles all 30, and a
+compact list on the right of the HUD selects any of them by click. **E** refills
+every magazine and reserve. **T** resets the targets and hit counter. The
+selected character and camera mode are preserved.
+
+### Assets that could not be integrated
+
+The brief asks for downloaded weapon models, animation packs and audio. What was
+actually obtained and what was not:
+
+| asset | status |
+| --- | --- |
+| weapon **models** | **not obtainable** - no reachable source offers freely-licensed firearm GLBs without an authenticated download (Sketchfab requires login, the CC0 packs mirrored on GitHub contain no firearms). Built procedurally from per-weapon parameters instead of shipping one model under 30 names. |
+| weapon **audio** | **not obtainable** (Freesound needs an account, the free SFX sites are paid or hotlink-protected). Synthesised per weapon class with the Web Audio API (`src/audio.js`): suppressed weapons are a short filtered thump, shotguns a heavy burst with a long tail, snipers a crack, knives a whoosh. |
+| **character** animations | obtained - 9 additional Mixamo clips (draw long/short, holster, stab, slash, weapon idle) retargeted through the same pipeline, 49 clips total |
+| **characters, ground** | unchanged - Vanguard + Michelle on the same white plane |
+
+Two Mixamo clips were rejected after measuring them rather than trusting their
+names: `Rifle_Pull_Out` lifts the hips 2.4 m (it is an airborne action) and
+`Knife_Idle` bobs a metre vertically. They were replaced with
+`Grab_Rifle_From_Back`, `Rifle_Aim_To_Down` and `Rifle_Idle`.
+
+### How the visuals were checked
+
+```
+node scripts/render-poses.mjs            # prone / crawl / crouch / jump sheets, both rigs
+node scripts/render-views.mjs            # the actual TPS and FPS frames + a 30-weapon sheet
+open /home/user/renders/*.png
+```
+
+The renders are real geometry with a flat shader; they do not reproduce lighting,
+shadows or faces, but they do show pose, framing and whether the right mesh is
+where it should be.
+
 ## Controls
 
 | Input | Action |
@@ -105,7 +224,11 @@ staying flat is the explicit requirement.
 | **Space** | jump (with air pose + landing) |
 | **Ctrl** | crouch toggle → crouch-walk / crouch-aim |
 | **Z** | prone toggle → smooth lie-down, belly crawl, get up |
-| **1 / 2** | pistol / rifle |
+| **1**–**9** | quick-pick weapon |
+| **V** | toggle first / third person |
+| **Q** / wheel | cycle all 30 weapons |
+| **E** | refill all ammunition |
+| **T** | reset targets and hit counter |
 | **Tab** | switch between the male and female character (state is transferred) |
 | **H / J** | take light / heavy damage |
 | **K / G** | die / get up (revive) |
@@ -140,9 +263,8 @@ coyote-free simple ground clamp. Clip playback rate is time-scaled by
 distance & shoulder offset (wider when sprinting, tighter when aiming, low and close
 when prone), head-bone target with smoothing, recoil pitch and strafe roll.
 
-**Weapons.** Placeholder pistol and rifle assembled from primitives, attached to the hand
-bone and re-aligned from the aim pose so no per-character tuning is needed. No models were
-downloaded for these — the brief allows placeholders.
+**Weapons.** 30 procedural weapons (see the r5 section) with per-weapon handling, a
+camera-parented first-person viewmodel, and mechanical part animation.
 
 **Environment.** A 160 m white `MeshStandardMaterial` plane, white background, one
 hemisphere + one shadow-casting key + one rim light. No sky, no geometry, no props.
@@ -204,8 +326,8 @@ node-name sanitisation:
 | --- | --- |
 | `npm run verify-rig` | all 40 clips retarget onto both rigs; head/hip heights and durations sane |
 | `npm run verify-fidelity` | retargeted limb directions match the source motion (mean error per clip) |
-| `npm run verify-weapons` | pistol & rifle muzzles land in front of the hand, barrels point forward |
-| `npm run verify-controls` | 56 assertions: scripted walkthrough, single-action invariant, belly-crawl heights, mutually exclusive states, fire modes, ammunition accounting |
+| `npm run verify-weapons` | 79 assertions: 30 geometrically distinct models, all mount on both rigs, reload mechanics, fire-mode config |
+| `npm run verify-controls` | 120 assertions: walkthrough, single-action invariant, belly-crawl heights on **both rigs**, exclusive states, FPS/TPS state preservation and aim alignment, every weapon's fire + reload + mechanics, ammunition accounting, range hitscan in both camera modes, melee reach |
 | `npm run verify-browser` | loads the GLBs with the **real `GLTFLoader`** the page uses (images stripped, since Node has no DOM) and asserts prepareRetarget / bakeClip / mixer binding for all 40 clips on both rigs |
 
 Current results: 40/40 clips retarget, worst clip fidelity 5.3° mean, all 4 weapon mounts

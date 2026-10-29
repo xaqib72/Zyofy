@@ -17,7 +17,7 @@ export class Input {
     this.dom = domElement;
     this.keys = new Set();
     this.pressed = new Set();      // edge-triggered, cleared every frame
-    this.mouse = { dx: 0, dy: 0, left: false, right: false, leftPressed: false };
+    this.mouse = { dx: 0, dy: 0, left: false, right: false, leftPressed: false, wheel: 0 };
     this.locked = false;
 
     this._onKeyDown = (e) => {
@@ -49,6 +49,11 @@ export class Input {
       if (!this.locked) { this.mouse.left = false; this.mouse.right = false; }
     };
     this._onContext = (e) => e.preventDefault();
+    this._onWheel = (e) => {
+      if (!this.locked) return;
+      e.preventDefault();
+      this.mouse.wheel += Math.sign(e.deltaY);
+    };
 
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup', this._onKeyUp);
@@ -57,6 +62,7 @@ export class Input {
     window.addEventListener('mouseup', this._onMouseUp);
     document.addEventListener('pointerlockchange', this._onLockChange);
     this.dom.addEventListener('contextmenu', this._onContext);
+    this.dom.addEventListener('wheel', this._onWheel, { passive: false });
     this._onClick = () => {
       if (!this.locked) this.dom.requestPointerLock?.();
     };
@@ -75,6 +81,7 @@ export class Input {
     window.removeEventListener('mouseup', this._onMouseUp);
     document.removeEventListener('pointerlockchange', this._onLockChange);
     this.dom.removeEventListener('contextmenu', this._onContext);
+    this.dom.removeEventListener('wheel', this._onWheel);
     this.dom.removeEventListener('click', this._onClick);
     this.keys.clear();
     this.pressed.clear();
@@ -89,5 +96,6 @@ export class Input {
     this.mouse.dx = 0;
     this.mouse.dy = 0;
     this.mouse.leftPressed = false;
+    this.mouse.wheel = 0;
   }
 }

@@ -14,7 +14,9 @@
     "verify-weapons": "node scripts/verify-weapons.mjs",
     "verify-fidelity": "node scripts/verify-fidelity.mjs",
     "verify-all": "node scripts/verify-retarget.mjs && node scripts/verify-fidelity.mjs && node scripts/verify-weapons.mjs && node scripts/verify-controller.mjs && node scripts/verify-browser-load.mjs",
-    "verify-browser": "node scripts/verify-browser-load.mjs"
+    "verify-browser": "node scripts/verify-browser-load.mjs",
+    "render-poses": "node scripts/render-poses.mjs",
+    "render-views": "node scripts/render-views.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"

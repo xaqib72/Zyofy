@@ -71,6 +71,15 @@ export const CLIP_DEFS = [
   { id: 'reload_crouch',    source: 'Reload',                       loop: false, naturalSpeed: 0.0 },
   { id: 'reload_prone',     source: 'Prone_Reloading',              loop: false, naturalSpeed: 0.0 },
 
+  // ---- weapons: draw / fire / melee ---------------------------------------
+  // These are one-shot action clips; the controller never loops them.
+  { id: 'draw_long',    source: 'Grab_Rifle_From_Back',             loop: false, naturalSpeed: 0.0 },
+  { id: 'draw_short',   source: 'Rifle_Aim_To_Down',                loop: false, naturalSpeed: 0.0 },
+  { id: 'holster_long', source: 'Rifle_Put_Away',                   loop: false, naturalSpeed: 0.0 },
+  { id: 'melee_stab',   source: 'Stabbing',                         loop: false, naturalSpeed: 0.0 },
+  { id: 'melee_slash',  source: 'Bayonet_Stab',                     loop: false, naturalSpeed: 0.0 },
+  { id: 'knife_idle',   source: 'Rifle_Idle',                       loop: true,  naturalSpeed: 0.0 },
+
   // ---- damage / death ------------------------------------------------------
   { id: 'hit_light',     source: 'Hit_To_Body',                     loop: false, naturalSpeed: 0.0 },
   { id: 'hit_heavy',     source: 'Standing_React_Large_From_Front', loop: false, naturalSpeed: 0.0 },
@@ -86,6 +95,8 @@ export const CHARACTERS = [
     file: 'assets/characters/vanguard_male.glb',
     note: 'Mixamo "Vanguard By T. Choonyung" — tactical armour, 49-bone rig',
     heightOffset: 0.0,
+    // the male rig's belly rides ~2 cm under the floor in the prone clips
+    proneLift: 0.03,
     // this GLB is authored facing -Z, so it is wrapped in a 180 deg yaw
     modelYaw: Math.PI,
   },
@@ -95,6 +106,8 @@ export const CHARACTERS = [
     file: 'assets/characters/michelle_female.glb',
     note: 'Mixamo "Michelle" — civilian tactical outfit, 65-bone rig (incl. fingers)',
     heightOffset: 0.0,
+    // the female rig has a shorter torso, so its prone pose sits deeper
+    proneLift: 0.07,
     modelYaw: 0,
   },
 ];

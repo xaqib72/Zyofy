@@ -1,25 +1,18 @@
 import * as THREE from 'three';
-import { TUNING, WEAPONS, CLIP_DEFS } from './config.js';
+import { TUNING, CLIP_DEFS } from './config.js';
+import { WEAPONS, WEAPON_LIST, WEAPON_ORDER, DEFAULT_WEAPON } from './weaponCatalog.js';
 
 /**
- * Movement + animation state machine for one character.
+ * Movement, posture, camera-aware stance and weapon state for one character.
  *
- * Design rules (these exist because the first version violated them and the
- * animations visibly double-played / fought each other):
- *
- *  1. `_resolveClip()` returns exactly ONE clip id per frame. There is no place
- *     where two locomotion clips are started in the same frame.
- *  2. Input actions are edge-triggered and consumed once (`wasPressed`), and
- *     every action has a guard so it cannot be re-entered while it is running.
- *  3. One-shot actions (jump take-off, land, reload, hit, death, get-up,
- *     prone-down) live in a single `action` slot. Starting a new one replaces
- *     the old one; nothing can run two one-shots at once.
- *  4. Mutually exclusive postures: airborne blocks posture changes, prone blocks
- *     jumping, death blocks everything. There is no state where the controller
- *     can be "jumping and crawling".
- *  5. Clip playback rate is derived from the clip's own baked ground speed
- *     (`naturalSpeed` in config.js), which is the only table of speeds - the
- *     old duplicated speed table drifted out of sync and caused foot sliding.
+ * Invariants this file is responsible for (each one has a regression test):
+ *   1. exactly one clip is requested per frame;
+ *   2. one-shot actions live in a single slot and can never stack;
+ *   3. mutually exclusive postures can't overlap (no jumping while prone, no
+ *      posture change while airborne, no weapon fire while reloading);
+ *   4. trigger semantics follow the weapon: auto = held button, semi/burst =
+ *      press edge, bolt/pump = one shot then a forced cycle, melee = swing;
+ *   5. ammunition accounting is exact and reserve depletes.
  */
 
 const POSTURE_STAND = 'stand';
@@ -27,21 +20,17 @@ const POSTURE_CROUCH = 'crouch';
 const POSTURE_PRONE = 'prone';
 
 const GROUND_LIMIT = 24;
-
-/** clip id -> ground speed (m/s) baked into that clip. Single source of truth. */
 const NATURAL_SPEED = new Map(CLIP_DEFS.map((d) => [d.id, d.naturalSpeed || 0]));
-
-/** Airborne pose is held for this long after take-off before the fall loop. */
 const TAKEOFF_TIME = 0.16;
-/** Grounded "settle" after landing. */
 const LAND_TIME = 0.18;
 
 export class CharacterController {
-  constructor(character, { fx, onEvent, hitTest } = {}) {
+  constructor(character, { fx, onEvent, hitTest, aimProbe } = {}) {
     this.character = character;
     this.fx = fx;
     this.onEvent = onEvent || (() => {});
     this.hitTest = hitTest || null;
+    this.aimProbe = aimProbe || null;
 
     this.position = new THREE.Vector3(0, 0, 0);
     this.velocity = new THREE.Vector3();
@@ -55,23 +44,23 @@ export class CharacterController {
     this.walking = false;
     this.speed = 0;
 
-    this.weapon = 'rifle';
+    this.weapon = DEFAULT_WEAPON;
     this.ammo = {};
     this.reserve = {};
-    for (const [id, def] of Object.entries(WEAPONS)) {
-      this.ammo[id] = def.magSize;
-      this.reserve[id] = def.reserve;
+    for (const def of WEAPON_LIST) {
+      this.ammo[def.id] = def.magSize;
+      this.reserve[def.id] = def.reserve;
     }
+
     this.fireCooldown = 0;
     this.burstLeft = 0;
-    this.reloading = 0;          // seconds left, 0 = not reloading
+    this.cycleTimer = 0;          // bolt / pump action in progress
+    this.reloading = 0;
+    this.reloadDuration = 0;
 
     this.dead = false;
     this.deathClip = 'death_front';
-
-    /** Active one-shot action: {id, remaining, timeScale, fade, movement}. */
     this.action = null;
-    /** Seconds remaining in the take-off pose before the fall loop takes over. */
     this.takeoffTimer = 0;
     this.landTimer = 0;
 
@@ -79,13 +68,24 @@ export class CharacterController {
     this.cameraPitch = 0;
     this.recoilPitch = 0;
     this.firingPoseTimer = 0;
+    this.mode = 'tps';
+
+    this.shotsFired = 0;
+    this.meleeSwings = 0;
 
     this.character.setWeapon(this.weapon);
   }
 
-  /* ------------------------------------------------------------------ public */
+  get def() {
+    return WEAPONS[this.weapon];
+  }
 
-  /** Keeps posture/pose/ammo when Tab swaps the visible character. */
+  get isMelee() {
+    return this.def.mode === 'melee';
+  }
+
+  /* ------------------------------------------------------------------ state */
+
   transferStateFrom(other) {
     this.posture = other.posture;
     this.aiming = other.aiming;
@@ -105,14 +105,21 @@ export class CharacterController {
     this._applyTransform();
   }
 
+  setCameraProvider(provider) {
+    this.cameraProvider = provider;
+  }
+
   get busy() {
     return !!(this.action && this.action.movement === 'lock');
   }
+
+  /* ------------------------------------------------------------------ frame */
 
   update(dt, input, camera) {
     dt = Math.min(dt, 0.05);
     this.cameraYaw = camera.yaw;
     this.cameraPitch = camera.pitch;
+    this.mode = camera.mode || 'tps';
 
     this._tickTimers(dt);
 
@@ -122,24 +129,15 @@ export class CharacterController {
       return;
     }
 
-    // ---- posture / weapon input (single edge-triggered handlers) ------------
     this._handlePostureInput(input);
     this._handleWeaponInput(input);
-
-    // ---- movement -----------------------------------------------------------
     this._updateMovement(dt, input, camera);
     this._updateJumpAndGravity(dt, input);
-
-    // ---- combat input -------------------------------------------------------
     this._handleCombatInput(input);
-
-    // ---- one animation decision per frame -----------------------------------
     this._playResolvedClip();
-
+    this.character.updateWeaponMechanics(dt, this);
     this._applyTransform();
   }
-
-  /* ------------------------------------------------------------------ timers */
 
   _tickTimers(dt) {
     this.fireCooldown = Math.max(0, this.fireCooldown - dt);
@@ -147,30 +145,21 @@ export class CharacterController {
     this.firingPoseTimer = Math.max(0, this.firingPoseTimer - dt);
     this.takeoffTimer = Math.max(0, this.takeoffTimer - dt);
     this.landTimer = Math.max(0, this.landTimer - dt);
+    this.cycleTimer = Math.max(0, this.cycleTimer - dt);
 
     if (this.action) {
       this.action.remaining -= dt;
-      if (this.action.remaining <= 0) this._finishAction(this.action.id);
+      if (this.action.remaining <= 0) {
+        const id = this.action.id;
+        this.action = null;
+        this.onEvent('actionEnd', { id });
+      }
     }
 
     if (this.reloading > 0) {
       this.reloading = Math.max(0, this.reloading - dt);
       if (this.reloading === 0) this._completeReload();
     }
-  }
-
-  _finishAction(id) {
-    this.action = null;
-    switch (id) {
-      case 'prone_down':
-        // now genuinely prone: settle into the belly-down idle
-        break;
-      case 'prone_up':
-        break;
-      default:
-        break;
-    }
-    this.onEvent('actionEnd', { id });
   }
 
   _updateDead(input) {
@@ -185,27 +174,21 @@ export class CharacterController {
     }
   }
 
-  /* ----------------------------------------------------------------- posture */
+  /* ---------------------------------------------------------------- posture */
 
   _handlePostureInput(input) {
     const ctrlDown = input.wasPressed('ControlLeft') || input.wasPressed('ControlRight');
     const proneDown = input.wasPressed('KeyZ');
+    if (!ctrlDown && !proneDown) return;
 
-    // Posture changes are only legal on the ground and while no locking action
-    // (reload / get-up / hit) is running. This is what prevents "jumping while
-    // prone" and "crawling while standing up".
     const canChange = this.grounded && !this.busy;
     if (!canChange) return;
 
     if (proneDown) {
-      if (this.posture === POSTURE_PRONE) this._enterPosture(POSTURE_STAND);
-      else this._enterPosture(POSTURE_PRONE);
+      this._enterPosture(this.posture === POSTURE_PRONE ? POSTURE_STAND : POSTURE_PRONE);
       return;
     }
-    if (ctrlDown) {
-      if (this.posture === POSTURE_CROUCH) this._enterPosture(POSTURE_STAND);
-      else this._enterPosture(POSTURE_CROUCH);
-    }
+    this._enterPosture(this.posture === POSTURE_CROUCH ? POSTURE_STAND : POSTURE_CROUCH);
   }
 
   _enterPosture(next) {
@@ -213,7 +196,6 @@ export class CharacterController {
     const from = this.posture;
 
     if (next === POSTURE_PRONE) {
-      // stand/crouch -> belly. The descent is a real clip, not a snap.
       this.posture = POSTURE_PRONE;
       this.aiming = false;
       this.sprinting = false;
@@ -222,52 +204,75 @@ export class CharacterController {
       this.onEvent('posture', { from, to: next });
       return;
     }
-
     if (from === POSTURE_PRONE) {
       this.posture = next;
       this.velocity.set(0, 0, 0);
       this._startAction('prone_stand', {
-        timeScale: next === POSTURE_CROUCH ? 1.3 : 1.1,
-        fade: 0.16,
-        movement: 'lock',
+        timeScale: next === POSTURE_CROUCH ? 1.3 : 1.1, fade: 0.16, movement: 'lock',
       });
       this.onEvent('posture', { from, to: next });
       return;
     }
-
     if (next === POSTURE_CROUCH) {
       this.posture = POSTURE_CROUCH;
       this.onEvent('posture', { from, to: next });
       return;
     }
-
-    // crouch -> stand
     this.posture = POSTURE_STAND;
     this._startAction('crouch_stand', { timeScale: 1.35, fade: 0.14, movement: 'lock' });
     this.onEvent('posture', { from, to: next });
   }
 
-  /* ----------------------------------------------------------------- weapons */
+  /* ---------------------------------------------------------------- weapons */
 
   _handleWeaponInput(input) {
-    const wanted = input.wasPressed('Digit1') ? 'pistol'
-      : input.wasPressed('Digit2') ? 'rifle'
-        : null;
-    if (wanted && wanted !== this.weapon) this.equip(wanted);
+    if (input.wasPressed('KeyQ') || input.mouse.wheel > 0) this.cycleWeapon(1);
+    if (input.wasPressed('KeyE')) this.refillAll();
+
+    for (let i = 1; i <= 9; i += 1) {
+      if (input.wasPressed(`Digit${i}`)) {
+        const id = WEAPON_ORDER[i - 1];
+        if (id) this.equip(id);
+      }
+    }
+  }
+
+  cycleWeapon(direction) {
+    const idx = WEAPON_ORDER.indexOf(this.weapon);
+    const next = WEAPON_ORDER[(idx + direction + WEAPON_ORDER.length) % WEAPON_ORDER.length];
+    this.equip(next);
   }
 
   equip(id) {
     if (!WEAPONS[id] || id === this.weapon) return;
+    const previous = this.weapon;
     this.weapon = id;
     this.reloading = 0;
+    this.reloadDuration = 0;
     this.burstLeft = 0;
+    this.cycleTimer = 0;
     this.action = null;
-    this.fireCooldown = Math.max(this.fireCooldown, 0.25);
+    this.fireCooldown = 0.28;
     this.character.setWeapon(id);
-    this.onEvent('weapon', { weapon: id });
+
+    // Draw animation: long guns and handguns have their own clips.
+    const def = WEAPONS[id];
+    if (def.mode !== 'melee') {
+      const clip = def.firePose === 'long' ? 'draw_long' : 'draw_short';
+      this._startAction(clip, { timeScale: 1.6, fade: 0.1, movement: 'lock' });
+    }
+    this.onEvent('weapon', { weapon: id, previous });
   }
 
-  /* ---------------------------------------------------------------- movement */
+  refillAll() {
+    for (const def of WEAPON_LIST) {
+      this.ammo[def.id] = def.magSize;
+      this.reserve[def.id] = def.reserve;
+    }
+    this.onEvent('refilled');
+  }
+
+  /* --------------------------------------------------------------- movement */
 
   _updateMovement(dt, input, camera) {
     const wish = new THREE.Vector2(0, 0);
@@ -279,14 +284,12 @@ export class CharacterController {
     const moving = wish.lengthSq() > 1e-4;
 
     this.aiming = input.mouse.right && this.posture !== POSTURE_PRONE && this.grounded;
-    // Shift while aiming is an aim-run, not a sprint; the posture gate keeps
-    // sprinting out of crouch and prone.
     this.sprinting = (input.isDown('ShiftLeft') || input.isDown('ShiftRight'))
       && this.posture === POSTURE_STAND;
     this.walking = input.isDown('AltLeft') || input.isDown('AltRight');
 
     const canMove = !this.busy;
-    const speedCap = canMove ? this._speedCap(moving) : 0;
+    const cap = canMove ? this._speedCap(moving) : 0;
 
     const camForward = new THREE.Vector3(Math.sin(camera.yaw), 0, Math.cos(camera.yaw));
     const camRight = new THREE.Vector3(camForward.z, 0, -camForward.x);
@@ -295,25 +298,24 @@ export class CharacterController {
       .addScaledVector(camRight, wish.x);
     if (moveDir.lengthSq() > 0) moveDir.normalize();
 
-    const desired = moveDir.clone().multiplyScalar(this.grounded ? speedCap : Math.min(speedCap, TUNING.airSpeed));
-    // exponential approach: responsive to direction changes, no overshoot
+    const desired = moveDir.clone().multiplyScalar(this.grounded ? cap : Math.min(cap, TUNING.airSpeed));
     const rate = 1 - Math.exp(-TUNING.acceleration * (this.grounded ? 1 : 0.35) * dt);
     this.velocity.x += (desired.x - this.velocity.x) * rate;
     this.velocity.z += (desired.z - this.velocity.z) * rate;
     if (!moving && this.velocity.lengthSq() < 0.02) this.velocity.set(0, 0, 0);
     this.speed = Math.hypot(this.velocity.x, this.velocity.z);
 
-    // Body facing: while aiming or prone the torso follows the camera (so the
-    // strafe clips read correctly); otherwise it follows the movement direction.
     let targetYaw = this.yaw;
-    if (this.aiming) targetYaw = camera.yaw;
+    if (this.mode === 'fps') targetYaw = camera.yaw;                  // arms must follow the view
+    else if (this.aiming) targetYaw = camera.yaw;
     else if (this.posture === POSTURE_PRONE) targetYaw = camera.yaw;
     else if (moving && this.speed > 0.4) targetYaw = Math.atan2(this.velocity.x, this.velocity.z);
 
     let delta = targetYaw - this.yaw;
     while (delta > Math.PI) delta -= Math.PI * 2;
     while (delta < -Math.PI) delta += Math.PI * 2;
-    const turnRate = this.aiming || this.posture === POSTURE_PRONE ? TUNING.aimTurnSpeed : TUNING.freeTurnSpeed;
+    const turnRate = this.mode === 'fps' ? 24
+      : this.aiming || this.posture === POSTURE_PRONE ? TUNING.aimTurnSpeed : TUNING.freeTurnSpeed;
     this.yaw += delta * (1 - Math.exp(-turnRate * dt));
 
     this.position.x = THREE.MathUtils.clamp(this.position.x + this.velocity.x * dt, -GROUND_LIMIT, GROUND_LIMIT);
@@ -331,15 +333,13 @@ export class CharacterController {
   }
 
   _updateJumpAndGravity(dt, input) {
-    if (input.wasPressed('Space') && this.grounded && !this.busy
-      && this.posture === POSTURE_STAND) {
+    if (input.wasPressed('Space') && this.grounded && !this.busy && this.posture === POSTURE_STAND) {
       this.verticalVelocity = TUNING.jumpImpulse;
       this.grounded = false;
       this.takeoffTimer = TAKEOFF_TIME;
       this.landTimer = 0;
       this.onEvent('jump');
     }
-
     if (!this.grounded) {
       this.verticalVelocity += TUNING.gravity * dt;
       this.position.y += this.verticalVelocity * dt;
@@ -355,129 +355,184 @@ export class CharacterController {
     }
   }
 
-  /* ------------------------------------------------------------------ combat */
+  /* ----------------------------------------------------------------- combat */
 
   _handleCombatInput(input) {
-    const def = WEAPONS[this.weapon];
+    const def = this.def;
 
-    if (input.wasPressed('KeyR')) this.reload();
+    if (!this.isMelee && input.wasPressed('KeyR')) this.reload();
 
-    // Fire modes: semi/burst weapons consume the press edge, automatic weapons
-    // read the held button. This is what stops a pistol from firing every frame.
-    const wantsShot = def.mode === 'auto'
+    const trigger = def.mode === 'auto' || def.mode === 'pump'
       ? input.mouse.left
       : input.mouse.leftPressed;
 
-    if (wantsShot && this._canFire()) {
-      if (this.ammo[this.weapon] <= 0) {
+    if (trigger && this._canFire()) {
+      if (!this.isMelee && this.ammo[this.weapon] <= 0) {
         this.reload();
       } else {
-        this._shoot();
+        this._fireOnce();
         if (def.mode === 'burst') this.burstLeft = (def.burst || 3) - 1;
       }
     }
 
-    // Sustained burst fire (held trigger, remaining rounds of the burst)
     if (this.burstLeft > 0 && this.fireCooldown <= 0 && this._canFire()) {
       if (this.ammo[this.weapon] > 0) {
-        this._shoot();
+        this._fireOnce();
         this.burstLeft -= 1;
       } else {
         this.burstLeft = 0;
       }
     }
 
-    if (this.firingPoseTimer > 0 && this.reloading <= 0) this._firingPose = true;
-
-    if (input.wasPressed('KeyH')) {
-      this._startAction('hit_light', { timeScale: 1.7, fade: 0.08, movement: 'lock' });
-    }
-    if (input.wasPressed('KeyJ')) {
-      this._startAction('hit_heavy', { timeScale: 1.4, fade: 0.08, movement: 'lock' });
-    }
+    if (input.wasPressed('KeyH')) this._startAction('hit_light', { timeScale: 1.7, fade: 0.08, movement: 'lock' });
+    if (input.wasPressed('KeyJ')) this._startAction('hit_heavy', { timeScale: 1.4, fade: 0.08, movement: 'lock' });
     if (input.wasPressed('KeyK')) this.die();
   }
 
   _canFire() {
     return this.fireCooldown <= 0
+      && this.cycleTimer <= 0
       && this.reloading <= 0
       && !this.dead
       && !this.busy
-      && this.posture !== POSTURE_PRONE
-      && this.grounded;
+      && this.grounded
+      && (this.isMelee || this.posture !== POSTURE_PRONE);
   }
 
-  _shoot() {
-    const def = WEAPONS[this.weapon];
-    this.fireCooldown = def.fireInterval;
+  _aimRay(origin, direction) {
+    if (this.cameraProvider && this.cameraProvider.getAimDirection) {
+      this.cameraProvider.getAimOrigin(origin);
+      this.cameraProvider.getAimDirection(direction);
+      return;
+    }
+    const pitch = this.cameraPitch;
+    direction.set(
+      Math.sin(this.yaw) * Math.cos(pitch),
+      -Math.sin(pitch),
+      Math.cos(this.yaw) * Math.cos(pitch),
+    ).normalize();
+    origin.copy(this.position).setY(1.5);
+  }
+
+  _fireOnce() {
+    const def = this.def;
+    const interval = 60 / def.rpm;
+    this.fireCooldown = interval;
+    this.shotsFired += 1;
+
+    if (this.isMelee) {
+      this._meleeAttack();
+      return;
+    }
+
     this.ammo[this.weapon] = Math.max(0, this.ammo[this.weapon] - 1);
 
-    // Aim from the camera axis, not the body yaw, so shots go where the
-    // crosshair points (this is what makes the shooting range testable).
     const origin = new THREE.Vector3();
     const dir = new THREE.Vector3();
     this._aimRay(origin, dir);
-    const spread = (def.spread || 0.006) + this.speed * 0.0035;
-    dir.x += (Math.random() - 0.5) * spread * 2;
-    dir.y += (Math.random() - 0.5) * spread * 2;
-    dir.normalize();
 
-    this.recoilPitch += def.recoilPitch || 0.02;
-    this.firingPoseTimer = def.firePoseTime || 0.24;
-    this._firingPose = true;
+    const spreadBase = def.spread * (this.aiming ? 0.55 : 1) + this.speed * 0.0025;
+    const muzzle = this.character.getMuzzleWorld(new THREE.Vector3());
+    let hit = null;
 
-    if (this.fx) this.fx.fire(this.character.getMuzzleWorld(new THREE.Vector3()), dir);
-    const hit = this.hitTest ? this.hitTest(origin, dir, def) : null;
-    this.onEvent('shot', { weapon: this.weapon, ammo: this.ammo[this.weapon], hit });
+    const pellets = def.pellets || 1;
+    for (let i = 0; i < pellets; i += 1) {
+      const shotDir = dir.clone();
+      shotDir.x += (Math.random() - 0.5) * spreadBase * 2;
+      shotDir.y += (Math.random() - 0.5) * spreadBase * 2;
+      shotDir.z += (Math.random() - 0.5) * spreadBase * 2;
+      shotDir.normalize();
+      const result = this.hitTest ? this.hitTest(origin, shotDir, def) : null;
+      if (result && this.fx) this.fx.impact(result.point, result.normal);
+      if (result && (!hit || result.damage > hit.damage)) hit = result;
+      if (this.fx) {
+        this.fx.fire(muzzle, shotDir, {
+          tracerLength: Math.min(def.range, 120),
+          scale: def.pellets > 1 ? 1.5 : 1,
+        });
+      }
+    }
+
+    this.recoilPitch += def.recoil.pitch * (this.aiming ? 0.8 : 1);
+    this.firingPoseTimer = def.mode === 'bolt' ? 0.5 : 0.22;
+
+    // Bolt-action and pump-action weapons must cycle before the next shot; the
+    // cycle has a visible mechanical animation on the weapon itself.
+    if (def.mode === 'bolt' || def.mode === 'pump') {
+      this.cycleTimer = def.cycle;
+      this.character.cycleWeaponPart(def.mode, def.cycle);
+    }
+
+    this.onEvent('shot', { weapon: this.weapon, ammo: this.ammo[this.weapon], hit, pellets });
   }
 
-  /** Camera-space aim ray. In third person it starts at the camera. */
-  _aimRay(origin, dir) {
-    const pitch = this.cameraPitch;
-    const yaw = this.yaw + (this.aiming ? 0 : 0);
-    dir.set(
-      Math.sin(yaw) * Math.cos(pitch),
-      -Math.sin(pitch),
-      Math.cos(yaw) * Math.cos(pitch),
-    ).normalize();
-    if (this.cameraProvider) this.cameraProvider.getAimOrigin(origin);
-    else origin.copy(this.position).add(new THREE.Vector3(0, 1.5, 0));
-  }
+  _meleeAttack() {
+    const def = this.def;
+    const clip = def.model.machete ? 'melee_slash' : 'melee_stab';
+    this._startAction(clip, { timeScale: def.rpm / 40, fade: 0.1, movement: 'lock' });
+    this.meleeSwings += 1;
 
-  setCameraProvider(provider) {
-    this.cameraProvider = provider;
+    // Melee reach is measured from the blade, not the camera, otherwise a
+    // third-person camera 4 m behind would make every swing fall short. The
+    // blade is aimed at the point the camera is looking at, so the swing lands
+    // where the crosshair is instead of parallel to it.
+    const origin = this.character.getMuzzleWorld(new THREE.Vector3());
+    const dir = new THREE.Vector3();
+    if (this.cameraProvider && this.cameraProvider.getAimDirection) {
+      const camOrigin = this.cameraProvider.getAimOrigin(new THREE.Vector3());
+      this.cameraProvider.getAimDirection(dir);
+      const pivot = this.character.bones.hips
+        ? this.character.bones.hips.getWorldPosition(new THREE.Vector3())
+        : this.position.clone();
+      // If the crosshair is on something, swing at that exact point.
+      const probed = this.aimProbe ? this.aimProbe(camOrigin, dir, 60) : null;
+      const aimPoint = probed || camOrigin.clone().addScaledVector(
+        dir, camOrigin.distanceTo(pivot) + def.range * 0.85,
+      );
+      dir.copy(aimPoint).sub(origin).normalize();
+    } else {
+      dir.set(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    }
+    const result = this.hitTest ? this.hitTest(origin, dir, { ...def, range: def.range }) : null;
+    if (result) {
+      if (this.fx) this.fx.impact(result.point, result.normal);
+      this.onEvent('melee', { weapon: this.weapon, hit: result });
+    } else {
+      this.onEvent('melee', { weapon: this.weapon, hit: null });
+    }
   }
 
   reload() {
-    if (this.reloading > 0) return;
-    if (this.busy) return;
-    const def = WEAPONS[this.weapon];
+    const def = this.def;
+    if (this.isMelee || def.reloadStyle === 'none') return;
+    if (this.reloading > 0 || this.busy) return;
     if (this.ammo[this.weapon] >= def.magSize) return;
     if ((this.reserve[this.weapon] || 0) <= 0) {
       this.onEvent('dryReload', { weapon: this.weapon });
       return;
     }
+
     const clipId = this.posture === POSTURE_PRONE ? 'reload_prone'
       : this.posture === POSTURE_CROUCH ? 'reload_crouch' : 'reload_stand';
     const action = this.character.actions.get(clipId);
-    const clipDuration = action ? action.getClip().duration : 1.5;
-    const desired = def.reloadTime || 1.8;
-    const timeScale = THREE.MathUtils.clamp(clipDuration / desired, 0.6, 2.6);
+    const clipDuration = action ? action.getClip().duration : 2;
+    const timeScale = THREE.MathUtils.clamp(clipDuration / def.reloadTime, 0.6, 2.8);
     this.reloading = clipDuration / timeScale;
+    this.reloadDuration = this.reloading;
     this._startAction(clipId, { timeScale, fade: 0.15, movement: 'lock' });
-    this.onEvent('reloading', { clipId, weapon: this.weapon });
+    this.character.beginReloadMechanics(def.reloadStyle, this.reloading);
+    this.onEvent('reloading', { clipId, weapon: this.weapon, duration: this.reloading });
   }
 
   _completeReload() {
-    const def = WEAPONS[this.weapon];
+    const def = this.def;
     const needed = def.magSize - this.ammo[this.weapon];
     const available = Math.min(needed, this.reserve[this.weapon] || 0);
     this.ammo[this.weapon] += available;
     this.reserve[this.weapon] -= available;
+    this.character.endReloadMechanics();
     this.onEvent('reloaded', {
-      weapon: this.weapon,
-      ammo: this.ammo[this.weapon],
-      reserve: this.reserve[this.weapon],
+      weapon: this.weapon, ammo: this.ammo[this.weapon], reserve: this.reserve[this.weapon],
     });
   }
 
@@ -492,23 +547,18 @@ export class CharacterController {
     this.onEvent('died');
   }
 
-  /* --------------------------------------------------------------- animation */
+  /* -------------------------------------------------------------- animation */
 
   _startAction(id, { timeScale = 1, fade = TUNING.fastCrossFade, movement = 'lock' } = {}) {
     const action = this.character.actions.get(id);
     if (!action) return false;
-    // Never restart an identical action that is already running.
-    if (this.action && this.action.id === id) return false;
+    if (this.action && this.action.id === id && movement === 'lock') return false;
     const duration = action.getClip().duration / Math.max(0.05, timeScale);
     this.action = { id, remaining: duration, timeScale, fade, movement };
     this.character.play(id, { fade, timeScale, restart: true });
     return true;
   }
 
-  /**
-   * Chooses the single clip for this frame and starts it. Order matters:
-   * death > one-shot action > air > posture locomotion.
-   */
   _playResolvedClip() {
     const ch = this.character;
 
@@ -516,24 +566,21 @@ export class CharacterController {
       ch.play(this.action.id, { fade: this.action.fade, timeScale: this.action.timeScale });
       return;
     }
-
     if (!this.grounded) {
-      if (this.takeoffTimer > 0) ch.play('jump_takeoff', { fade: 0.08 });
-      else ch.play('jump_air', { fade: 0.16 });
+      ch.play(this.takeoffTimer > 0 ? 'jump_takeoff' : 'jump_air', { fade: this.takeoffTimer > 0 ? 0.08 : 0.16 });
       return;
     }
-
     if (this.landTimer > 0) {
       ch.play('jump_land', { fade: 0.1, timeScale: 1.5 });
       return;
     }
-
     ch.play(this._locomotionClip(), { fade: TUNING.crossFade, timeScale: this._locomotionRate() });
   }
 
   _locomotionClip() {
     const local = this._localMoveDirection();
     const moving = this.speed > 0.12;
+    const pose = this.def.firePose;
 
     if (this.posture === POSTURE_PRONE) {
       if (!moving) return 'prone_idle';
@@ -547,9 +594,18 @@ export class CharacterController {
       return pickDirectional('crouch', local);
     }
 
-    if (this.aiming) {
-      if (this.firingPoseTimer > 0) return this.weapon === 'rifle' ? 'rifle_fire' : 'pistol_aim_fire';
-      if (this.weapon === 'rifle') {
+    if (pose === 'melee') {
+      if (!moving) return 'knife_idle';
+      return this.speed > 2.6 ? pickDirectional('run', local) : pickDirectional('walk', local);
+    }
+
+    // In first person the weapon must stay shouldered or the barrel points
+    // across the screen: the aim family of clips is the "weapon ready" pose.
+    const weaponUp = this.aiming || this.mode === 'fps';
+
+    if (weaponUp) {
+      if (this.firingPoseTimer > 0) return pose === 'long' ? 'rifle_fire' : 'pistol_aim_fire';
+      if (pose === 'long') {
         if (!moving) return 'rifle_aim_idle';
         return this.speed > 2.6 ? 'rifle_aim_run' : 'rifle_aim_walk';
       }
@@ -557,11 +613,9 @@ export class CharacterController {
       return pickPistolDirectional(local);
     }
 
-    if (this.firingPoseTimer > 0) {
-      return this.weapon === 'rifle' ? 'rifle_fire' : 'pistol_aim_fire';
-    }
+    if (this.firingPoseTimer > 0) return pose === 'long' ? 'rifle_fire' : 'pistol_aim_fire';
 
-    if (!moving) return 'idle';
+    if (!moving) return pose === 'melee' ? 'knife_idle' : 'idle';
     if (this.sprinting && local.y > 0.38 && this.speed > 4.4) return 'sprint_fwd';
     if (this.speed > 2.6) return pickDirectional('run', local);
     return pickDirectional('walk', local);
@@ -570,17 +624,14 @@ export class CharacterController {
   _locomotionRate() {
     const id = this.character.currentId;
     if (!id) return 1;
-    // In-place clips (idle, aim idle, prone turns) always run at 1x.
     const natural = NATURAL_SPEED.get(id) || 0;
     if (!natural) return 1;
     if (id === 'crawl_left' || id === 'crawl_right') {
-      // latepral prone shuffle: tie the turn cycle to the requested speed
       return THREE.MathUtils.clamp(this.speed / TUNING.crawlSpeed, 0.6, 1.6);
     }
     return THREE.MathUtils.clamp(this.speed / natural, 0.55, 1.9);
   }
 
-  /** Movement direction in camera space: x = right, y = forward. */
   _localMoveDirection() {
     const local = new THREE.Vector2(0, 0);
     if (this.speed < 0.05) return local;
@@ -594,23 +645,34 @@ export class CharacterController {
 
   _applyTransform() {
     this.character.group.position.copy(this.position);
+    // Per-rig correction so a lying body rests ON the ground plane instead of
+    // sinking into it (the two rigs have different torso proportions).
+    if (this.posture === POSTURE_PRONE) {
+      this.character.group.position.y += this.character.def.proneLift || 0;
+    }
     this.character.group.rotation.y = this.yaw;
   }
 
   getDebugState() {
+    const def = this.def;
     return {
       character: this.character.def.label,
       posture: this.posture,
       aim: this.aiming,
-      weapon: WEAPONS[this.weapon].label,
-      ammo: `${this.ammo[this.weapon]} / ${WEAPONS[this.weapon].magSize}`,
-      reserve: `${this.reserve[this.weapon]}`,
+      weapon: def.label,
+      weaponId: this.weapon,
+      weaponIndex: WEAPON_ORDER.indexOf(this.weapon) + 1,
+      weaponCount: WEAPON_ORDER.length,
+      ammo: this.isMelee ? 'melee' : `${this.ammo[this.weapon]} / ${this.reserve[this.weapon]}`,
+      reserve: `${this.reserve[this.weapon] ?? 0}`,
       reloading: this.reloading > 0,
       clip: this.character.currentId || '-',
       action: this.action ? this.action.id : '-',
       speed: this.speed,
       dead: this.dead,
       grounded: this.grounded,
+      mode: this.mode,
+      cycling: this.cycleTimer > 0,
     };
   }
 }
@@ -627,7 +689,5 @@ function pickPistolDirectional(local) {
   if (local.y < -0.38) return 'pistol_aim_back';
   if (local.x < -0.38) return 'pistol_aim_left';
   if (local.x > 0.38) return 'pistol_aim_right';
-  // The free Mixamo library has no forward pistol-walk clip, so the strafe
-  // (which keeps the pistol on target) is reused for forward movement.
   return 'pistol_aim_left';
 }
