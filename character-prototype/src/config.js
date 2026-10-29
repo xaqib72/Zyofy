@@ -38,9 +38,18 @@ export const CLIP_DEFS = [
   { id: 'crouch_stand',  source: 'Crouch_To_Standing_With_Rifle',   loop: false, naturalSpeed: 0.0 },
 
   // ---- prone ---------------------------------------------------------------
+  // `prone_idle` / `crawl_*` are all *belly-level* clips: measured hips stay
+  // 0.13-0.26 m and the chest 0.22-0.28 m above the floor, with the knees never
+  // leaving the ground (knee max 0.13 m). The old forward crawl used Mixamo's
+  // `Crawling`, which holds the hips at 0.44 m — a hands-and-knees baby crawl —
+  // so forward movement now uses `Zombie_Crawl`, a genuine flat drag where the
+  // elbows and forearms pull the body along.
   { id: 'prone_idle',    source: 'Prone_Backwards_Stop',            loop: true,  naturalSpeed: 0.0 },
-  { id: 'crawl_fwd',     source: 'Crawling',                        loop: true,  naturalSpeed: 0.51 },
-  { id: 'crawl_back',    source: 'Crawling_Backwards',              loop: true,  naturalSpeed: 0.80 },
+  { id: 'crawl_fwd',     source: 'Zombie_Crawl',                    loop: true,  naturalSpeed: 0.43, hipYOffset: 0.01 },
+  { id: 'crawl_back',    source: 'Crawling_Backwards',              loop: true,  naturalSpeed: 1.45, hipYOffset: 0.02 },
+  { id: 'crawl_left',    source: 'Prone_Left_Turn',                 loop: true,  naturalSpeed: 0.0, hipYOffset: 0.02 },
+  { id: 'crawl_right',   source: 'Prone_Right_Turn',                loop: true,  naturalSpeed: 0.0 },
+  { id: 'prone_down',    source: 'Burpee_Start',                    loop: false, naturalSpeed: 0.0 },
   { id: 'prone_stand',   source: 'Kip_Up',                          loop: false, naturalSpeed: 0.0 },
 
   // ---- aiming (pistol) -----------------------------------------------------
@@ -106,11 +115,29 @@ export const TUNING = {
   animationFps: 30,        // sampling rate used when retargeting clips
   crossFade: 0.22,         // seconds
   fastCrossFade: 0.12,
+  airSpeed: 3.2,           // max horizontal speed while airborne
 };
 
+/**
+ * Weapon definitions.
+ *
+ * `mode` drives the trigger logic: 'auto' reads the held button, 'semi' and
+ * 'burst' consume the press edge only, so a semi-automatic weapon can never
+ * fire on consecutive frames.
+ */
 export const WEAPONS = {
-  rifle: { label: 'Rifle', magSize: 30, fireInterval: 0.14, damageAnim: 'rifle_fire' },
-  pistol: { label: 'Pistol', magSize: 15, fireInterval: 0.22, damageAnim: 'pistol_aim_fire' },
+  rifle: {
+    label: 'Rifle', category: 'ar', magSize: 30, reserve: 120,
+    mode: 'auto', fireInterval: 0.1, damage: 28, range: 120,
+    spread: 0.005, recoilPitch: 0.024, recoilYaw: 0.006,
+    reloadTime: 2.1, firePoseTime: 0.22, damageAnim: 'rifle_fire',
+  },
+  pistol: {
+    label: 'Pistol', category: 'pistol', magSize: 15, reserve: 60,
+    mode: 'semi', fireInterval: 0.16, damage: 22, range: 60,
+    spread: 0.007, recoilPitch: 0.02, recoilYaw: 0.004,
+    reloadTime: 1.7, firePoseTime: 0.18, damageAnim: 'pistol_aim_fire',
+  },
 };
 
 export const BONE_NAMES = {

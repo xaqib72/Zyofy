@@ -13,6 +13,7 @@
  */
 export class Input {
   constructor(domElement) {
+    if (!domElement) throw new Error('Input: a DOM element is required');
     this.dom = domElement;
     this.keys = new Set();
     this.pressed = new Set();      // edge-triggered, cleared every frame
@@ -20,6 +21,8 @@ export class Input {
     this.locked = false;
 
     this._onKeyDown = (e) => {
+      // `e.repeat` is the OS auto-repeat: it must never re-trigger an action.
+      if (e.repeat) return;
       const code = e.code;
       if (!this.keys.has(code)) this.pressed.add(code);
       this.keys.add(code);
@@ -58,6 +61,23 @@ export class Input {
       if (!this.locked) this.dom.requestPointerLock?.();
     };
     this.dom.addEventListener('click', this._onClick);
+    this._disposed = false;
+  }
+
+  /** Detaches every listener. Safe to call twice; prevents duplicate bindings. */
+  dispose() {
+    if (this._disposed) return;
+    this._disposed = true;
+    window.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('keyup', this._onKeyUp);
+    window.removeEventListener('mousemove', this._onMouseMove);
+    window.removeEventListener('mousedown', this._onMouseDown);
+    window.removeEventListener('mouseup', this._onMouseUp);
+    document.removeEventListener('pointerlockchange', this._onLockChange);
+    this.dom.removeEventListener('contextmenu', this._onContext);
+    this.dom.removeEventListener('click', this._onClick);
+    this.keys.clear();
+    this.pressed.clear();
   }
 
   isDown(code) { return this.keys.has(code); }

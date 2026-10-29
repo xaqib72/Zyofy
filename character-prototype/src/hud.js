@@ -15,6 +15,7 @@ export class Hud {
         <div class="row"><span>Aiming</span><span data-field="aim">-</span></div>
         <div class="row"><span>Weapon</span><span data-field="weapon">-</span></div>
         <div class="row"><span>Ammo</span><span data-field="ammo">-</span></div>
+        <div class="row"><span>Reserve</span><span data-field="reserve">-</span></div>
         <div class="row"><span>Speed</span><span data-field="speed">-</span></div>
         <div class="row"><span>Grounded</span><span data-field="grounded">-</span></div>
         <div class="clip" data-field="clip">clip: -</div>
@@ -88,6 +89,7 @@ export class Hud {
     this.fields.aim.textContent = state.aim ? 'yes' : 'no';
     this.fields.weapon.textContent = state.weapon + (state.reloading ? ' (reloading)' : '');
     this.fields.ammo.textContent = state.ammo;
+    if (this.fields.reserve) this.fields.reserve.textContent = state.reserve;
     this.fields.speed.textContent = `${state.speed.toFixed(2)} m/s`;
     this.fields.grounded.textContent = state.grounded ? 'yes' : 'no';
     this.fields.clip.textContent = `clip: ${state.clip}`;

@@ -12,7 +12,7 @@ import { CHARACTERS } from './config.js';
  * Build stamp shown in the HUD. Bumped on every behavioural change so a stale
  * cached module in the browser is instantly recognisable.
  */
-const BUILD = 'r3 · skeleton-agnostic retarget';
+const BUILD = 'r4 · single-action state machine + belly crawl';
 
 /**
  * Boot: renderer + a pure white ground plane, two characters, nothing else.
@@ -115,7 +115,11 @@ async function boot() {
 
   // -------------------------------------------------------------- controllers
   const controllers = {};
-  for (const character of list) controllers[character.def.id] = new CharacterController(character, { fx });
+  for (const character of list) {
+    const controller = new CharacterController(character, { fx });
+    controller.setCameraProvider(cameraRig);
+    controllers[character.def.id] = controller;
+  }
 
   const input = new Input(hud.canvas);
   const order = CHARACTERS.map((c) => c.id);

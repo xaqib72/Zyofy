@@ -35,6 +35,62 @@ scripts; a WebGL2 browser is needed to actually view the prototype.
 
 ---
 
+## r4 — state machine rewrite and the belly crawl
+
+### Why animations played twice (root cause, not a symptom fix)
+
+Three real defects, all now covered by `npm run verify-controls`:
+
+1. **Leaked cross-fade weights.** `action.crossFadeFrom()` was used to blend.
+   When a clip was replaced *while it was still fading*, three.js' internal
+   weight interpolant froze at a fraction (0.32, 0.62, …) and that action kept
+   contributing a slice of its pose **forever** — so several animations played on
+   one skeleton at once. Blending is now explicit (`Character._blend`): weights
+   are written directly, the outgoing action is `stop()`ped when the blend
+   finishes, and every frame asserts that nothing but the current action (plus
+   its two blend partners) is running.
+2. **One-shot clips looped.** `setLoop(THREE.LoopOnce, Infinity)` means *repeat
+   forever*; reload / hit / get-up / prone-down visibly restarted. Now
+   `LoopOnce` gets `repetitions = 1`.
+3. **No state guards.** Jump could be pressed while prone, posture could change
+   mid-air, and a held trigger fired every frame. There is now one explicit
+   state machine: a single `action` slot, `busy` locking, edge-triggered inputs
+   (`e.repeat` ignored), fire modes (`auto` reads the held button, `semi`/`burst`
+   consume the press edge), and posture changes refused while airborne or busy.
+
+Also fixed: speed tables were duplicated (one in `config.js`, one in the
+controller) and had drifted, which caused foot sliding. Playback rate is now
+derived from each clip's baked `naturalSpeed` only.
+
+### Prone: belly crawl
+
+The old forward crawl used Mixamo's `Crawling` clip, which keeps the hips at
+**0.44 m** — a hands-and-knees baby crawl. Forward movement now uses
+`Zombie_Crawl`, a genuine flat drag (hips 0.10–0.26 m in the source data, knees
+never leaving the floor), where the elbows and forearms pull the body along.
+Sideways prone movement uses `Prone_Left_Turn` / `Prone_Right_Turn`, and
+standing↔prone uses a real descent (`Burpee_Start`) and get-up (`Kip_Up`).
+
+Measured on the retargeted male rig by the automated test:
+
+| Movement | clip | hips max | chest max | knees | lowest bone |
+| --- | --- | --- | --- | --- | --- |
+| crawl forward | `crawl_fwd` | 0.27 m | 0.46 m | 0.11 m | −0.02 m |
+| crawl backward | `crawl_back` | 0.34 m | 0.42 m | 0.14 m | 0.00 m |
+| crawl left | `crawl_left` | 0.32 m | 0.42 m | 0.16 m | 0.01 m |
+| crawl right | `crawl_right` | 0.19 m | 0.28 m | 0.11 m | 0.00 m |
+
+The test also asserts that the body never rises into a kneel, never plays a
+standing or get-up clip mid-crawl, and that pressing Space while prone does
+nothing.
+
+**Limitation:** the free Mixamo mirror has no dedicated military belly-crawl
+loop. `Zombie_Crawl` is the only flat, forward-translating crawl in the 886-clip
+library and it reads as a drag-crawl (both hands stay near the floor, arms pull,
+legs trail), but it is mocap named for a zombie drag, not authored for a
+soldier. It was chosen over the alternative — a hands-and-knees crawl — because
+staying flat is the explicit requirement.
+
 ## Controls
 
 | Input | Action |
@@ -45,10 +101,10 @@ scripts; a WebGL2 browser is needed to actually view the prototype.
 | **Alt** | walk (force walk speed) |
 | **RMB** (hold) | aim down sights — body turns to camera, strafe clips |
 | **LMB** | fire (recoil, muzzle flash, spread, projectile trace) |
-| **R** | reload |
+| **R** | reload (per weapon, respects magazine + reserve) |
 | **Space** | jump (with air pose + landing) |
 | **Ctrl** | crouch toggle → crouch-walk / crouch-aim |
-| **Z** | prone toggle → crawl, or get up |
+| **Z** | prone toggle → smooth lie-down, belly crawl, get up |
 | **1 / 2** | pistol / rifle |
 | **Tab** | switch between the male and female character (state is transferred) |
 | **H / J** | take light / heavy damage |
@@ -149,7 +205,7 @@ node-name sanitisation:
 | `npm run verify-rig` | all 40 clips retarget onto both rigs; head/hip heights and durations sane |
 | `npm run verify-fidelity` | retargeted limb directions match the source motion (mean error per clip) |
 | `npm run verify-weapons` | pistol & rifle muzzles land in front of the hand, barrels point forward |
-| `npm run verify-controls` | drives a real Character through a scripted 20 s input sequence and asserts every frame resolves a valid clip for its state |
+| `npm run verify-controls` | 56 assertions: scripted walkthrough, single-action invariant, belly-crawl heights, mutually exclusive states, fire modes, ammunition accounting |
 | `npm run verify-browser` | loads the GLBs with the **real `GLTFLoader`** the page uses (images stripped, since Node has no DOM) and asserts prepareRetarget / bakeClip / mixer binding for all 40 clips on both rigs |
 
 Current results: 40/40 clips retarget, worst clip fidelity 5.3° mean, all 4 weapon mounts

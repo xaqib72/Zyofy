@@ -1,5 +1,26 @@
 import * as THREE from 'three';
-import { TUNING, WEAPONS } from './config.js';
+import { TUNING, WEAPONS, CLIP_DEFS } from './config.js';
+
+/**
+ * Movement + animation state machine for one character.
+ *
+ * Design rules (these exist because the first version violated them and the
+ * animations visibly double-played / fought each other):
+ *
+ *  1. `_resolveClip()` returns exactly ONE clip id per frame. There is no place
+ *     where two locomotion clips are started in the same frame.
+ *  2. Input actions are edge-triggered and consumed once (`wasPressed`), and
+ *     every action has a guard so it cannot be re-entered while it is running.
+ *  3. One-shot actions (jump take-off, land, reload, hit, death, get-up,
+ *     prone-down) live in a single `action` slot. Starting a new one replaces
+ *     the old one; nothing can run two one-shots at once.
+ *  4. Mutually exclusive postures: airborne blocks posture changes, prone blocks
+ *     jumping, death blocks everything. There is no state where the controller
+ *     can be "jumping and crawling".
+ *  5. Clip playback rate is derived from the clip's own baked ground speed
+ *     (`naturalSpeed` in config.js), which is the only table of speeds - the
+ *     old duplicated speed table drifted out of sync and caused foot sliding.
+ */
 
 const POSTURE_STAND = 'stand';
 const POSTURE_CROUCH = 'crouch';
@@ -7,21 +28,20 @@ const POSTURE_PRONE = 'prone';
 
 const GROUND_LIMIT = 24;
 
-/**
- * Movement + animation state machine for one character.
- *
- * Animation coverage
- *   stand  : idle / walk / run / sprint (body turns towards the move direction)
- *   aim    : rifle -> aim idle, aim walk, aim run | pistol -> aim idle + strafes
- *   crouch : idle, 4-way crouch walk (body turns, or faces the camera while aiming)
- *   prone  : prone idle, crawl forward, crawl backward
- *   action : jump take-off, airborne loop, landing, fire, reload, hit, death, get up
- */
+/** clip id -> ground speed (m/s) baked into that clip. Single source of truth. */
+const NATURAL_SPEED = new Map(CLIP_DEFS.map((d) => [d.id, d.naturalSpeed || 0]));
+
+/** Airborne pose is held for this long after take-off before the fall loop. */
+const TAKEOFF_TIME = 0.16;
+/** Grounded "settle" after landing. */
+const LAND_TIME = 0.18;
+
 export class CharacterController {
-  constructor(character, { fx, onEvent } = {}) {
+  constructor(character, { fx, onEvent, hitTest } = {}) {
     this.character = character;
     this.fx = fx;
     this.onEvent = onEvent || (() => {});
+    this.hitTest = hitTest || null;
 
     this.position = new THREE.Vector3(0, 0, 0);
     this.velocity = new THREE.Vector3();
@@ -36,13 +56,24 @@ export class CharacterController {
     this.speed = 0;
 
     this.weapon = 'rifle';
-    this.ammo = { rifle: WEAPONS.rifle.magSize, pistol: WEAPONS.pistol.magSize };
+    this.ammo = {};
+    this.reserve = {};
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      this.ammo[id] = def.magSize;
+      this.reserve[id] = def.reserve;
+    }
     this.fireCooldown = 0;
+    this.burstLeft = 0;
+    this.reloading = 0;          // seconds left, 0 = not reloading
 
     this.dead = false;
     this.deathClip = 'death_front';
-    this.oneShot = null;
-    this.reloading = 0;
+
+    /** Active one-shot action: {id, remaining, timeScale, fade, movement}. */
+    this.action = null;
+    /** Seconds remaining in the take-off pose before the fall loop takes over. */
+    this.takeoffTimer = 0;
+    this.landTimer = 0;
 
     this.cameraYaw = Math.PI;
     this.cameraPitch = 0;
@@ -52,12 +83,15 @@ export class CharacterController {
     this.character.setWeapon(this.weapon);
   }
 
-  /** Keeps posture/pose when Tab swaps the visible character. */
+  /* ------------------------------------------------------------------ public */
+
+  /** Keeps posture/pose/ammo when Tab swaps the visible character. */
   transferStateFrom(other) {
     this.posture = other.posture;
     this.aiming = other.aiming;
     this.weapon = other.weapon;
     this.ammo = { ...other.ammo };
+    this.reserve = { ...other.reserve };
     this.position.copy(other.position);
     this.velocity.copy(other.velocity);
     this.yaw = other.yaw;
@@ -65,39 +99,14 @@ export class CharacterController {
     this.deathClip = other.deathClip;
     this.cameraYaw = other.cameraYaw;
     this.cameraPitch = other.cameraPitch;
+    this.action = null;
+    this.reloading = 0;
     this.character.setWeapon(this.weapon);
     this._applyTransform();
   }
 
-  _playOnce(id, { timeScale = 1, fade = TUNING.fastCrossFade, lock = true } = {}) {
-    const action = this.character.actions.get(id);
-    if (!action) return;
-    const duration = action.getClip().duration / Math.max(0.05, timeScale);
-    this.oneShot = { id, remaining: duration, timeScale, fade, lock };
-    this.character.play(id, { fade, timeScale, restart: true });
-  }
-
-  _setPosture(next) {
-    if (this.posture === next) return;
-
-    if (next === POSTURE_PRONE) {
-      this.posture = POSTURE_PRONE;
-      this.aiming = false;
-      this.character.play('prone_idle', { fade: 0.32 });
-      return;
-    }
-    if (this.posture === POSTURE_PRONE) {
-      this.posture = next;
-      this._playOnce('prone_stand', { timeScale: next === POSTURE_CROUCH ? 1.35 : 1.05, fade: 0.18 });
-      return;
-    }
-    if (next === POSTURE_CROUCH) {
-      this.posture = POSTURE_CROUCH;
-      this.character.play('crouch_idle', { fade: 0.25 });
-      return;
-    }
-    this.posture = POSTURE_STAND;
-    this._playOnce('crouch_stand', { timeScale: 1.35, fade: 0.16 });
+  get busy() {
+    return !!(this.action && this.action.movement === 'lock');
   }
 
   update(dt, input, camera) {
@@ -105,71 +114,179 @@ export class CharacterController {
     this.cameraYaw = camera.yaw;
     this.cameraPitch = camera.pitch;
 
-    // ------------------------------------------------------------------ timers
-    this.fireCooldown = Math.max(0, this.fireCooldown - dt);
-    this.recoilPitch *= Math.pow(0.0015, dt);
-    this.firingPoseTimer = Math.max(0, this.firingPoseTimer - dt);
-    if (this.oneShot) {
-      this.oneShot.remaining -= dt;
-      if (this.oneShot.remaining <= 0) this.oneShot = null;
-    }
-    if (this.reloading > 0) {
-      this.reloading -= dt;
-      if (this.reloading <= 0) {
-        this.ammo[this.weapon] = WEAPONS[this.weapon].magSize;
-        this.onEvent('reloaded', { weapon: this.weapon });
-      }
-    }
+    this._tickTimers(dt);
 
-    // ------------------------------------------------------------------- death
     if (this.dead) {
-      this.velocity.set(0, 0, 0);
-      this.speed = 0;
-      this.character.play(this.deathClip, { fade: 0.12 });
-      if (input.wasPressed('KeyG')) {
-        this.dead = false;
-        this.posture = POSTURE_STAND;
-        this._playOnce('prone_stand', { timeScale: 1.1, fade: 0.2 });
-        this.onEvent('revived');
-      }
+      this._updateDead(input);
       this._applyTransform();
       return;
     }
 
-    // ---------------------------------------------------------------- postures
-    if (input.wasPressed('ControlLeft') || input.wasPressed('ControlRight')) {
-      if (this.posture === POSTURE_STAND) this._setPosture(POSTURE_CROUCH);
-      else if (this.posture === POSTURE_CROUCH) this._setPosture(POSTURE_STAND);
-      else this._setPosture(POSTURE_CROUCH);
-    }
-    if (input.wasPressed('KeyZ')) {
-      this._setPosture(this.posture === POSTURE_PRONE ? POSTURE_STAND : POSTURE_PRONE);
-    }
-    if (input.wasPressed('Digit1') && this.weapon !== 'pistol') {
-      this.weapon = 'pistol';
-      this.character.setWeapon('pistol');
-      this.reloading = 0;
-      this.onEvent('weapon', { weapon: this.weapon });
-    }
-    if (input.wasPressed('Digit2') && this.weapon !== 'rifle') {
-      this.weapon = 'rifle';
-      this.character.setWeapon('rifle');
-      this.reloading = 0;
-      this.onEvent('weapon', { weapon: this.weapon });
+    // ---- posture / weapon input (single edge-triggered handlers) ------------
+    this._handlePostureInput(input);
+    this._handleWeaponInput(input);
+
+    // ---- movement -----------------------------------------------------------
+    this._updateMovement(dt, input, camera);
+    this._updateJumpAndGravity(dt, input);
+
+    // ---- combat input -------------------------------------------------------
+    this._handleCombatInput(input);
+
+    // ---- one animation decision per frame -----------------------------------
+    this._playResolvedClip();
+
+    this._applyTransform();
+  }
+
+  /* ------------------------------------------------------------------ timers */
+
+  _tickTimers(dt) {
+    this.fireCooldown = Math.max(0, this.fireCooldown - dt);
+    this.recoilPitch *= Math.pow(0.0015, dt);
+    this.firingPoseTimer = Math.max(0, this.firingPoseTimer - dt);
+    this.takeoffTimer = Math.max(0, this.takeoffTimer - dt);
+    this.landTimer = Math.max(0, this.landTimer - dt);
+
+    if (this.action) {
+      this.action.remaining -= dt;
+      if (this.action.remaining <= 0) this._finishAction(this.action.id);
     }
 
-    // ---------------------------------------------------------------- movement
+    if (this.reloading > 0) {
+      this.reloading = Math.max(0, this.reloading - dt);
+      if (this.reloading === 0) this._completeReload();
+    }
+  }
+
+  _finishAction(id) {
+    this.action = null;
+    switch (id) {
+      case 'prone_down':
+        // now genuinely prone: settle into the belly-down idle
+        break;
+      case 'prone_up':
+        break;
+      default:
+        break;
+    }
+    this.onEvent('actionEnd', { id });
+  }
+
+  _updateDead(input) {
+    this.velocity.set(0, 0, 0);
+    this.speed = 0;
+    this.character.play(this.deathClip, { fade: 0.12 });
+    if (input.wasPressed('KeyG')) {
+      this.dead = false;
+      this.posture = POSTURE_STAND;
+      this._startAction('prone_stand', { timeScale: 1.1, fade: 0.2, movement: 'lock' });
+      this.onEvent('revived');
+    }
+  }
+
+  /* ----------------------------------------------------------------- posture */
+
+  _handlePostureInput(input) {
+    const ctrlDown = input.wasPressed('ControlLeft') || input.wasPressed('ControlRight');
+    const proneDown = input.wasPressed('KeyZ');
+
+    // Posture changes are only legal on the ground and while no locking action
+    // (reload / get-up / hit) is running. This is what prevents "jumping while
+    // prone" and "crawling while standing up".
+    const canChange = this.grounded && !this.busy;
+    if (!canChange) return;
+
+    if (proneDown) {
+      if (this.posture === POSTURE_PRONE) this._enterPosture(POSTURE_STAND);
+      else this._enterPosture(POSTURE_PRONE);
+      return;
+    }
+    if (ctrlDown) {
+      if (this.posture === POSTURE_CROUCH) this._enterPosture(POSTURE_STAND);
+      else this._enterPosture(POSTURE_CROUCH);
+    }
+  }
+
+  _enterPosture(next) {
+    if (next === this.posture) return;
+    const from = this.posture;
+
+    if (next === POSTURE_PRONE) {
+      // stand/crouch -> belly. The descent is a real clip, not a snap.
+      this.posture = POSTURE_PRONE;
+      this.aiming = false;
+      this.sprinting = false;
+      this.velocity.set(0, 0, 0);
+      this._startAction('prone_down', { timeScale: 1.25, fade: 0.18, movement: 'lock' });
+      this.onEvent('posture', { from, to: next });
+      return;
+    }
+
+    if (from === POSTURE_PRONE) {
+      this.posture = next;
+      this.velocity.set(0, 0, 0);
+      this._startAction('prone_stand', {
+        timeScale: next === POSTURE_CROUCH ? 1.3 : 1.1,
+        fade: 0.16,
+        movement: 'lock',
+      });
+      this.onEvent('posture', { from, to: next });
+      return;
+    }
+
+    if (next === POSTURE_CROUCH) {
+      this.posture = POSTURE_CROUCH;
+      this.onEvent('posture', { from, to: next });
+      return;
+    }
+
+    // crouch -> stand
+    this.posture = POSTURE_STAND;
+    this._startAction('crouch_stand', { timeScale: 1.35, fade: 0.14, movement: 'lock' });
+    this.onEvent('posture', { from, to: next });
+  }
+
+  /* ----------------------------------------------------------------- weapons */
+
+  _handleWeaponInput(input) {
+    const wanted = input.wasPressed('Digit1') ? 'pistol'
+      : input.wasPressed('Digit2') ? 'rifle'
+        : null;
+    if (wanted && wanted !== this.weapon) this.equip(wanted);
+  }
+
+  equip(id) {
+    if (!WEAPONS[id] || id === this.weapon) return;
+    this.weapon = id;
+    this.reloading = 0;
+    this.burstLeft = 0;
+    this.action = null;
+    this.fireCooldown = Math.max(this.fireCooldown, 0.25);
+    this.character.setWeapon(id);
+    this.onEvent('weapon', { weapon: id });
+  }
+
+  /* ---------------------------------------------------------------- movement */
+
+  _updateMovement(dt, input, camera) {
     const wish = new THREE.Vector2(0, 0);
     if (input.isDown('KeyW')) wish.y += 1;
     if (input.isDown('KeyS')) wish.y -= 1;
     if (input.isDown('KeyA')) wish.x -= 1;
     if (input.isDown('KeyD')) wish.x += 1;
     if (wish.lengthSq() > 1) wish.normalize();
-    const moving = wish.lengthSq() > 0.0001;
+    const moving = wish.lengthSq() > 1e-4;
 
-    this.aiming = input.mouse.right && this.posture !== POSTURE_PRONE;
-    this.sprinting = input.isDown('ShiftLeft') || input.isDown('ShiftRight');
+    this.aiming = input.mouse.right && this.posture !== POSTURE_PRONE && this.grounded;
+    // Shift while aiming is an aim-run, not a sprint; the posture gate keeps
+    // sprinting out of crouch and prone.
+    this.sprinting = (input.isDown('ShiftLeft') || input.isDown('ShiftRight'))
+      && this.posture === POSTURE_STAND;
     this.walking = input.isDown('AltLeft') || input.isDown('AltRight');
+
+    const canMove = !this.busy;
+    const speedCap = canMove ? this._speedCap(moving) : 0;
 
     const camForward = new THREE.Vector3(Math.sin(camera.yaw), 0, Math.cos(camera.yaw));
     const camRight = new THREE.Vector3(camForward.z, 0, -camForward.x);
@@ -178,47 +295,50 @@ export class CharacterController {
       .addScaledVector(camRight, wish.x);
     if (moveDir.lengthSq() > 0) moveDir.normalize();
 
-    let targetSpeed = 0;
-    if (moving) {
-      if (this.posture === POSTURE_PRONE) targetSpeed = TUNING.crawlSpeed;
-      else if (this.posture === POSTURE_CROUCH) targetSpeed = this.aiming ? TUNING.aimWalkSpeed * 0.85 : TUNING.crouchSpeed;
-      else if (this.aiming) targetSpeed = this.sprinting ? TUNING.aimRunSpeed : TUNING.aimWalkSpeed;
-      else if (this.sprinting) targetSpeed = TUNING.sprintSpeed;
-      else if (this.walking) targetSpeed = TUNING.walkSpeed;
-      else targetSpeed = TUNING.runSpeed;
-    }
-
-    const desiredVel = moveDir.clone().multiplyScalar(targetSpeed);
-    const accel = TUNING.acceleration * (this.grounded ? 1 : 0.4);
-    this.velocity.x += (desiredVel.x - this.velocity.x) * Math.min(1, accel * dt);
-    this.velocity.z += (desiredVel.z - this.velocity.z) * Math.min(1, accel * dt);
+    const desired = moveDir.clone().multiplyScalar(this.grounded ? speedCap : Math.min(speedCap, TUNING.airSpeed));
+    // exponential approach: responsive to direction changes, no overshoot
+    const rate = 1 - Math.exp(-TUNING.acceleration * (this.grounded ? 1 : 0.35) * dt);
+    this.velocity.x += (desired.x - this.velocity.x) * rate;
+    this.velocity.z += (desired.z - this.velocity.z) * rate;
     if (!moving && this.velocity.lengthSq() < 0.02) this.velocity.set(0, 0, 0);
     this.speed = Math.hypot(this.velocity.x, this.velocity.z);
 
-    // body orientation
-    // Third-person shooter style: while moving, aiming or prone the body follows
-    // the camera so the directional (strafe) locomotion clips read correctly.
-    // Standing still, the body keeps its last facing instead of spinning with the camera.
+    // Body facing: while aiming or prone the torso follows the camera (so the
+    // strafe clips read correctly); otherwise it follows the movement direction.
     let targetYaw = this.yaw;
-    if (this.aiming || this.posture === POSTURE_PRONE || moving) targetYaw = camera.yaw;
+    if (this.aiming) targetYaw = camera.yaw;
+    else if (this.posture === POSTURE_PRONE) targetYaw = camera.yaw;
+    else if (moving && this.speed > 0.4) targetYaw = Math.atan2(this.velocity.x, this.velocity.z);
+
     let delta = targetYaw - this.yaw;
     while (delta > Math.PI) delta -= Math.PI * 2;
     while (delta < -Math.PI) delta += Math.PI * 2;
-    const turnRate = this.aiming ? TUNING.aimTurnSpeed : TUNING.freeTurnSpeed;
-    this.yaw += delta * Math.min(1, turnRate * dt);
+    const turnRate = this.aiming || this.posture === POSTURE_PRONE ? TUNING.aimTurnSpeed : TUNING.freeTurnSpeed;
+    this.yaw += delta * (1 - Math.exp(-turnRate * dt));
 
-    // jump
-    const busy = this.oneShot ? this.oneShot.lock : false;
-    if (input.wasPressed('Space') && this.grounded && this.posture === POSTURE_STAND && !busy) {
-      this.verticalVelocity = TUNING.jumpImpulse;
-      this.grounded = false;
-      this._playOnce('jump_takeoff', { timeScale: 1.0, fade: 0.08, lock: false });
-      this.onEvent('jump');
-    }
-
-    // integrate
     this.position.x = THREE.MathUtils.clamp(this.position.x + this.velocity.x * dt, -GROUND_LIMIT, GROUND_LIMIT);
     this.position.z = THREE.MathUtils.clamp(this.position.z + this.velocity.z * dt, -GROUND_LIMIT, GROUND_LIMIT);
+  }
+
+  _speedCap(moving) {
+    if (!moving) return 0;
+    if (this.posture === POSTURE_PRONE) return TUNING.crawlSpeed;
+    if (this.posture === POSTURE_CROUCH) return this.aiming ? TUNING.aimWalkSpeed * 0.8 : TUNING.crouchSpeed;
+    if (this.aiming) return this.sprinting ? TUNING.aimRunSpeed : TUNING.aimWalkSpeed;
+    if (this.sprinting) return TUNING.sprintSpeed;
+    if (this.walking) return TUNING.walkSpeed;
+    return TUNING.runSpeed;
+  }
+
+  _updateJumpAndGravity(dt, input) {
+    if (input.wasPressed('Space') && this.grounded && !this.busy
+      && this.posture === POSTURE_STAND) {
+      this.verticalVelocity = TUNING.jumpImpulse;
+      this.grounded = false;
+      this.takeoffTimer = TAKEOFF_TIME;
+      this.landTimer = 0;
+      this.onEvent('jump');
+    }
 
     if (!this.grounded) {
       this.verticalVelocity += TUNING.gravity * dt;
@@ -227,48 +347,64 @@ export class CharacterController {
         this.position.y = 0;
         this.verticalVelocity = 0;
         this.grounded = true;
-        this._playOnce('jump_land', { timeScale: 1.6, fade: 0.1, lock: false });
+        this.landTimer = LAND_TIME;
         this.onEvent('landed');
       }
+    } else {
+      this.position.y = 0;
     }
-
-    // ---------------------------------------------------------------- shooting
-    const wantsShoot = input.mouse.left;
-    if (wantsShoot) {
-      if (this.ammo[this.weapon] <= 0 && this.reloading <= 0) this._reload();
-      else if (this.fireCooldown <= 0 && this.reloading <= 0 && this.posture !== POSTURE_PRONE) this._shoot();
-      if (this.ammo[this.weapon] > 0 && this.reloading <= 0 && this.posture !== POSTURE_PRONE) {
-        this.firingPoseTimer = 0.35;
-      }
-    }
-    if (input.wasPressed('KeyR')) this._reload();
-
-    // ------------------------------------------------------------------- hits
-    if (input.wasPressed('KeyH')) this._playOnce('hit_light', { timeScale: 1.7, fade: 0.08, lock: false });
-    if (input.wasPressed('KeyJ')) this._playOnce('hit_heavy', { timeScale: 1.4, fade: 0.08, lock: false });
-    if (input.wasPressed('KeyK')) {
-      this.dead = true;
-      this.deathClip = Math.random() > 0.5 ? 'death_front' : 'death_back';
-      this.velocity.set(0, 0, 0);
-      this.character.play(this.deathClip, { fade: 0.12, restart: true });
-      this.onEvent('died');
-    }
-
-    this._updateAnimation(moving);
-    this._applyTransform();
   }
 
-  _reload() {
-    if (this.reloading > 0) return;
-    if (this.ammo[this.weapon] === WEAPONS[this.weapon].magSize) return;
-    const clipId = this.posture === POSTURE_PRONE ? 'reload_prone'
-      : this.posture === POSTURE_CROUCH ? 'reload_crouch' : 'reload_stand';
-    const action = this.character.actions.get(clipId);
-    const duration = action ? action.getClip().duration : 1.5;
-    const timeScale = Math.max(1, duration / 1.6);
-    this.reloading = duration / timeScale;
-    this._playOnce(clipId, { timeScale, fade: 0.15, lock: true });
-    this.onEvent('reloading', { clipId });
+  /* ------------------------------------------------------------------ combat */
+
+  _handleCombatInput(input) {
+    const def = WEAPONS[this.weapon];
+
+    if (input.wasPressed('KeyR')) this.reload();
+
+    // Fire modes: semi/burst weapons consume the press edge, automatic weapons
+    // read the held button. This is what stops a pistol from firing every frame.
+    const wantsShot = def.mode === 'auto'
+      ? input.mouse.left
+      : input.mouse.leftPressed;
+
+    if (wantsShot && this._canFire()) {
+      if (this.ammo[this.weapon] <= 0) {
+        this.reload();
+      } else {
+        this._shoot();
+        if (def.mode === 'burst') this.burstLeft = (def.burst || 3) - 1;
+      }
+    }
+
+    // Sustained burst fire (held trigger, remaining rounds of the burst)
+    if (this.burstLeft > 0 && this.fireCooldown <= 0 && this._canFire()) {
+      if (this.ammo[this.weapon] > 0) {
+        this._shoot();
+        this.burstLeft -= 1;
+      } else {
+        this.burstLeft = 0;
+      }
+    }
+
+    if (this.firingPoseTimer > 0 && this.reloading <= 0) this._firingPose = true;
+
+    if (input.wasPressed('KeyH')) {
+      this._startAction('hit_light', { timeScale: 1.7, fade: 0.08, movement: 'lock' });
+    }
+    if (input.wasPressed('KeyJ')) {
+      this._startAction('hit_heavy', { timeScale: 1.4, fade: 0.08, movement: 'lock' });
+    }
+    if (input.wasPressed('KeyK')) this.die();
+  }
+
+  _canFire() {
+    return this.fireCooldown <= 0
+      && this.reloading <= 0
+      && !this.dead
+      && !this.busy
+      && this.posture !== POSTURE_PRONE
+      && this.grounded;
   }
 
   _shoot() {
@@ -276,97 +412,172 @@ export class CharacterController {
     this.fireCooldown = def.fireInterval;
     this.ammo[this.weapon] = Math.max(0, this.ammo[this.weapon] - 1);
 
-    const muzzle = this.character.getMuzzleWorld(new THREE.Vector3());
-    const yaw = this.yaw + (this.aiming ? 0 : this.recoilPitch * 0.2);
-    const pitch = this.cameraPitch;
-    const dir = new THREE.Vector3(
-      Math.sin(yaw) * Math.cos(pitch),
-      -Math.sin(pitch),
-      Math.cos(yaw) * Math.cos(pitch),
-    ).normalize();
-    const spread = 0.006 + this.speed * 0.0035;
+    // Aim from the camera axis, not the body yaw, so shots go where the
+    // crosshair points (this is what makes the shooting range testable).
+    const origin = new THREE.Vector3();
+    const dir = new THREE.Vector3();
+    this._aimRay(origin, dir);
+    const spread = (def.spread || 0.006) + this.speed * 0.0035;
     dir.x += (Math.random() - 0.5) * spread * 2;
     dir.y += (Math.random() - 0.5) * spread * 2;
     dir.normalize();
 
-    if (this.fx) this.fx.fire(muzzle, dir);
-    this.recoilPitch += this.weapon === 'rifle' ? 0.028 : 0.02;
-    this.onEvent('shot', { weapon: this.weapon, ammo: this.ammo[this.weapon], recoil: this.recoilPitch });
+    this.recoilPitch += def.recoilPitch || 0.02;
+    this.firingPoseTimer = def.firePoseTime || 0.24;
+    this._firingPose = true;
+
+    if (this.fx) this.fx.fire(this.character.getMuzzleWorld(new THREE.Vector3()), dir);
+    const hit = this.hitTest ? this.hitTest(origin, dir, def) : null;
+    this.onEvent('shot', { weapon: this.weapon, ammo: this.ammo[this.weapon], hit });
   }
 
-  _updateAnimation(moving) {
+  /** Camera-space aim ray. In third person it starts at the camera. */
+  _aimRay(origin, dir) {
+    const pitch = this.cameraPitch;
+    const yaw = this.yaw + (this.aiming ? 0 : 0);
+    dir.set(
+      Math.sin(yaw) * Math.cos(pitch),
+      -Math.sin(pitch),
+      Math.cos(yaw) * Math.cos(pitch),
+    ).normalize();
+    if (this.cameraProvider) this.cameraProvider.getAimOrigin(origin);
+    else origin.copy(this.position).add(new THREE.Vector3(0, 1.5, 0));
+  }
+
+  setCameraProvider(provider) {
+    this.cameraProvider = provider;
+  }
+
+  reload() {
+    if (this.reloading > 0) return;
+    if (this.busy) return;
+    const def = WEAPONS[this.weapon];
+    if (this.ammo[this.weapon] >= def.magSize) return;
+    if ((this.reserve[this.weapon] || 0) <= 0) {
+      this.onEvent('dryReload', { weapon: this.weapon });
+      return;
+    }
+    const clipId = this.posture === POSTURE_PRONE ? 'reload_prone'
+      : this.posture === POSTURE_CROUCH ? 'reload_crouch' : 'reload_stand';
+    const action = this.character.actions.get(clipId);
+    const clipDuration = action ? action.getClip().duration : 1.5;
+    const desired = def.reloadTime || 1.8;
+    const timeScale = THREE.MathUtils.clamp(clipDuration / desired, 0.6, 2.6);
+    this.reloading = clipDuration / timeScale;
+    this._startAction(clipId, { timeScale, fade: 0.15, movement: 'lock' });
+    this.onEvent('reloading', { clipId, weapon: this.weapon });
+  }
+
+  _completeReload() {
+    const def = WEAPONS[this.weapon];
+    const needed = def.magSize - this.ammo[this.weapon];
+    const available = Math.min(needed, this.reserve[this.weapon] || 0);
+    this.ammo[this.weapon] += available;
+    this.reserve[this.weapon] -= available;
+    this.onEvent('reloaded', {
+      weapon: this.weapon,
+      ammo: this.ammo[this.weapon],
+      reserve: this.reserve[this.weapon],
+    });
+  }
+
+  die() {
+    if (this.dead) return;
+    this.dead = true;
+    this.action = null;
+    this.reloading = 0;
+    this.deathClip = Math.random() > 0.5 ? 'death_front' : 'death_back';
+    this.velocity.set(0, 0, 0);
+    this.character.play(this.deathClip, { fade: 0.12, restart: true });
+    this.onEvent('died');
+  }
+
+  /* --------------------------------------------------------------- animation */
+
+  _startAction(id, { timeScale = 1, fade = TUNING.fastCrossFade, movement = 'lock' } = {}) {
+    const action = this.character.actions.get(id);
+    if (!action) return false;
+    // Never restart an identical action that is already running.
+    if (this.action && this.action.id === id) return false;
+    const duration = action.getClip().duration / Math.max(0.05, timeScale);
+    this.action = { id, remaining: duration, timeScale, fade, movement };
+    this.character.play(id, { fade, timeScale, restart: true });
+    return true;
+  }
+
+  /**
+   * Chooses the single clip for this frame and starts it. Order matters:
+   * death > one-shot action > air > posture locomotion.
+   */
+  _playResolvedClip() {
     const ch = this.character;
-    const moveLocal = this._localMoveDirection();
 
-    if (this.oneShot) {
-      ch.play(this.oneShot.id, { fade: this.oneShot.fade, timeScale: this.oneShot.timeScale });
+    if (this.action) {
+      ch.play(this.action.id, { fade: this.action.fade, timeScale: this.action.timeScale });
       return;
     }
+
     if (!this.grounded) {
-      ch.play('jump_air', { fade: 0.18 });
+      if (this.takeoffTimer > 0) ch.play('jump_takeoff', { fade: 0.08 });
+      else ch.play('jump_air', { fade: 0.16 });
       return;
     }
 
-    const firingPose = this.firingPoseTimer > 0;
+    if (this.landTimer > 0) {
+      ch.play('jump_land', { fade: 0.1, timeScale: 1.5 });
+      return;
+    }
+
+    ch.play(this._locomotionClip(), { fade: TUNING.crossFade, timeScale: this._locomotionRate() });
+  }
+
+  _locomotionClip() {
+    const local = this._localMoveDirection();
+    const moving = this.speed > 0.12;
 
     if (this.posture === POSTURE_PRONE) {
-      if (this.speed < 0.12) ch.play('prone_idle', { fade: 0.25 });
-      else if (moveLocal.y < -0.35) ch.play('crawl_back', { fade: 0.2, timeScale: scaleFor(this.speed, 0.8) });
-      else ch.play('crawl_fwd', { fade: 0.2, timeScale: scaleFor(this.speed, 0.51) });
-      return;
+      if (!moving) return 'prone_idle';
+      if (local.y > 0.4) return 'crawl_fwd';
+      if (local.y < -0.4) return 'crawl_back';
+      return local.x < 0 ? 'crawl_left' : 'crawl_right';
     }
 
     if (this.posture === POSTURE_CROUCH) {
-      if (this.aiming) {
-        if (this.speed < 0.12) { ch.play('crouch_aim_idle', { fade: 0.2 }); return; }
-        const clip = pickDirectional('crouch', moveLocal);
-        ch.play(clip, { fade: 0.2, timeScale: scaleFor(this.speed, crouchNaturalSpeed(clip)) });
-        return;
-      }
-      if (this.speed < 0.12) { ch.play('crouch_idle', { fade: 0.25 }); return; }
-      {
-        const clip = pickDirectional('crouch', moveLocal);
-        ch.play(clip, { fade: 0.2, timeScale: scaleFor(this.speed, crouchNaturalSpeed(clip)) });
-      }
-      return;
+      if (!moving) return this.aiming ? 'crouch_aim_idle' : 'crouch_idle';
+      return pickDirectional('crouch', local);
     }
 
-    // standing
     if (this.aiming) {
+      if (this.firingPoseTimer > 0) return this.weapon === 'rifle' ? 'rifle_fire' : 'pistol_aim_fire';
       if (this.weapon === 'rifle') {
-        if (firingPose) { ch.play('rifle_fire', { fade: 0.12, timeScale: 2.4 }); return; }
-        if (this.speed < 0.12) ch.play('rifle_aim_idle', { fade: 0.2 });
-        else if (this.speed > 2.6) ch.play('rifle_aim_run', { fade: 0.2, timeScale: scaleFor(this.speed, 3.15) });
-        else ch.play('rifle_aim_walk', { fade: 0.2, timeScale: scaleFor(this.speed, 1.46) });
-      } else {
-        if (firingPose) { ch.play('pistol_aim_fire', { fade: 0.12, timeScale: 2.4 }); return; }
-        if (this.speed < 0.12) ch.play('pistol_aim_idle', { fade: 0.2 });
-        else {
-          const clip = pickPistolDirectional(moveLocal);
-          ch.play(clip, { fade: 0.2, timeScale: scaleFor(this.speed, clip === 'pistol_aim_left' ? 2.26 : 1.47) });
-        }
+        if (!moving) return 'rifle_aim_idle';
+        return this.speed > 2.6 ? 'rifle_aim_run' : 'rifle_aim_walk';
       }
-      return;
+      if (!moving) return 'pistol_aim_idle';
+      return pickPistolDirectional(local);
     }
 
-    if (firingPose) {
-      ch.play(this.weapon === 'rifle' ? 'rifle_fire' : 'pistol_aim_fire', { fade: 0.12, timeScale: 2.4 });
-      return;
+    if (this.firingPoseTimer > 0) {
+      return this.weapon === 'rifle' ? 'rifle_fire' : 'pistol_aim_fire';
     }
-    if (this.speed < 0.12) { ch.play('idle', { fade: 0.25 }); return; }
-    if (this.sprinting && moving && this.speed > 4.4 && moveLocal.y > 0.38) {
-      ch.play('sprint_fwd', { fade: 0.22, timeScale: scaleFor(this.speed, 6.12) });
-      return;
+
+    if (!moving) return 'idle';
+    if (this.sprinting && local.y > 0.38 && this.speed > 4.4) return 'sprint_fwd';
+    if (this.speed > 2.6) return pickDirectional('run', local);
+    return pickDirectional('walk', local);
+  }
+
+  _locomotionRate() {
+    const id = this.character.currentId;
+    if (!id) return 1;
+    // In-place clips (idle, aim idle, prone turns) always run at 1x.
+    const natural = NATURAL_SPEED.get(id) || 0;
+    if (!natural) return 1;
+    if (id === 'crawl_left' || id === 'crawl_right') {
+      // latepral prone shuffle: tie the turn cycle to the requested speed
+      return THREE.MathUtils.clamp(this.speed / TUNING.crawlSpeed, 0.6, 1.6);
     }
-    if (this.speed > 2.6) {
-      const clip = pickDirectional('run', moveLocal);
-      ch.play(clip, { fade: 0.22, timeScale: scaleFor(this.speed, STAND_SPEEDS[clip]) });
-      return;
-    }
-    {
-      const clip = pickDirectional('walk', moveLocal);
-      ch.play(clip, { fade: 0.22, timeScale: scaleFor(this.speed, STAND_SPEEDS[clip]) });
-    }
+    return THREE.MathUtils.clamp(this.speed / natural, 0.55, 1.9);
   }
 
   /** Movement direction in camera space: x = right, y = forward. */
@@ -393,32 +604,14 @@ export class CharacterController {
       aim: this.aiming,
       weapon: WEAPONS[this.weapon].label,
       ammo: `${this.ammo[this.weapon]} / ${WEAPONS[this.weapon].magSize}`,
+      reserve: `${this.reserve[this.weapon]}`,
       reloading: this.reloading > 0,
       clip: this.character.currentId || '-',
+      action: this.action ? this.action.id : '-',
       speed: this.speed,
       dead: this.dead,
       grounded: this.grounded,
     };
-  }
-}
-
-function scaleFor(actual, natural) {
-  if (!natural) return 1;
-  return THREE.MathUtils.clamp(actual / natural, 0.55, 1.9);
-}
-
-/** Ground speed baked into each standing locomotion clip (m/s). */
-const STAND_SPEEDS = {
-  walk_fwd: 1.67, walk_back: 1.20, walk_left: 1.94, walk_right: 1.38,
-  run_fwd: 4.82, run_back: 3.22, run_left: 3.52, run_right: 3.96,
-};
-
-function crouchNaturalSpeed(clipId) {
-  switch (clipId) {
-    case 'crouch_back': return 1.28;
-    case 'crouch_left': return 1.42;
-    case 'crouch_right': return 1.12;
-    default: return 2.05;
   }
 }
 

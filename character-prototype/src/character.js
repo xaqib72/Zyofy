@@ -70,7 +70,9 @@ export class Character {
       baked.name = id;
       const action = this.mixer.clipAction(baked);
       action.clampWhenFinished = !src.def.loop;
-      action.setLoop(src.def.loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
+      // LoopOnce with Infinity repetitions would replay a one-shot forever,
+      // which is what made reload/hit/get-up clips visibly restart.
+      action.setLoop(src.def.loop ? THREE.LoopRepeat : THREE.LoopOnce, src.def.loop ? Infinity : 1);
       this.actions.set(id, action);
       this.clipDefs.set(id, src.def);
       done += 1;
@@ -125,6 +127,17 @@ export class Character {
     return w.muzzle.getWorldPosition(out);
   }
 
+  /**
+   * Makes `id` the one audible action.
+   *
+   * Blending is managed explicitly instead of with `crossFadeFrom`: a fade that
+   * is interrupted (a clip replaced while it is still fading in or out) leaves
+   * three.js' internal weight interpolant frozen at a fractional value, and the
+   * action then keeps contributing a slice of its pose forever - which is
+   * exactly how two animations end up playing on the same skeleton. Here every
+   * action's weight is written directly and the outgoing one is `stop()`ped as
+   * soon as the blend completes, so no action can ever leak.
+   */
   play(id, { fade = TUNING.crossFade, timeScale = 1, restart = false } = {}) {
     const next = this.actions.get(id);
     if (!next) return;
@@ -132,20 +145,60 @@ export class Character {
       next.timeScale = timeScale;
       return;
     }
+
+    // Cancel any in-flight blend: the action that was fading out is dropped.
+    if (this._blend) {
+      this._blend.from.stop();
+      this._blend.from.setEffectiveWeight(1);
+      this._blend = null;
+    }
+
     const prev = this.current;
     next.reset();
     next.timeScale = timeScale;
     next.enabled = true;
-    next.setEffectiveWeight(1);
+    next.setEffectiveWeight(prev && prev !== next ? 0 : 1);
     next.play();
-    if (prev && prev !== next) {
-      next.crossFadeFrom(prev, fade, false);
+
+    if (prev && prev !== next && fade > 0.001) {
+      prev.setEffectiveWeight(1);
+      this._blend = { from: prev, to: next, elapsed: 0, duration: fade };
+    } else if (prev && prev !== next) {
+      prev.stop();
+      prev.setEffectiveWeight(1);
+      next.setEffectiveWeight(1);
     }
+
     this.current = next;
     this.currentId = id;
   }
 
   update(dt) {
-    if (this.mixer) this.mixer.update(dt);
+    if (!this.mixer) return;
+
+    if (this._blend) {
+      const b = this._blend;
+      b.elapsed += dt;
+      const k = Math.min(1, b.elapsed / b.duration);
+      b.from.setEffectiveWeight(1 - k);
+      b.to.setEffectiveWeight(k);
+      if (k >= 1) {
+        b.from.stop();
+        b.from.setEffectiveWeight(1);
+        this._blend = null;
+      }
+    }
+
+    this.mixer.update(dt);
+
+    // Safety net: nothing except the current action and the two blend partners
+    // may be running. This is the invariant that keeps duplicate animations
+    // from ever appearing on screen.
+    const blend = this._blend;
+    for (const action of this.actions.values()) {
+      if (action === this.current) continue;
+      if (blend && (action === blend.from || action === blend.to)) continue;
+      if (action.isRunning()) action.stop();
+    }
   }
 }

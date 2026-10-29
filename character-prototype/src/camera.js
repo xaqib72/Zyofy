@@ -21,6 +21,11 @@ export class ThirdPersonCamera {
     this._initialised = false;
   }
 
+  /** World-space origin of the aim ray (shots start at the camera). */
+  getAimOrigin(out = new THREE.Vector3()) {
+    return out.copy(this.camera.position);
+  }
+
   update(dt, input, character, controller) {
     if (input.locked) {
       this.yaw -= input.mouse.dx * this.sensitivity;
