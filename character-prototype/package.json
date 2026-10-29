@@ -1,0 +1,25 @@
+{
+  "name": "zyofy-character-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Third-person character + movement test bed for a future AAA survival shooter (characters and movement only, no game world).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "fetch-assets": "node scripts/fetch-assets.mjs",
+    "verify-rig": "node scripts/verify-retarget.mjs",
+    "verify-controls": "node scripts/verify-controller.mjs",
+    "verify-weapons": "node scripts/verify-weapons.mjs",
+    "verify-fidelity": "node scripts/verify-fidelity.mjs",
+    "verify-all": "node scripts/verify-retarget.mjs && node scripts/verify-fidelity.mjs && node scripts/verify-weapons.mjs && node scripts/verify-controller.mjs && node scripts/verify-browser-load.mjs",
+    "verify-browser": "node scripts/verify-browser-load.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}
