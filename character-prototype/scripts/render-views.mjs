@@ -222,6 +222,47 @@ fs.writeFileSync(path.join(OUT, 'fps-range.png'), canvas.toPNG());
 console.log('fps-range.png   camera', camera.position.toArray().map((n) => n.toFixed(2)).join(','),
   'near', camera.near);
 
+/* ------------------------------------- close-ups of the weapon in the hands */
+
+// Three quarter and side views of the same posed character, so the grip, the
+// support hand and the barrel direction can actually be looked at.
+const closeUps = [
+  ['armed-idle', { yaw: 0.9, pitch: -0.15, dist: 3.0, height: 1.35, aim: false }],
+  ['aim-side', { yaw: 1.62, pitch: -0.05, dist: 2.6, height: 1.45, aim: true }],
+  ['prone-side', { yaw: 1.62, pitch: -0.28, dist: 2.4, height: 0.75, aim: false, prone: true }],
+];
+if (rig.mode !== 'tps') rig.toggle();
+for (const [name, view] of closeUps) {
+  hold();
+  rig.yaw = Math.PI;
+  rig.pitch = 0.05;
+  controller.posture = 'stand';
+  if (view.prone) {
+    input.pressed.add('KeyZ');
+    step(1, () => hold());
+    input.pressed.clear();
+    step(150, hold);
+  } else {
+    step(120, hold);
+  }
+  if (view.aim) step(30, () => { hold(); input.mouse.right = true; });
+  const centre = character.group.position.clone().add(new THREE.Vector3(0, view.height, 0));
+  const cam = new THREE.PerspectiveCamera(48, W / H, 0.02, 400);
+  cam.position.copy(centre).add(new THREE.Vector3(
+    Math.sin(view.yaw) * view.dist,
+    Math.sin(view.pitch) * view.dist + view.height * 0.25,
+    Math.cos(view.yaw) * view.dist,
+  ));
+  cam.lookAt(centre);
+  canvas = new Canvas(W, H);
+  renderScene(canvas, cam, scene);
+  fs.writeFileSync(path.join(OUT, `r7-${name}.png`), canvas.toPNG());
+  console.log(`r7-${name}.png   clip ${character.currentId}`);
+}
+hold();
+controller.posture = 'stand';
+step(120, hold);
+
 /* ------------------------------------------------------------- weapon sheet */
 
 const perRow = 6;

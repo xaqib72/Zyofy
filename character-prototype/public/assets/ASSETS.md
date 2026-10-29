@@ -81,6 +81,17 @@ content is royalty-free and usable in commercial projects without attribution
 the public mirror `https://github.com/MisterYI/deevid-mixamo-assets`. The original
 Mixamo clip name for every file is recorded in `src/config.js` (`source`).
 
+r7 added five clips from the same pack, because the project was missing the poses
+the fix brief asked for — a two-handed weapon carry and a knife pose:
+
+| file | Mixamo clip | why |
+| --- | --- | --- |
+| `rifle_ready_idle.glb` | `Rifle_Idle` | armed idle: both hands on the weapon |
+| `rifle_ready_fwd.glb` | `Walk_With_Rifle` | armed walk |
+| `rifle_ready_back.glb` | `Backwards_Rifle_Walk` | armed walk backwards |
+| `rifle_ready_run.glb` | `Rifle_Start_Run` | armed run |
+| `knife_idle.glb` | `Knife_Idle` | replaced `Rifle_Idle`, which had been standing in as the *knife* idle |
+
 ## Not obtainable
 
 | wanted | why it could not be included |

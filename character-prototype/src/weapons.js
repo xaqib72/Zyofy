@@ -53,10 +53,27 @@ export function buildWeapon(def, opts = {}) {
 }
 
 /**
- * Parent a weapon to the right hand and compute the local transform that makes
- * the barrel point along the character's forward axis (+Z) in the aim pose.
+ * Parent a weapon to the right hand and compute the local transform that puts the
+ * grip in the palm and the *barrel* along `targetDir` in the current pose.
+ *
+ * This is done per weapon and from the weapon's own geometry: the barrel axis is
+ * taken from the position of that model's muzzle node relative to its grip
+ * origin, so a revolver, a bullpup and a shotgun each get their own correction
+ * instead of one blanket offset. `targetDir` is the character's own forward axis
+ * in world space, so the result does not depend on the model's authored yaw.
+ *
+ * @param {THREE.Object3D} weaponGroup weapon root, origin at the grip
+ * @param {THREE.Object3D} handBone    hand the weapon is held in
+ * @param {Object} options
+ * @param {THREE.Object3D} options.muzzle    muzzle node of this weapon
+ * @param {THREE.Vector3}  options.targetDir world direction the barrel must take
+ * @param {number} [options.pitch] extra barrel pitch, radians (per weapon)
+ * @param {number} [options.yaw]   extra barrel yaw, radians (per weapon)
+ * @param {number} [options.roll]  extra barrel roll, radians (per weapon)
  */
-export function alignWeaponToHand(weaponGroup, handBone, { pitch = -0.04 } = {}) {
+export function alignWeaponToHand(weaponGroup, handBone, {
+  muzzle, targetDir, pitch = 0, yaw = 0, roll = 0,
+} = {}) {
   handBone.updateWorldMatrix(true, false);
   const handWorld = handBone.matrixWorld.clone();
   const handQ = handBone.getWorldQuaternion(new THREE.Quaternion());
@@ -64,18 +81,32 @@ export function alignWeaponToHand(weaponGroup, handBone, { pitch = -0.04 } = {})
   const handScale = new THREE.Vector3();
   handWorld.decompose(new THREE.Vector3(), new THREE.Quaternion(), handScale);
 
-  const desiredQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, 0, 0));
-  const localQ = handQ.clone().invert().multiply(desiredQ);
+  // start from the hand's own orientation with the weapon's per-weapon trim
+  const trim = new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, roll));
+  const startWorldQ = handQ.clone().multiply(trim);
+
   const invHand = handWorld.clone().invert();
   const localP = handPos.clone().applyMatrix4(invHand);
-
-  weaponGroup.quaternion.copy(localQ);
   weaponGroup.position.copy(localP);
   weaponGroup.scale.set(
     1 / (handScale.x || 1),
     1 / (handScale.y || 1),
     1 / (handScale.z || 1),
   );
+
+  if (muzzle && targetDir) {
+    // the barrel as this model actually has it: grip origin -> muzzle node
+    const barrelLocal = muzzle.position.clone();
+    if (barrelLocal.lengthSq() > 1e-8) {
+      barrelLocal.normalize();
+      const barrelWorld = barrelLocal.clone().applyQuaternion(startWorldQ).normalize();
+      const target = targetDir.clone().normalize();
+      const fix = new THREE.Quaternion().setFromUnitVectors(barrelWorld, target);
+      weaponGroup.quaternion.copy(handQ.clone().invert().multiply(fix).multiply(startWorldQ));
+      return weaponGroup;
+    }
+  }
+  weaponGroup.quaternion.copy(handQ.clone().invert().multiply(startWorldQ));
   return weaponGroup;
 }
 

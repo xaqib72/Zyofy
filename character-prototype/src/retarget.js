@@ -196,6 +196,13 @@ export function prepareRetarget(sourceRoot, targetRoot, hipBoneName = 'mixamorig
  * @param {Object} [options]
  * @param {number} [options.fps] sampling rate, default 30
  * @param {boolean} [options.inPlace] strip horizontal root motion (default true)
+ * @param {boolean} [options.inPlaceTurn] strip the hips' vertical-axis rotation
+ *        (default true). Mixamo clips carry the actor's own turning on the hips:
+ *        the belly-crawl clip spins the pelvis 268 deg, standing up from prone
+ *        358 deg, and the rifle-fire clip 46 deg. The controller owns the body's
+ *        facing, so keeping that rotation made the character whirl around while
+ *        crawling, firing or getting up. Pitch and roll are kept, which is what
+ *        the prone clips need to lie flat.
  * @param {number} [options.trimStart] seconds to trim from the start
  * @param {number} [options.trimEnd] seconds to trim from the end
  * @param {number} [options.hipYOffset] small constant offset added to the hips height
@@ -205,6 +212,8 @@ export function bakeClip(clip, prep, options = {}) {
   const {
     fps = 30,
     inPlace = true,
+    inPlaceTurn = true,
+    loop = false,
     trimStart = 0,
     trimEnd = 0,
     hipYOffset = 0,
@@ -235,8 +244,21 @@ export function bakeClip(clip, prep, options = {}) {
   const sourceHipRestWorld = sourceHipBone.getWorldPosition(new THREE.Vector3());
   const targetHipRestLocal = entries[hipIndex].bone.position.clone();
 
+  // Every frame keeps the hips yaw of the clip's *own* first frame, so the pose
+  // the actor starts in is preserved and only the turning that happens inside the
+  // clip is removed.
+  let restHipYaw = null;
+  const _euler = new THREE.Euler();
+
+  // Sampling exactly at clip.duration makes the mixer wrap to frame 0, which
+  // baked a single frame of the *first* pose onto the end of every clip. That is
+  // what snapped the character back to standing for one frame at the end of
+  // `prone_down` (and any other one-shot), so the last sample is held just short
+  // of the end.
+  const lastT = Math.max(0, clip.duration - 1e-3);
+
   for (let f = 0; f < frameCount; f++) {
-    const t = trimStart + f * dt;
+    const t = Math.min(trimStart + f * dt, lastT);
     mixer.setTime(t);
     sourceRoot.updateMatrixWorld(true);
 
@@ -258,6 +280,13 @@ export function bakeClip(clip, prep, options = {}) {
         // frame difference. Preserves the pose exactly and keeps every chain
         // (arm, leg, spine) intact regardless of how each rig was authored.
         _localQ.copy(e.localOffset).multiply(srcBone.quaternion).normalize();
+        if (inPlaceTurn && i === hipIndex) {
+          _euler.setFromQuaternion(_localQ, 'YXZ');
+          if (restHipYaw === null) restHipYaw = _euler.y;
+          _euler.y = restHipYaw;
+          _localQ.setFromEuler(_euler);
+          frameWorldQ[i].copy(parentQ).multiply(_localQ);
+        }
         _localQ.toArray(quatValues.get(e.name), f * 4);
         frameWorldQ[i].copy(parentQ).multiply(_localQ);
         continue;
@@ -273,6 +302,16 @@ export function bakeClip(clip, prep, options = {}) {
       frameWorldQ[i].copy(_worldQ);
       _parentQInv.copy(parentQ).invert();
       _localQ.copy(_parentQInv).multiply(_worldQ).normalize();
+      if (inPlaceTurn && i === hipIndex) {
+        // keep pitch/roll (lying flat, leaning) but pin the vertical-axis turn
+        _euler.setFromQuaternion(_localQ, 'YXZ');
+        if (restHipYaw === null) restHipYaw = _euler.y;
+        _euler.y = restHipYaw;
+        _localQ.setFromEuler(_euler);
+        // the whole upper body hangs off the hips: publish the corrected world
+        // rotation so the spine/arm/leg locals are solved against it
+        frameWorldQ[i].copy(parentQ).multiply(_localQ);
+      }
       _localQ.toArray(quatValues.get(e.name), f * 4);
     }
 
@@ -288,6 +327,17 @@ export function bakeClip(clip, prep, options = {}) {
     _m.copy(hipParentRestWorld).invert();
     _v2.applyMatrix4(_m);
     _v2.toArray(hipPositions, f * 3);
+  }
+
+  // Looping clips must end where they start, or every wrap snaps the body back
+  // and reads as a jerk. The final sample is taken from frame 0 instead of from
+  // t = duration, which also dodges the mixer's own wrap at exactly that time.
+  if (loop) {
+    const last = frameCount - 1;
+    for (const values of quatValues.values()) {
+      values.copyWithin(last * 4, 0, 4);
+    }
+    hipPositions.copyWithin(last * 3, 0, 3);
   }
 
   mixer.uncacheClip(clip);

@@ -45,6 +45,8 @@ for (const name of listed) {
     `assets/fps/${name}`,
     `assets/sfx/${name}`,
     `assets/fx/${name}`,
+    `assets/animations/${name}`,
+    `assets/characters/${name}`,
   ].find(exists);
   check(`${name} is on disk`, !!candidates, candidates || 'MISSING');
 }

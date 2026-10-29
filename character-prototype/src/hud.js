@@ -35,12 +35,13 @@ export class Hud {
         <div class="grid">
           <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</div><div><kbd>Mouse</kbd> look / aim</div>
           <div><kbd>Shift</kbd> sprint</div><div><kbd>RMB</kbd> aim</div>
-          <div><kbd>Alt</kbd> walk</div><div><kbd>LMB</kbd> shoot</div>
-          <div><kbd>Space</kbd> jump</div><div><kbd>R</kbd> reload</div>
+          <div><kbd>LMB</kbd> shoot</div><div><kbd>R</kbd> reload</div>
+          <div><kbd>Space</kbd> jump</div><div><kbd>Alt</kbd> walk</div>
+          <div><kbd>X</kbd> holster / draw</div><div><kbd>Q</kbd> next weapon</div>
           <div><kbd>Ctrl</kbd> crouch</div><div><kbd>Z</kbd> prone / belly crawl</div>
-          <div><kbd>V</kbd> FPS / TPS</div><div><kbd>Q</kbd> next weapon</div>
+          <div><kbd>V</kbd> FPS / TPS</div><div><kbd>Tab</kbd> switch character</div>
           <div><kbd>1</kbd>–<kbd>9</kbd> weapons</div><div><kbd>E</kbd> refill ammo</div>
-          <div><kbd>T</kbd> reset targets</div><div><kbd>Tab</kbd> switch character</div>
+          <div><kbd>T</kbd> reset targets</div><div><kbd>RMB</kbd> aim / release</div>
           <div><kbd>H</kbd><kbd>J</kbd> damage</div><div><kbd>K</kbd> die · <kbd>G</kbd> get up</div>
         </div>
       </div>

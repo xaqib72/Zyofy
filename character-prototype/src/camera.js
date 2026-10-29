@@ -143,8 +143,10 @@ export class CameraRig {
     this.pitch = THREE.MathUtils.clamp(this.pitch, -0.45, 1.15);
     this._fpsBlend = Math.max(0, this._fpsBlend - dt * 5);
 
-    const baseDistance = prone ? 3.1 : aiming ? 2.3 : 3.9;
-    const baseShoulder = prone ? 0.35 : aiming ? 0.62 : 0.2;
+    // aiming pulls in closer, but not so close that the character covers the
+    // crosshair: 2.8 m with a 0.5 m shoulder offset keeps the body on the left
+    const baseDistance = prone ? 3.1 : aiming ? 2.8 : 3.9;
+    const baseShoulder = prone ? 0.35 : aiming ? 0.5 : 0.2;
     this._smoothDistance += (baseDistance - this._smoothDistance) * Math.min(1, dt * 8);
     this.shoulder += (baseShoulder - this.shoulder) * Math.min(1, dt * 8);
 
@@ -182,9 +184,16 @@ export class CameraRig {
       this._position.lerp(desired, Math.min(1, dt * 12));
     }
 
+    // Look *along the aim ray*, not at the character. Previously the camera was
+    // aimed at the subject, so `pitch` only orbited it and recoil/aim could never
+    // move the crosshair - the reticle sat on the character's back instead of on
+    // what the player was aiming at. With the camera offset to the shoulder and
+    // pointed down the aim ray, the crosshair and the shot agree.
     this.camera.position.copy(this._position);
-    const lookAt = this._target.clone().addScaledVector(this._right, this.shoulder * 0.65);
-    this.camera.lookAt(lookAt);
-    this.camera.rotateZ(THREE.MathUtils.clamp(controller.velocity.dot(this._right) * 0.006, -0.03, 0.03));
+    this.camera.lookAt(
+      this._position.x + this._dir.x,
+      this._position.y + this._dir.y,
+      this._position.z + this._dir.z,
+    );
   }
 }

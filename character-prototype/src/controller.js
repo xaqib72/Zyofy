@@ -75,6 +75,9 @@ export class CharacterController {
 
     this.shotsFired = 0;
     this.meleeSwings = 0;
+    // Unarmed: the weapon is holstered on the character's back, so the unarmed
+    // idle/walk/run clips are what should play and the trigger does nothing.
+    this.armed = true;
 
     this.character.setWeapon(this.weapon);
   }
@@ -85,6 +88,26 @@ export class CharacterController {
 
   get isMelee() {
     return this.def.mode === 'melee';
+  }
+
+  /** Draw or holster the current weapon (X). */
+  toggleHolster() {
+    this.armed = !this.armed;
+    this.aiming = false;
+    this.reloading = 0;
+    this.reloadDuration = 0;
+    this.chargeTimer = 0;
+    this.burstLeft = 0;
+    this.character.setArmed(this.armed);
+    this.character.setAimTarget(null);
+    if (this.armed) {
+      const clip = this.def.firePose === 'long' ? 'draw_long'
+        : this.def.firePose === 'melee' ? 'knife_idle' : 'draw_short';
+      this._startAction(clip, { timeScale: 1.6, fade: 0.12, movement: 'lock' });
+    } else {
+      this._startAction('holster_long', { timeScale: 1.6, fade: 0.12, movement: 'lock' });
+    }
+    this.onEvent('weapon', { weapon: this.weapon, armed: this.armed });
   }
 
   /* ------------------------------------------------------------------ state */
@@ -137,9 +160,30 @@ export class CharacterController {
     this._updateMovement(dt, input, camera);
     this._updateJumpAndGravity(dt, input);
     this._handleCombatInput(input);
+    this._updateAimTarget(camera);
     this._playResolvedClip();
     this.character.updateWeaponMechanics(dt, this);
     this._applyTransform();
+  }
+
+  /**
+   * Feeds the aim solve: while the player holds RMB the held weapon is rotated
+   * onto the camera's aim ray, which is what makes the barrel and the crosshair
+   * agree. Releasing aim (or dying/prone, where the pose comes from the clip)
+   * clears it, so the weapon returns to the pose's own grip.
+   */
+  _updateAimTarget(camera) {
+    const provider = this.cameraProvider;
+    const wantsAim = this.armed && this.aiming && !this.isMelee && !this.dead;
+    if (!wantsAim) {
+      this.character.setAimTarget(null);
+      return;
+    }
+    const dir = this._aimDir || (this._aimDir = new THREE.Vector3());
+    if (provider && provider.getAimDirection) provider.getAimDirection(dir);
+    else if (camera) dir.set(Math.sin(camera.yaw), 0, Math.cos(camera.yaw));
+    else this.character.setAimTarget(null);
+    this.character.setAimTarget(dir);
   }
 
   _tickTimers(dt) {
@@ -229,6 +273,7 @@ export class CharacterController {
   /* ---------------------------------------------------------------- weapons */
 
   _handleWeaponInput(input) {
+    if (input.wasPressed('KeyX')) { this.toggleHolster(); return; }
     if (input.wasPressed('KeyQ') || input.mouse.wheel > 0) this.cycleWeapon(1);
     if (input.wasPressed('KeyE')) this.refillAll();
 
@@ -286,7 +331,7 @@ export class CharacterController {
     if (wish.lengthSq() > 1) wish.normalize();
     const moving = wish.lengthSq() > 1e-4;
 
-    this.aiming = input.mouse.right && this.posture !== POSTURE_PRONE && this.grounded;
+    this.aiming = this.armed && input.mouse.right && this.posture !== POSTURE_PRONE && this.grounded;
     this.sprinting = (input.isDown('ShiftLeft') || input.isDown('ShiftRight'))
       && this.posture === POSTURE_STAND;
     this.walking = input.isDown('AltLeft') || input.isDown('AltRight');
@@ -363,6 +408,8 @@ export class CharacterController {
   _handleCombatInput(input) {
     const def = this.def;
 
+    if (!this.armed) return;
+
     if (!this.isMelee && input.wasPressed('KeyR')) this.reload();
 
     const trigger = def.mode === 'auto' || def.mode === 'pump'
@@ -393,7 +440,8 @@ export class CharacterController {
   }
 
   _canFire() {
-    return this.fireCooldown <= 0
+    return this.armed
+      && this.fireCooldown <= 0
       && this.cycleTimer <= 0
       && this.reloading <= 0
       && !this.dead
@@ -461,7 +509,12 @@ export class CharacterController {
       }
     }
 
-    this.recoilPitch += def.recoil.pitch * (this.aiming ? 0.8 : 1);
+    // Recoil raises the muzzle: in this camera a *negative* pitch delta looks up
+    // (see Camera._updateFirstPerson), so the kick is subtracted. It is also
+    // clamped, so a long automatic burst can never walk the view past the
+    // ceiling - the aim point stays recoverable instead of drifting away.
+    const kick = def.recoil.pitch * (this.aiming ? 0.8 : 1);
+    this.recoilPitch = THREE.MathUtils.clamp(this.recoilPitch - kick, -0.26, 0.26);
     this.firingPoseTimer = def.mode === 'bolt' ? 0.5 : 0.22;
 
     // Bolt-action and pump-action weapons must cycle before the next shot; the
@@ -592,6 +645,17 @@ export class CharacterController {
     const moving = this.speed > 0.12;
     const pose = this.def.firePose;
 
+    // Holstered: play the plain unarmed set, whatever weapon is selected.
+    if (!this.armed && this.posture !== POSTURE_PRONE) {
+      if (this.posture === POSTURE_CROUCH) {
+        return moving ? pickDirectional('crouch', local) : 'crouch_idle';
+      }
+      if (!moving) return 'idle';
+      if (this.sprinting && local.y > 0.38 && this.speed > 4.4) return 'sprint_fwd';
+      if (this.speed > 2.6) return pickDirectional('run', local);
+      return pickDirectional('walk', local);
+    }
+
     if (this.posture === POSTURE_PRONE) {
       if (!moving) return 'prone_idle';
       if (local.y > 0.4) return 'crawl_fwd';
@@ -625,7 +689,20 @@ export class CharacterController {
 
     if (this.firingPoseTimer > 0) return pose === 'long' ? 'rifle_fire' : 'pistol_aim_fire';
 
-    if (!moving) return pose === 'melee' ? 'knife_idle' : 'idle';
+    // Armed but not aiming: the weapon is carried in both hands, so the unarmed
+    // idle/walk clips (arms swinging free) are wrong here - they left the barrel
+    // pointing away from the body and the support hand a metre off the foregrip.
+    if (pose === 'long') {
+      if (!moving) return 'rifle_ready_idle';
+      if (this.speed > 2.6) return 'rifle_ready_run';
+      return local.y < -0.35 ? 'rifle_ready_back' : 'rifle_ready_fwd';
+    }
+    if (pose === 'short') {
+      if (!moving) return 'pistol_aim_idle';
+      return pickPistolDirectional(local);
+    }
+
+    if (!moving) return 'idle';
     if (this.sprinting && local.y > 0.38 && this.speed > 4.4) return 'sprint_fwd';
     if (this.speed > 2.6) return pickDirectional('run', local);
     return pickDirectional('walk', local);
@@ -654,6 +731,9 @@ export class CharacterController {
   }
 
   _applyTransform() {
+    // the support-hand IK is only wanted standing/crouched: prone clips pose both
+    // arms themselves, and the weapon is on the ground
+    this.character.supportHandEnabled = this.armed && this.posture !== POSTURE_PRONE;
     this.character.group.position.copy(this.position);
     // Per-rig correction so a lying body rests ON the ground plane instead of
     // sinking into it (the two rigs have different torso proportions).

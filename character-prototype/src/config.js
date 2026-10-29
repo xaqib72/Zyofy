@@ -44,8 +44,14 @@ export const CLIP_DEFS = [
   // `Crawling`, which holds the hips at 0.44 m — a hands-and-knees baby crawl —
   // so forward movement now uses `Zombie_Crawl`, a genuine flat drag where the
   // elbows and forearms pull the body along.
-  { id: 'prone_idle',    source: 'Prone_Backwards_Stop',            loop: true,  naturalSpeed: 0.0 },
+  // `Prone_Backwards_Stop` is the only military prone-idle source in the pack
+  // (its `Prone_Idle` file is a standing clip). It is a deceleration, so the
+  // first second slides the body down; `trimStart` keeps only the settled tail,
+  // otherwise every loop wrap bobbed the hips 13 cm and read as jerking.
+  { id: 'prone_idle',    source: 'Prone_Backwards_Stop',            loop: true,  naturalSpeed: 0.0, trimStart: 0.84 },
   { id: 'crawl_fwd',     source: 'Zombie_Crawl',                    loop: true,  naturalSpeed: 0.43, hipYOffset: 0.01 },
+  // `Crawl_Backwards_In_Prone` in the same pack is authored standing (hips
+  // 0.9 m), so the belly-level backward drag stays on `Crawling_Backwards`.
   { id: 'crawl_back',    source: 'Crawling_Backwards',              loop: true,  naturalSpeed: 1.45, hipYOffset: 0.02 },
   { id: 'crawl_left',    source: 'Prone_Left_Turn',                 loop: true,  naturalSpeed: 0.0, hipYOffset: 0.02 },
   { id: 'crawl_right',   source: 'Prone_Right_Turn',                loop: true,  naturalSpeed: 0.0 },
@@ -59,6 +65,15 @@ export const CLIP_DEFS = [
   { id: 'pistol_aim_right', source: 'Standing_Aim_Walk_Right',      loop: true,  naturalSpeed: 1.47 },
   { id: 'pistol_aim_back',  source: 'Pistol_Walk_Backward',         loop: true,  naturalSpeed: 1.47 },
   { id: 'crouch_aim_idle',  source: 'Idle_Crouching_Aiming',        loop: true,  naturalSpeed: 0.0 },
+
+  // ---- armed, not aiming: two-handed "ready" carry ------------------------
+  // A weapon-carry pose is not an aiming pose. These are Mixamo's rifle-carry
+  // set (`Rifle_Idle`, `Walk_With_Rifle`, `Rifle_Start_Run`,
+  // `Backwards_Rifle_Walk`): both hands on the weapon, muzzle low and forward.
+  { id: 'rifle_ready_idle', source: 'Rifle_Idle',                   loop: true,  naturalSpeed: 0.0 },
+  { id: 'rifle_ready_fwd',  source: 'Walk_With_Rifle',              loop: true,  naturalSpeed: 1.45 },
+  { id: 'rifle_ready_back', source: 'Backwards_Rifle_Walk',         loop: true,  naturalSpeed: 1.15 },
+  { id: 'rifle_ready_run',  source: 'Rifle_Start_Run',              loop: true,  naturalSpeed: 3.6 },
 
   // ---- aiming (rifle) ------------------------------------------------------
   { id: 'rifle_aim_idle',   source: 'Rifle_Aiming_Idle',            loop: true,  naturalSpeed: 0.0 },
@@ -76,15 +91,15 @@ export const CLIP_DEFS = [
   { id: 'draw_long',    source: 'Grab_Rifle_From_Back',             loop: false, naturalSpeed: 0.0 },
   { id: 'draw_short',   source: 'Rifle_Aim_To_Down',                loop: false, naturalSpeed: 0.0 },
   { id: 'holster_long', source: 'Rifle_Put_Away',                   loop: false, naturalSpeed: 0.0 },
-  { id: 'melee_stab',   source: 'Stabbing',                         loop: false, naturalSpeed: 0.0 },
-  { id: 'melee_slash',  source: 'Bayonet_Stab',                     loop: false, naturalSpeed: 0.0 },
-  { id: 'knife_idle',   source: 'Rifle_Idle',                       loop: true,  naturalSpeed: 0.0 },
+  { id: 'melee_stab',   source: 'Stabbing',                         loop: false, naturalSpeed: 0.0, keepTurn: true },
+  { id: 'melee_slash',  source: 'Bayonet_Stab',                     loop: false, naturalSpeed: 0.0, keepTurn: true },
+  { id: 'knife_idle',   source: 'Knife_Idle',                       loop: true,  naturalSpeed: 0.0 },
 
   // ---- damage / death ------------------------------------------------------
   { id: 'hit_light',     source: 'Hit_To_Body',                     loop: false, naturalSpeed: 0.0 },
   { id: 'hit_heavy',     source: 'Standing_React_Large_From_Front', loop: false, naturalSpeed: 0.0 },
-  { id: 'death_front',   source: 'Death_From_The_Front',            loop: false, naturalSpeed: 0.0 },
-  { id: 'death_back',    source: 'Standing_React_Death_Backward',   loop: false, naturalSpeed: 0.0 },
+  { id: 'death_front',   source: 'Death_From_The_Front',            loop: false, naturalSpeed: 0.0, keepTurn: true },
+  { id: 'death_back',    source: 'Standing_React_Death_Backward',   loop: false, naturalSpeed: 0.0, keepTurn: true },
 ];
 
 /** Characters. Both are Mixamo-rigged (`mixamorig:*` bones) so clips retarget 1:1 by name. */
@@ -96,7 +111,7 @@ export const CHARACTERS = [
     note: 'Mixamo "Vanguard By T. Choonyung" — tactical armour, 49-bone rig',
     heightOffset: 0.0,
     // the male rig's belly rides ~2 cm under the floor in the prone clips
-    proneLift: 0.03,
+    proneLift: 0.10,
     // this GLB is authored facing -Z, so it is wrapped in a 180 deg yaw
     modelYaw: Math.PI,
   },
@@ -107,7 +122,7 @@ export const CHARACTERS = [
     note: 'Mixamo "Michelle" — civilian tactical outfit, 65-bone rig (incl. fingers)',
     heightOffset: 0.0,
     // the female rig has a shorter torso, so its prone pose sits deeper
-    proneLift: 0.07,
+    proneLift: 0.10,
     modelYaw: 0,
   },
 ];
@@ -159,4 +174,10 @@ export const BONE_NAMES = {
   head: 'mixamorig:Head',
   rightHand: 'mixamorig:RightHand',
   leftHand: 'mixamorig:LeftHand',
+  // the support-arm chains, used by the two-bone IK that puts the left hand on
+  // the weapon instead of leaving it where the clip happened to put it
+  leftArm: 'mixamorig:LeftArm',
+  leftForeArm: 'mixamorig:LeftForeArm',
+  rightArm: 'mixamorig:RightArm',
+  rightForeArm: 'mixamorig:RightForeArm',
 };

@@ -292,6 +292,100 @@ class. `WeaponAudio.status()` reports whether recorded samples or the old
 synthesiser are live; if a browser refuses Opus the game falls back rather than
 going silent.
 
+## r7 — fix pass: weapon handling, aiming, animation
+
+This round adds no new weapons and no new systems. It inspects the running
+project, finds the root causes of the reported defects and repairs them.
+
+### 1. A baked frame of the *first* pose landed on the end of every clip
+
+`bakeClip` sampled the last frame at `t = clip.duration`. `AnimationMixer.setTime`
+treats that as past the end of a `LoopOnce` clip and wraps to `t = 0`, so the final
+baked frame held the *starting* pose. `prone_down` (1.67 s) therefore ended with one
+frame of the character standing — a 57 cm hip snap — and every looping clip wrapped
+back to a mismatched pose. That single line is what "prone jerks" was: the sampler
+now clamps to `duration - 1 ms`, and looping clips are baked with their last frame
+copied from frame 0 so a wrap is seamless.
+
+### 2. The body was spinning inside the clips
+
+Mixamo's motion carries the actor's own turning on the hips: the belly crawl turns
+the pelvis 268°, standing up from prone 358°, and the rifle-fire clip 46°. The
+controller also owns the body's facing, so those two fought each other. `bakeClip`
+now pins the hips' vertical-axis rotation to the clip's own first frame (pitch and
+roll are kept, which is what lying flat needs) and republishes the corrected world
+rotation so the spine, arms and legs are solved against it. Clips that *should*
+turn — melee swings, deaths — opt out with `keepTurn: true` in `CLIP_DEFS`.
+Measured hip-yaw travel: `prone_stand` 358° → 0°, `crawl_fwd` 268° → 0°,
+`rifle_fire` 46° → 0°.
+
+### 3. Armed idle was the *unarmed* idle
+
+`_locomotionClip` fell through to `idle`, `walk_*` and `run_*` whenever the player
+was not aiming, so the rifle stayed welded to a hand that was swinging free: the
+barrel measured **111° off the body's forward axis**, the muzzle hung at 0.53 m and
+the support hand was **0.95 m** from the foregrip. There is now a real two-handed
+carry set — `Rifle_Idle`, `Walk_With_Rifle`, `Backwards_Rifle_Walk`,
+`Rifle_Start_Run` from the same Mixamo pack — plus `Knife_Idle` for the blade
+(previously the knife idle was literally a rifle idle). Armed idle now reads 5°,
+muzzle 1.10 m, support hand 5 cm.
+
+`X` holsters the weapon, which is what gives the project a genuine unarmed idle
+instead of leaving the unarmed clips unreachable.
+
+### 4. Weapon orientation was one blanket world-space offset
+
+`alignWeaponToHand` set the weapon's *world* rotation to a fixed pitch-only Euler in
+whichever pose it was sampled — no per-weapon data at all. It now takes the weapon's
+own bore line (grip origin → that model's muzzle node) and rotates that onto the
+*character's* forward axis, which no longer depends on the model's authored yaw, plus
+a per-weapon `attach` trim from the catalogue. Because the axis comes from the model
+itself, every weapon is corrected for its own geometry.
+
+### 5. The support hand never touched the weapon
+
+The retargeted clips pose the left arm for their own invisible weapon, so the hand
+floated 20–46 cm away. A two-bone IK solve (`Character._updateSupportHand`) now welds
+the left hand to a point on the active weapon's bore line — under the barrel, at 52 %
+of its length for long guns and 24 % for pistols — through recoil, reload and aim.
+It is skipped while prone and while holstered, where the clip owns both arms.
+
+### 6. Aiming did not aim
+
+Three separate faults:
+
+* **The TPS camera looked at the character, not down the aim ray.** `pitch` only
+  orbited the camera, so moving the mouse up or down could not move the crosshair at
+  all, and recoil could not move it either. The camera now looks along the aim ray,
+  offset to the shoulder — the crosshair is the shot.
+* **Recoil was inverted.** In this camera a *negative* pitch delta looks up; the
+  kick was being added, i.e. the weapon was being pushed *down*. It is now subtracted
+  and clamped to ±0.26 rad, so automatic fire climbs and recovers instead of walking
+  the view off target (measured over a 4 s burst: −0.053 … 0.000 rad, camera yaw
+  drift 0.00°, base pitch untouched).
+* **The weapon ignored the camera.** `Character._updateAimSolve` rotates the held
+  weapon about its grip onto the camera's aim ray while RMB is held, clamped to 18°
+  so it reads as the arm taking up the angle rather than a turret. Barrel vs aim ray
+  went from **18.1° to 0.2°**.
+
+### 7. Prone idle was a deceleration clip
+
+`Prone_Backwards_Stop` slides the body 13 cm down and then keeps drifting; looped, it
+bobbed the hips ~40 mm every 0.37 s. It is now trimmed to its settled tail
+(`trimStart: 0.84`); the packed `Prone_Idle` file was tried first but it is authored
+standing (hips 1.0 m), as is `Crawl_Backwards_In_Prone`. Measured over 10 s with all
+keys released: 0 clip changes, hips 0.13 m, per-frame motion below 1 mm — breathing
+only.
+
+### What this round did **not** do
+
+* There is still only one FPS arms asset (the AK-47 viewmodel, CC BY 4.0); the other
+  18 weapons reuse its hands in first person.
+* No browser or live-input testing was available here. Everything above is measured
+  headlessly against the real GLB files by `npm run verify-integration`, which
+  simulates the actual controller at 60 Hz. Visual quality, material look and how the
+  animation *reads* still need a human in the browser.
+
 ## Controls
 
 | Input | Action |
@@ -413,6 +507,7 @@ node-name sanitisation:
 | `npm run verify-assets` | 73 assertions: every file documented in ASSETS.md exists, all 19 weapon GLBs load and mount, the FPS rig exposes its clips and gun bones with an auto-aligned barrel, 12 real Ogg sound files, the 1024² particle atlas |
 | `npm run verify-weapons` | 114 assertions: 19 downloaded meshes are geometrically distinct, the muzzle end is correctly identified on every one, all mount on both rigs, the assets' own parts animate, fire-mode config |
 | `npm run verify-controls` | 100 assertions: walkthrough, single-action invariant, belly-crawl heights on **both rigs**, exclusive states, FPS/TPS state preservation and aim alignment, every weapon's fire + reload + mechanics, ammunition accounting, range hitscan in both camera modes, melee reach |
+| `npm run verify-integration` | 64 assertions for the r7 fix brief: armed idle held for 10 s, armed walk/run/sprint, aim ray vs barrel, recoil direction and bounds, reload in place for four weapons, prone entry/crawl/get-up, and grip + barrel + aim + fire on all 19 weapons |
 | `npm run verify-browser` | loads the GLBs with the **real `GLTFLoader`** the page uses (images stripped, since Node has no DOM) and asserts prepareRetarget / bakeClip / mixer binding for all 40 clips on both rigs |
 
 Current results: 40/40 clips retarget, worst clip fidelity 5.3° mean, all 4 weapon mounts
