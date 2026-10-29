@@ -30,11 +30,14 @@ export const CLIP_DEFS = [
   { id: 'jump_land',     source: 'Fall_B_Land_To_Standing_Idle',    loop: false, naturalSpeed: 0.0 },
 
   // ---- crouch --------------------------------------------------------------
-  { id: 'crouch_idle',   source: 'Crouch_Idle_01',                  loop: true,  naturalSpeed: 0.0 },
+  // `Crouch_Idle_01` is a crouch->standing transition (hips sweep 0.56 -> 1.03 m),
+  // so it bobbed the character up and down; `Crouch_Idle` is a true 6.7 s loop at
+  // a constant 0.46 m hip height.
+  { id: 'crouch_idle',   source: 'Crouch_Idle',                     loop: true,  naturalSpeed: 0.0 },
   { id: 'crouch_fwd',    source: 'Walk_Crouching_Forward',          loop: true,  naturalSpeed: 2.05 },
   { id: 'crouch_back',   source: 'Crouch_Walk_Back',                loop: true,  naturalSpeed: 1.28 },
   { id: 'crouch_left',   source: 'Crouch_Walk_Left',                loop: true,  naturalSpeed: 1.42 },
-  { id: 'crouch_right',  source: 'Crouched_Sneaking_Right',         loop: true,  naturalSpeed: 0.58 },
+  { id: 'crouch_right',  source: 'Crouched_Sneaking_Right',         loop: true,  naturalSpeed: 1.13 },
   { id: 'crouch_stand',  source: 'Crouch_To_Standing_With_Rifle',   loop: false, naturalSpeed: 0.0 },
 
   // ---- prone ---------------------------------------------------------------
@@ -52,7 +55,7 @@ export const CLIP_DEFS = [
   { id: 'crawl_fwd',     source: 'Zombie_Crawl',                    loop: true,  naturalSpeed: 0.43, hipYOffset: 0.01 },
   // `Crawl_Backwards_In_Prone` in the same pack is authored standing (hips
   // 0.9 m), so the belly-level backward drag stays on `Crawling_Backwards`.
-  { id: 'crawl_back',    source: 'Crawling_Backwards',              loop: true,  naturalSpeed: 1.45, hipYOffset: 0.02 },
+  { id: 'crawl_back',    source: 'Crawling_Backwards',              loop: true,  naturalSpeed: 0.88, hipYOffset: 0.02 },
   { id: 'crawl_left',    source: 'Prone_Left_Turn',                 loop: true,  naturalSpeed: 0.0, hipYOffset: 0.02 },
   { id: 'crawl_right',   source: 'Prone_Right_Turn',                loop: true,  naturalSpeed: 0.0 },
   { id: 'prone_down',    source: 'Burpee_Start',                    loop: false, naturalSpeed: 0.0 },
@@ -60,7 +63,10 @@ export const CLIP_DEFS = [
 
   // ---- aiming (pistol) -----------------------------------------------------
   { id: 'pistol_aim_idle',  source: 'Pistol_Idle',                  loop: true,  naturalSpeed: 0.0 },
-  { id: 'pistol_aim_fire',  source: 'Gunplay',                      loop: true,  naturalSpeed: 0.0 },
+  // `Gunplay` drops the hips from 0.92 m to 0.48 m, so as a firing pose it looked
+  // like the character crouching on every shot. The pistol family keeps its aim
+  // stance and shows the shot through the weapon kick and camera recoil instead.
+  { id: 'pistol_aim_fire',  source: 'Pistol_Idle',                  loop: true,  naturalSpeed: 0.0 },
   { id: 'pistol_aim_left',  source: 'Pistol_Strafe',                loop: true,  naturalSpeed: 2.26 },
   { id: 'pistol_aim_right', source: 'Standing_Aim_Walk_Right',      loop: true,  naturalSpeed: 1.47 },
   { id: 'pistol_aim_back',  source: 'Pistol_Walk_Backward',         loop: true,  naturalSpeed: 1.47 },
@@ -70,14 +76,19 @@ export const CLIP_DEFS = [
   // A weapon-carry pose is not an aiming pose. These are Mixamo's rifle-carry
   // set (`Rifle_Idle`, `Walk_With_Rifle`, `Rifle_Start_Run`,
   // `Backwards_Rifle_Walk`): both hands on the weapon, muzzle low and forward.
+  // naturalSpeed is the ground speed the clip's own stride covers, measured from
+  // the source hip trajectory (see scripts/verify-integration.mjs); if it does not
+  // match the speed the controller moves the character at, the feet skate.
   { id: 'rifle_ready_idle', source: 'Rifle_Idle',                   loop: true,  naturalSpeed: 0.0 },
-  { id: 'rifle_ready_fwd',  source: 'Walk_With_Rifle',              loop: true,  naturalSpeed: 1.45 },
-  { id: 'rifle_ready_back', source: 'Backwards_Rifle_Walk',         loop: true,  naturalSpeed: 1.15 },
-  { id: 'rifle_ready_run',  source: 'Rifle_Start_Run',              loop: true,  naturalSpeed: 3.6 },
+  { id: 'rifle_ready_fwd',  source: 'Walk_With_Rifle',              loop: true,  naturalSpeed: 2.54 },
+  { id: 'rifle_ready_run',  source: 'Rifle_Run',                    loop: true,  naturalSpeed: 3.16 },
 
   // ---- aiming (rifle) ------------------------------------------------------
   { id: 'rifle_aim_idle',   source: 'Rifle_Aiming_Idle',            loop: true,  naturalSpeed: 0.0 },
-  { id: 'rifle_aim_walk',   source: 'Rifle_Walk',                   loop: true,  naturalSpeed: 1.46 },
+  // `Rifle_Walk` is mislabelled in the pack: its hips rise from 0.80 m to 1.50 m
+  // mid-clip, which read as the character bobbing/jumping while aiming. This is
+  // `Standing_Aim_Walk_Right`, a clean 0.86-0.92 m aim walk.
+  { id: 'rifle_aim_walk',   source: 'Standing_Aim_Walk_Right',      loop: true,  naturalSpeed: 1.47 },
   { id: 'rifle_aim_run',    source: 'Rifle_Run',                    loop: true,  naturalSpeed: 3.15 },
   { id: 'rifle_fire',       source: 'Firing_Rifle',                 loop: true,  naturalSpeed: 0.0 },
 
@@ -93,7 +104,10 @@ export const CLIP_DEFS = [
   { id: 'holster_long', source: 'Rifle_Put_Away',                   loop: false, naturalSpeed: 0.0 },
   { id: 'melee_stab',   source: 'Stabbing',                         loop: false, naturalSpeed: 0.0, keepTurn: true },
   { id: 'melee_slash',  source: 'Bayonet_Stab',                     loop: false, naturalSpeed: 0.0, keepTurn: true },
-  { id: 'knife_idle',   source: 'Knife_Idle',                       loop: true,  naturalSpeed: 0.0 },
+  // The pack's `Knife_Idle` is a 4.3 m lunge that drops the hips to 0.79 m, so it
+  // cannot loop as an idle. The knife is held in the neutral standing idle, which
+  // is still distinct from every firearm pose.
+  { id: 'knife_idle',   source: 'Idle',                             loop: true,  naturalSpeed: 0.0 },
 
   // ---- damage / death ------------------------------------------------------
   { id: 'hit_light',     source: 'Hit_To_Body',                     loop: false, naturalSpeed: 0.0 },

@@ -692,10 +692,13 @@ export class CharacterController {
     // Armed but not aiming: the weapon is carried in both hands, so the unarmed
     // idle/walk clips (arms swinging free) are wrong here - they left the barrel
     // pointing away from the body and the support hand a metre off the foregrip.
+    // Armed carry locomotion. There is no usable backwards-carry clip in the
+    // source pack (its `Backwards_Rifle_Walk` actually ends lying on the floor),
+    // and the body turns to face the direction of travel anyway, so backwards and
+    // strafing movement use the same forward stride as running does.
     if (pose === 'long') {
       if (!moving) return 'rifle_ready_idle';
-      if (this.speed > 2.6) return 'rifle_ready_run';
-      return local.y < -0.35 ? 'rifle_ready_back' : 'rifle_ready_fwd';
+      return this.speed > 2.6 ? 'rifle_ready_run' : 'rifle_ready_fwd';
     }
     if (pose === 'short') {
       if (!moving) return 'pistol_aim_idle';

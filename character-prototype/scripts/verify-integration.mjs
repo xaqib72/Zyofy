@@ -425,5 +425,69 @@ frame();
 run(120, () => hold());
 check('X draws the weapon again', ctrl.armed === true && character.currentId === 'rifle_ready_idle', character.currentId);
 
+/* ------------------------------------------- 11. locomotion: feet vs ground */
+
+console.log('\n=== 11. locomotion: the stride must match the ground speed ===');
+for (const [keys, label] of [
+  [['KeyW', 'AltLeft'], 'walk 1.7 m/s'],
+  [['KeyW'], 'run 4.6 m/s'],
+  [['KeyW', 'ShiftLeft'], 'sprint 6.3 m/s'],
+]) {
+  hold();
+  ctrl.equip('m4a1');
+  run(180, hold);
+  ctrl.position.set(0, 0, 0);
+  run(60, () => { hold(); for (const k of keys) input.keys.add(k); });
+  const p0 = ctrl.position.clone();
+  const clip = character.currentId;
+  const rate = ctrl._locomotionRate();
+  const natural = (CLIP_DEFS.find((d) => d.id === clip) || {}).naturalSpeed || 0;
+  run(120);
+  const travelSpeed = ctrl.position.clone().sub(p0).setY(0).length() / 2;
+  const strideSpeed = natural * rate;
+  const slide = travelSpeed > 0.05 ? Math.abs(strideSpeed - travelSpeed) / travelSpeed : 1;
+  check(`armed ${label}: feet match the ground`, slide < 0.15,
+    `moves ${travelSpeed.toFixed(2)} m/s, stride ${strideSpeed.toFixed(2)} m/s (${(slide * 100).toFixed(0)}% slip), clip ${clip}`);
+  hold();
+  run(60);
+}
+
+/* --------------------------------- 12. no looping clip bobs or stands up ---- */
+
+console.log('\n=== 12. looping clips stay at a constant body height ===');
+const LOOPING = ['idle', 'walk_fwd', 'run_fwd', 'sprint_fwd', 'crouch_idle', 'crouch_fwd',
+  'rifle_ready_idle', 'rifle_ready_fwd', 'rifle_ready_run', 'rifle_aim_idle', 'rifle_aim_walk',
+  'rifle_aim_run', 'pistol_aim_idle', 'pistol_aim_fire', 'knife_idle', 'prone_idle',
+  'crawl_fwd', 'crawl_back', 'crawl_left', 'crawl_right'];
+const bobbing = [];
+for (const id of LOOPING) {
+  const action = character.actions.get(id);
+  if (!action) { bobbing.push(`${id}: missing`); continue; }
+  character.mixer.stopAllAction();
+  action.reset().play();
+  let minY = Infinity; let maxY = -Infinity;
+  for (let i = 0; i < 90; i += 1) {
+    character.mixer.update(1 / 60);
+    character.root.updateMatrixWorld(true);
+    const y = character.bones.hips.getWorldPosition(new THREE.Vector3()).y;
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  action.stop();
+  const range = maxY - minY;
+  // a run has a flight phase, so its hips legitimately rise and fall ~10 cm per
+  // stride; walks, idles and aim stances should stay flat. The failures this
+  // catches were 40-70 cm excursions from mislabelled transition clips.
+  const maxAllowed = /(^crawl|^prone)/.test(id) ? 0.24
+    : /^(run_|sprint_|rifle_ready_run|rifle_aim_run)/.test(id) ? 0.14 : 0.09;
+  if (range > maxAllowed) bobbing.push(`${id}: ${(range * 100).toFixed(0)} cm`);
+}
+check('every looping clip holds its body height', bobbing.length === 0,
+  bobbing.length ? bobbing.join(', ') : `${LOOPING.length} clips flat (9 cm walk/idle, 14 cm run, 24 cm crawl)`);
+character.mixer.stopAllAction();
+character.play('idle', { fade: 0 });
+run(30, hold);
+ctrl.equip('m4a1');
+run(120, hold);
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 if (failures) process.exitCode = 1;

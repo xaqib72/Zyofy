@@ -377,6 +377,29 @@ standing (hips 1.0 m), as is `Crawl_Backwards_In_Prone`. Measured over 10 s with
 keys released: 0 clip changes, hips 0.13 m, per-frame motion below 1 mm — breathing
 only.
 
+### 8. The source pack is full of mislabelled clips — pick by measurement
+
+The animation mirror was treated as trustworthy-by-filename in r6/r7, and it is
+not. Measuring every one of its 885 clips (hip-height range + ground travel per
+second) showed several slots had been filled with the wrong motion, which is what
+made movement *look* wrong:
+
+| slot | was | measured problem | now |
+| --- | --- | --- | --- |
+| `rifle_ready_fwd` | `Walk_With_Rifle` | stride 2.54 m/s, driven at 1.45 → **75 % foot skate** | `naturalSpeed: 2.54` |
+| `rifle_ready_run` | `Rifle_Start_Run` | a start-run *transition*, not a loop | `Rifle_Run` (3.16 m/s) |
+| `rifle_aim_walk` | `Rifle_Walk` | hips rise 0.80 → 1.50 m mid-clip: bobbing/jumping | `Standing_Aim_Walk_Right` |
+| `rifle_ready_back` | `Backwards_Rifle_Walk` | clip ends **lying on the floor** (hips 0.20 m) | removed; the body turns to face travel |
+| `crouch_idle` | `Crouch_Idle_01` | a crouch→stand transition (0.56 → 1.03 m) | `Crouch_Idle`, a real 6.7 s loop |
+| `knife_idle` | `Knife_Idle` | a 4.3 m lunge that dips to 0.79 m | neutral standing idle |
+| `pistol_aim_fire` | `Gunplay` | crouch-and-rise (0.92 → 0.48 m) on every shot | aim stance + weapon kick |
+| `crawl_back` / `crouch_right` | — | configured stride off by 40–60 % | measured values |
+
+`scripts/_scanclips.mjs` regenerates that measurement table for the whole pack.
+Two new integration sections lock the result in: **the stride must match the
+ground speed** (walk/run/sprint all measure 0–5 % slip) and **no looping clip may
+stand up or bob** (walk/idle ≤ 9 cm, run ≤ 14 cm, crawl ≤ 24 cm of hip travel).
+
 ### What this round did **not** do
 
 * There is still only one FPS arms asset (the AK-47 viewmodel, CC BY 4.0); the other

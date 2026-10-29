@@ -88,9 +88,19 @@ the fix brief asked for — a two-handed weapon carry and a knife pose:
 | --- | --- | --- |
 | `rifle_ready_idle.glb` | `Rifle_Idle` | armed idle: both hands on the weapon |
 | `rifle_ready_fwd.glb` | `Walk_With_Rifle` | armed walk |
-| `rifle_ready_back.glb` | `Backwards_Rifle_Walk` | armed walk backwards |
-| `rifle_ready_run.glb` | `Rifle_Start_Run` | armed run |
-| `knife_idle.glb` | `Knife_Idle` | replaced `Rifle_Idle`, which had been standing in as the *knife* idle |
+| `rifle_ready_run.glb` | `Rifle_Run` | armed run |
+| `rifle_aim_walk.glb` | `Standing_Aim_Walk_Right` | aim-walk (the pack's `Rifle_Walk` is a transition whose hips rise 0.7 m) |
+| `crouch_idle.glb` | `Crouch_Idle` | crouch loop (the pack's `Crouch_Idle_01` is a crouch→stand transition) |
+| `knife_idle.glb` | `Idle` | the pack's `Knife_Idle` is a 4.3 m lunge, so it cannot loop as an idle |
+| `pistol_aim_fire.glb` | `Pistol_Idle` | the pack's `Gunplay` is a crouch-and-rise, not a shot |
+
+**Measured, not assumed.** This pack is full of mislabelled files — `Prone_Idle`
+is authored standing, `Backwards_Rifle_Walk` ends lying on the floor and
+`Crouch_Idle_01` stands up. Every clip used here was therefore chosen from
+measurements of its own hip trajectory (duration, hip-height range, ground travel
+per second) rather than from its filename; `scripts/_scanclips.mjs` produces that
+table for the whole 885-clip pack, and `naturalSpeed` values in `src/config.js` are
+the measured stride speeds, so the feet do not skate.
 
 ## Not obtainable
 
